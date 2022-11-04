@@ -1,4 +1,4 @@
-module git.nwo.dev/go/andcli
+module github.com/tjblackheart/andcli
 
 go 1.19
 

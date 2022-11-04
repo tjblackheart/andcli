@@ -11,7 +11,7 @@ At the moment andcli can handle encrypted backups from the following providers:
 
 ## Installation
 
-Download a [prebuild release](#) and place it somewhere in your path. If you have Go installed you can build it yourself: `go install github.com/tjblackheart/andcli@latest`.
+Download a [prebuild release](https://github.com/tjblackheart/andcli/releases) and place it somewhere in your path. If you have Go installed you can build it yourself: `go install github.com/tjblackheart/andcli@latest`.
 
 ## Usage
 
