@@ -1,0 +1,23 @@
+GOVER=$(shell go version | sed 's/^.*go\([0-9.]*\).*/\1/')
+COMMIT=$(shell git rev-parse --short HEAD)
+NOW=$(shell date --rfc-3339=seconds)
+FLAGS=-s -w -X 'main.commit=$(COMMIT)' -X 'main.gover=$(GOVER)' -X 'main.date=$(NOW)'
+
+# set local vars without pipeline access
+TAG=$(shell git describe --tags --abbrev=0)
+ARCH=$(shell go env GOARCH)
+
+build: clean
+	go build -ldflags="$(FLAGS) -X 'main.tag=$(TAG)' -X 'main.arch=$(ARCH)'" -o bin/andcli ./...
+
+ci:
+	go build -ldflags="$(FLAGS) -X 'main.tag=$(CI_TAG)' -X 'main.arch=$(GOARCH)'" -o bin/andcli_$(RELEASE) ./...
+
+compress: local
+	upx bin/andcli
+
+clean:
+	rm -rf bin/*
+
+docs:
+	vhs < demo.tape

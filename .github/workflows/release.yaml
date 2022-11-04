@@ -1,0 +1,63 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - v*
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-go@v3
+      with:
+        go-version: "1.19"
+        check-latest: true
+        cache: true
+
+    - name: Download modules
+      run: go mod download
+
+    - name: Get tag
+      id: get_tag
+      run: echo ::set-output name=TAG::${GITHUB_REF/refs\/tags\//}
+      shell: bash
+
+    - name: Build linux
+      env:
+        CI_TAG: ${{ steps.get_tag.outputs.TAG }}
+        GOOS: linux
+        GOARCH: amd64
+        RELEASE: ${{ steps.get_tag.outputs.TAG }}_linux_amd64
+      run: make ci
+
+    - name: Build darwin_amd64
+      env:
+        CI_TAG: ${{ steps.get_tag.outputs.TAG }}
+        GOOS: darwin
+        GOARCH: amd64
+        RELEASE: ${{ steps.get_tag.outputs.TAG }}_darwin_amd64
+      run: make ci
+
+    - name: Build darwin_arm64
+      env:
+        CI_TAG: ${{ steps.get_tag.outputs.TAG }}
+        GOOS: darwin
+        GOARCH: arm64
+        RELEASE: ${{ steps.get_tag.outputs.TAG }}_darwin_arm64
+      run: make ci
+
+    - name: Build windows
+      env:
+        CI_TAG: ${{ steps.get_tag.outputs.TAG }}
+        GOOS: windows
+        GOARCH: amd64
+        RELEASE: ${{ steps.get_tag.outputs.TAG }}_win_amd64
+      run: make ci
+
+    - name: Release
+      uses: ncipollo/release-action@v1
+      with:
+        artifacts: "bin/*"
+        token: ${{ secrets.GITHUB_TOKEN }}
