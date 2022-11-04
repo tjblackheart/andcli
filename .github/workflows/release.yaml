@@ -53,7 +53,7 @@ jobs:
         CI_TAG: ${{ steps.get_tag.outputs.TAG }}
         GOOS: windows
         GOARCH: amd64
-        RELEASE: ${{ steps.get_tag.outputs.TAG }}_win_amd64
+        RELEASE: ${{ steps.get_tag.outputs.TAG }}_win_amd64.exe
       run: make ci
 
     - name: Release
