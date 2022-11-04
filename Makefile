@@ -13,7 +13,7 @@ build: clean
 ci:
 	go build -ldflags="$(FLAGS) -X 'main.tag=$(CI_TAG)' -X 'main.arch=$(GOARCH)'" -o bin/andcli_$(RELEASE) ./...
 
-compress: local
+compress: build
 	upx bin/andcli
 
 clean:
