@@ -10,8 +10,10 @@ import (
 	"golang.org/x/term"
 )
 
-const ANDOTP = "andotp"
-const AEGIS = "aegis"
+const (
+	ANDOTP = "andotp"
+	AEGIS  = "aegis"
+)
 
 type entry struct {
 	Secret    string
@@ -58,7 +60,7 @@ func decrypt(vaultFile, vaultType string) ([]entry, error) {
 	case AEGIS:
 		return decryptAEGIS(b, pass)
 	default:
-		return nil, fmt.Errorf("type %s: not implemented", vaultType)
+		return nil, fmt.Errorf("vault type %q: not implemented", vaultType)
 	}
 }
 

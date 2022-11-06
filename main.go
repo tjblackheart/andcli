@@ -25,9 +25,12 @@ var (
 	tag    = ""
 )
 
-func main() {
+func init() {
 	initConfig()
+	log.SetFlags(0)
+}
 
+func main() {
 	var vaultFile, vaultType string
 	var showVersion bool
 
@@ -37,38 +40,41 @@ func main() {
 	flag.Parse()
 
 	if showVersion {
-		fmt.Printf("%s %s %s (%s) built on %s with go version %s\n", app, tag, arch, commit, date, gover)
+		fmt.Printf(
+			"%s %s %s (%s) built on %s with go version %s\n",
+			app, tag, arch, commit, date, gover,
+		)
 		os.Exit(0)
 	}
 
 	c := configFromFile(vaultFile, vaultType)
 	if c.File == "" {
-		log.Fatal("missing input file, specify one with -f")
+		log.Fatal("[ERR] missing input file, specify one with -f")
 	}
 
 	if c.Type == "" {
-		log.Fatal("missing db type, specify one with -t")
+		log.Fatal("[ERR] missing vault type, specify one with -t")
 	}
 
 	abs, err := filepath.Abs(c.File)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("[ERR] ", err)
 	}
 
 	entries, err := decrypt(abs, c.Type)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("[ERR] ", err)
 	}
 
 	if err := c.save(); err != nil {
-		log.Fatal(err)
+		log.Fatal("[ERR] ", err)
 	}
 
 	termenv.ClearScreen()
 
 	p := tea.NewProgram(newModel(c.File, entries))
 	if err := p.Start(); err != nil {
-		log.Fatal(err)
+		log.Fatal("[ERR] ", err)
 	}
 }
 
@@ -77,7 +83,7 @@ func initConfig() {
 
 	cfgDir, err = os.UserConfigDir()
 	if err != nil {
-		log.Fatal("open config dir: ", err)
+		log.Fatal("[ERR] open config dir: ", err)
 	}
 
 	cfgDir = filepath.Join(cfgDir, app)

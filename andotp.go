@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/grijul/go-andotp/andotp"
 )
@@ -38,10 +37,10 @@ func (e andotpEntry) toEntry() *entry {
 func decryptANDOTP(data, password []byte) ([]entry, error) {
 	b, err := andotp.Decrypt(data, string(password))
 	if err != nil {
-		return nil, fmt.Errorf("decryptANDOTP: %s", err)
+		return nil, err
 	}
 
-	entries := make([]entry, 0)
+	var entries []entry
 	if err := json.Unmarshal(b, &entries); err != nil {
 		return nil, err
 	}

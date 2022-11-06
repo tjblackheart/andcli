@@ -6,7 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
-	"fmt"
+	"errors"
 
 	"golang.org/x/crypto/scrypt"
 )
@@ -16,12 +16,12 @@ type (
 		Version int
 		Header  struct {
 			Slots []struct {
-				Type      int
-				UUID, Key string
-				KeyParams struct{ Nonce, Tag string } `json:"key_params"`
-				N, R, P   int
-				Salt      string
-				Repaired  bool
+				Type, N, R, P   int
+				UUID, Key, Salt string
+				Repaired        bool
+				KeyParams       struct {
+					Nonce, Tag string
+				} `json:"key_params"`
 			}
 			Params struct{ Nonce, Tag string }
 		}
@@ -60,25 +60,22 @@ func (e aegisEntry) toEntry() *entry {
 func decryptAEGIS(data, password []byte) ([]entry, error) {
 	var vault aegisVault
 	if err := json.Unmarshal(data, &vault); err != nil {
-		return nil, fmt.Errorf("aegis: %s", err)
+		return nil, err
 	}
 
-	// decrypt master key
 	masterKey, err := deriveAegisMasterKey(&vault, password)
 	if err != nil {
-		return nil, fmt.Errorf("aegis: master key: %s", err)
+		return nil, err
 	}
 
-	// decrypt DB
 	plain, err := decryptAegisDB(&vault, masterKey)
 	if err != nil {
-		return nil, fmt.Errorf("aegis: decrypt DB: %s", err)
+		return nil, err
 	}
 
-	// convert entries
 	var db aegisDB
 	if err := json.Unmarshal(plain, &db); err != nil {
-		return nil, fmt.Errorf("aegis: unmarshal: %s", err)
+		return nil, err
 	}
 
 	var entries []entry
@@ -90,35 +87,28 @@ func decryptAEGIS(data, password []byte) ([]entry, error) {
 }
 
 func deriveAegisMasterKey(v *aegisVault, password []byte) ([]byte, error) {
-	var n, r, p int
 	var salt, keyNonce, keyTag, key, derivedKey []byte
 	var err error
 
 	for _, s := range v.Header.Slots {
 		if s.Type == 1 {
-			n, r, p = s.N, s.R, s.P
-
-			salt, err = hex.DecodeString(s.Salt)
-			if err != nil {
-				return nil, fmt.Errorf("aegis: decode salt: %s", err)
+			if salt, err = hex.DecodeString(s.Salt); err != nil {
+				return nil, err
 			}
 
-			keyNonce, err = hex.DecodeString(s.KeyParams.Nonce)
-			if err != nil {
-				return nil, fmt.Errorf("aegis: decode keyNonce: %s", err)
+			if keyNonce, err = hex.DecodeString(s.KeyParams.Nonce); err != nil {
+				return nil, err
 			}
 
-			keyTag, err = hex.DecodeString(s.KeyParams.Tag)
-			if err != nil {
-				return nil, fmt.Errorf("aegis: decode keyTag: %s", err)
+			if keyTag, err = hex.DecodeString(s.KeyParams.Tag); err != nil {
+				return nil, err
 			}
 
-			key, err = hex.DecodeString(s.Key)
-			if err != nil {
-				return nil, fmt.Errorf("aegis: decode key: %s", err)
+			if key, err = hex.DecodeString(s.Key); err != nil {
+				return nil, err
 			}
 
-			derivedKey, err = scrypt.Key(password, salt, n, r, p, 32)
+			derivedKey, err = scrypt.Key(password, salt, s.N, s.R, s.P, 32)
 			if err != nil {
 				continue
 			}
@@ -126,56 +116,56 @@ func deriveAegisMasterKey(v *aegisVault, password []byte) ([]byte, error) {
 	}
 
 	if derivedKey == nil {
-		return nil, fmt.Errorf("aegis: could not derive master key from password")
+		return nil, errors.New("could not derive master key from password")
 	}
 
 	block, err := aes.NewCipher(derivedKey)
 	if err != nil {
-		return nil, fmt.Errorf("aegis: new cipher: %s", err)
+		return nil, err
 	}
 
 	gcm, err := cipher.NewGCM(block)
 	if err != nil {
-		return nil, fmt.Errorf("aegis: new gcm: %s", err)
+		return nil, err
 	}
 
-	var enc []byte
-	enc = append(enc, key...)
-	enc = append(enc, keyTag...)
+	var c []byte
+	c = append(c, key...)
+	c = append(c, keyTag...)
 
-	masterKey, err := gcm.Open(nil, keyNonce, enc, nil)
+	masterKey, err := gcm.Open(nil, keyNonce, c, nil)
 	if err != nil {
-		return nil, fmt.Errorf("aegis: decrypt master key: %s", err)
+		return nil, err
 	}
 
 	return masterKey, nil
 }
 
-func decryptAegisDB(v *aegisVault, masterKey []byte) ([]byte, error) {
+func decryptAegisDB(v *aegisVault, key []byte) ([]byte, error) {
 	// decrypt DB with master key
-	block, err := aes.NewCipher(masterKey)
+	block, err := aes.NewCipher(key)
 	if err != nil {
-		return nil, fmt.Errorf("aegis: new cipher: %s", err)
+		return nil, err
 	}
 
 	gcm, err := cipher.NewGCM(block)
 	if err != nil {
-		return nil, fmt.Errorf("aegis: new gcm: %s", err)
+		return nil, err
 	}
 
 	nonce, err := hex.DecodeString(v.Header.Params.Nonce)
 	if err != nil {
-		return nil, fmt.Errorf("aegis: decode nonce: %s", err)
+		return nil, err
 	}
 
 	b, err := base64.StdEncoding.DecodeString(v.DB)
 	if err != nil {
-		return nil, fmt.Errorf("aegis: decrypt db: %s", err)
+		return nil, err
 	}
 
 	tag, err := hex.DecodeString(v.Header.Params.Tag)
 	if err != nil {
-		return nil, fmt.Errorf("aegis: tag: %s", err)
+		return nil, err
 	}
 
 	var enc []byte
@@ -184,7 +174,7 @@ func decryptAegisDB(v *aegisVault, masterKey []byte) ([]byte, error) {
 
 	plain, err := gcm.Open(nil, nonce, enc, nil)
 	if err != nil {
-		return nil, fmt.Errorf("aegis: decrypt: %s", err)
+		return nil, err
 	}
 
 	return plain, nil
