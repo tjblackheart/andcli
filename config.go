@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 
 	"gopkg.in/yaml.v3"
 )
@@ -13,45 +14,55 @@ type config struct {
 	Type string `yaml:"type"`
 }
 
-func configFromFile(vaultFile, vaultType string) *config {
-	var c = &config{File: vaultFile, Type: vaultType}
+func configFromFile(vaultFile, vaultType string) (*config, error) {
+	var err error
+
+	if vaultFile != "" {
+		vaultFile, err = filepath.Abs(vaultFile)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	cfg := &config{File: vaultFile, Type: vaultType}
 
 	// create dir if not existing
-	if _, err := os.Stat(cfgDir); err != nil {
+	if _, err = os.Stat(cfgDir); err != nil {
 		if os.IsNotExist(err) {
 			if err := os.MkdirAll(cfgDir, 0755); err != nil {
-				log.Fatal("create config dir:", err)
+				return nil, err
 			}
 		}
 	}
 
-	if _, err := os.Stat(cfgFile); err != nil {
+	if _, err = os.Stat(cfgFile); err != nil {
 		if os.IsNotExist(err) {
-			return c
+			return cfg, nil
 		}
-		log.Fatal(err)
+		return nil, err
 	}
 
 	b, err := os.ReadFile(cfgFile)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
-	if err := yaml.Unmarshal(b, &c); err != nil {
-		log.Fatal(err)
+	if err := yaml.Unmarshal(b, &cfg); err != nil {
+		return nil, err
 	}
 
+	// override saved state with given params, if any.
 	if vaultFile != "" {
-		c.File = vaultFile
+		cfg.File = vaultFile
 	}
 
 	if vaultType != "" {
-		c.Type = vaultType
+		cfg.Type = vaultType
 	}
 
-	fmt.Printf("Open file: %s (%s)\n", c.File, c.Type)
+	fmt.Printf("Open file: %s (%s)\n", cfg.File, cfg.Type)
 
-	return c
+	return cfg, nil
 }
 
 func (c *config) save() error {

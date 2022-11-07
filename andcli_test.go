@@ -131,13 +131,44 @@ func TestConvertAEGISEntry(t *testing.T) {
 }
 
 func TestConfig(t *testing.T) {
-	cfgDir = os.TempDir()
-	cfgFile = filepath.Join(cfgDir, "config_test.yaml")
+	cwd, err := os.Getwd()
+	assert.NoError(t, err)
 
-	path := filepath.Join(os.TempDir(), "test.aes")
-	c := configFromFile(path, AEGIS)
+	tests := []struct {
+		name                           string
+		vaultDir, vaultFile, vaultType string
+		want                           *config
+		fails                          bool
+	}{
+		{
+			"creates new config",
+			os.TempDir(), "test.aes", AEGIS,
+			&config{File: filepath.Join(os.TempDir(), "test.aes"), Type: AEGIS},
+			false,
+		},
+		{
+			"saves abs path",
+			".", "test2.aes", AEGIS,
+			&config{File: filepath.Join(cwd, "test2.aes"), Type: AEGIS},
+			false,
+		},
+	}
 
-	assert.Equal(t, &config{File: path, Type: AEGIS}, c)
-	assert.NoError(t, c.save())
-	assert.FileExists(t, cfgFile)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cfgDir = os.TempDir()
+			cfgFile = filepath.Join(cfgDir, "config_test.yaml")
+
+			cfg, err := configFromFile(filepath.Join(tt.vaultDir, tt.vaultFile), tt.vaultType)
+			if tt.fails {
+				t.Log(cfg)
+				assert.Error(t, err)
+				return
+			}
+
+			assert.NoError(t, cfg.save())
+			assert.Equal(t, tt.want, cfg)
+			assert.FileExists(t, cfgFile)
+		})
+	}
 }

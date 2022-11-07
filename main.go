@@ -47,32 +47,36 @@ func main() {
 		os.Exit(0)
 	}
 
-	c := configFromFile(vaultFile, vaultType)
-	if c.File == "" {
+	cfg, err := configFromFile(vaultFile, vaultType)
+	if err != nil {
+		log.Fatal("[ERR] ", err)
+	}
+
+	if cfg.File == "" {
 		log.Fatal("[ERR] missing input file, specify one with -f")
 	}
 
-	if c.Type == "" {
+	if cfg.Type == "" {
 		log.Fatal("[ERR] missing vault type, specify one with -t")
 	}
 
-	abs, err := filepath.Abs(c.File)
+	abs, err := filepath.Abs(cfg.File)
 	if err != nil {
 		log.Fatal("[ERR] ", err)
 	}
 
-	entries, err := decrypt(abs, c.Type)
+	entries, err := decrypt(abs, cfg.Type)
 	if err != nil {
 		log.Fatal("[ERR] ", err)
 	}
 
-	if err := c.save(); err != nil {
+	if err := cfg.save(); err != nil {
 		log.Fatal("[ERR] ", err)
 	}
 
 	termenv.ClearScreen()
 
-	p := tea.NewProgram(newModel(c.File, entries))
+	p := tea.NewProgram(newModel(cfg.File, entries))
 	if err := p.Start(); err != nil {
 		log.Fatal("[ERR] ", err)
 	}
