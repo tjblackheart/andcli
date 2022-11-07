@@ -14,7 +14,7 @@ type config struct {
 	Type string `yaml:"type"`
 }
 
-func configFromFile(vaultFile, vaultType string) (*config, error) {
+func newConfig(vaultFile, vaultType string) (*config, error) {
 	var err error
 
 	if vaultFile != "" {

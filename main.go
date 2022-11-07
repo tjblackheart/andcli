@@ -47,7 +47,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	cfg, err := configFromFile(vaultFile, vaultType)
+	cfg, err := newConfig(vaultFile, vaultType)
 	if err != nil {
 		log.Fatal("[ERR] ", err)
 	}
@@ -60,12 +60,7 @@ func main() {
 		log.Fatal("[ERR] missing vault type, specify one with -t")
 	}
 
-	abs, err := filepath.Abs(cfg.File)
-	if err != nil {
-		log.Fatal("[ERR] ", err)
-	}
-
-	entries, err := decrypt(abs, cfg.Type)
+	entries, err := decrypt(cfg.File, cfg.Type)
 	if err != nil {
 		log.Fatal("[ERR] ", err)
 	}

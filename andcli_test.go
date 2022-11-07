@@ -159,7 +159,7 @@ func TestConfig(t *testing.T) {
 			cfgDir = os.TempDir()
 			cfgFile = filepath.Join(cfgDir, "config_test.yaml")
 
-			cfg, err := configFromFile(filepath.Join(tt.vaultDir, tt.vaultFile), tt.vaultType)
+			cfg, err := newConfig(filepath.Join(tt.vaultDir, tt.vaultFile), tt.vaultType)
 			if tt.fails {
 				t.Log(cfg)
 				assert.Error(t, err)
