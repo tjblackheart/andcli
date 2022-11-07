@@ -1,0 +1,23 @@
+name: Test
+
+on:
+  push:
+    branches: [ main ]
+    tags: ["v*"]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-go@v3
+      with:
+        go-version: "1.19"
+        check-latest: true
+        cache: true
+    - name: test
+      run: |
+        go test -coverprofile=/tmp/codecov.out ./... && \
+        go tool cover -func=/tmp/codecov.out
