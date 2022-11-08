@@ -19,9 +19,7 @@ type (
 				Type, N, R, P   int
 				UUID, Key, Salt string
 				Repaired        bool
-				KeyParams       struct {
-					Nonce, Tag string
-				} `json:"key_params"`
+				KeyParams       struct{ Nonce, Tag string } `json:"key_params"`
 			}
 			Params struct{ Nonce, Tag string }
 		}
@@ -56,6 +54,8 @@ func (e aegisEntry) toEntry() *entry {
 		Period:    e.Info.Period,
 	}
 }
+
+//
 
 func decryptAEGIS(data, password []byte) ([]entry, error) {
 	var vault aegisVault

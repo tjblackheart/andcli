@@ -34,6 +34,8 @@ func (e andotpEntry) toEntry() *entry {
 	}
 }
 
+//
+
 func decryptANDOTP(data, password []byte) ([]entry, error) {
 	b, err := andotp.Decrypt(data, string(password))
 	if err != nil {

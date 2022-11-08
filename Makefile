@@ -20,4 +20,4 @@ clean:
 	rm -rf bin/*
 
 docs:
-	vhs < demo.tape
+	vhs < doc/demo.tape

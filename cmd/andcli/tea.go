@@ -9,13 +9,7 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/fatih/color"
 	"github.com/muesli/termenv"
-)
-
-const (
-	list   = "list"
-	detail = "detail"
 )
 
 type (
@@ -32,26 +26,13 @@ type (
 	tickMsg struct{}
 )
 
-var (
-	success = color.New(color.FgGreen, color.Bold)
-	warning = color.New(color.FgYellow, color.Bold)
-	danger  = color.New(color.FgRed, color.Bold)
-	white   = color.New(color.FgWhite, color.Bold)
-	muted   = color.New(color.FgHiWhite, color.Faint)
-
-	copyCmd           = ""
-	current           = "" // holds an unformatted copy of the current token
-	copied            = false
-	copiedVisibleSecs = 2
-)
-
 func newModel(file string, entries []entry) *model {
 	m := &model{
 		filename: file,
 		entries:  entries,
 		choices:  []string{},
 		selected: -1,
-		view:     list,
+		view:     VIEW_LIST,
 	}
 
 	cmds := []string{"xclip", "pbcopy"} // linux, macos
@@ -84,8 +65,8 @@ func newModel(file string, entries []entry) *model {
 func (m model) Init() tea.Cmd { return tick() }
 
 func (m model) View() string {
-	s := m.header(fmt.Sprintf("%s %s: %s", app, tag, filepath.Base(m.filename)))
-	if m.view == list {
+	s := m.header(fmt.Sprintf("%s %s: %s", APP_NAME, tag, filepath.Base(m.filename)))
+	if m.view == VIEW_LIST {
 		return s + m.list()
 	}
 	return s + m.detail()
@@ -131,7 +112,7 @@ func (m *model) updateList(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case "enter":
 			m.selected = m.cursor
-			m.view = detail
+			m.view = VIEW_DETAIL
 		case "pgdown":
 			m.cursor = last
 		case "pgup":
@@ -149,7 +130,7 @@ func (m *model) updateDetail(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		if msg.Type == tea.KeyEsc {
 			m.selected = -1
-			m.view = list
+			m.view = VIEW_LIST
 			m.visible = false
 			current = ""
 		}
@@ -201,8 +182,9 @@ func (m model) list() string {
 
 func (m *model) detail() string {
 	s := fmt.Sprintf("\n%s", m.choices[m.selected])
+	e := m.entries[m.selected]
 
-	token, exp := generateTOTP(&m.entries[m.selected])
+	token, exp := e.generateTOTP()
 	until := exp - time.Now().Unix()
 	current = token
 
@@ -236,7 +218,7 @@ func (m *model) detail() string {
 
 func (m model) footer() string {
 	footer := "[q, esc] quit | [enter] view"
-	if m.view == detail {
+	if m.view == VIEW_DETAIL {
 		footer = "[q] quit | [enter] toggle visibility | [esc] go back"
 		if copyCmd != "" {
 			footer += " | [c] copy"

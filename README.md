@@ -7,7 +7,7 @@ At the moment andcli can handle encrypted backups from the following providers:
 * [andotp](https://github.com/andOTP/andOTP)
 * [aegis](https://getaegis.app)
 
-![Demo](demo.gif "Demo")
+![Demo](doc/demo.gif "Demo")
 
 ## Installation
 

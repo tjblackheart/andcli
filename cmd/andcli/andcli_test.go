@@ -8,6 +8,34 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestDecrypt(t *testing.T) {
+	tests := []struct {
+		name         string
+		vfile, vtype string
+		pass         []byte
+		fails        bool
+	}{
+		{"fails: invalid file", "somefile", "", nil, true},
+		{"fails: directory", os.TempDir(), "", nil, true},
+		{"fails: wrong password", "testdata/aegis-export-test.json", "", []byte("pass"), true},
+		{"fails: wrong type", "testdata/aegis-export-test.json", "sometype", []byte("andcli-test"), true},
+		{"succeeds: aegis", "testdata/aegis-export-test.json", TYPE_AEGIS, []byte("andcli-test"), false},
+		{"succeeds: andotp", "testdata/andotp_test.json.aes", TYPE_ANDOTP, []byte("andcli-test"), false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			e, err := decrypt(tt.vfile, tt.vtype, tt.pass)
+			if tt.fails {
+				assert.Error(t, err)
+				return
+			}
+			assert.NoError(t, err)
+			assert.IsType(t, []entry{}, e)
+		})
+	}
+}
+
 func TestAEGIS(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -142,14 +170,14 @@ func TestConfig(t *testing.T) {
 	}{
 		{
 			"creates new config",
-			os.TempDir(), "test.aes", AEGIS,
-			&config{File: filepath.Join(os.TempDir(), "test.aes"), Type: AEGIS},
+			os.TempDir(), "test.aes", TYPE_AEGIS,
+			&config{File: filepath.Join(os.TempDir(), "test.aes"), Type: TYPE_AEGIS},
 			false,
 		},
 		{
 			"saves abs path",
-			".", "test2.aes", AEGIS,
-			&config{File: filepath.Join(cwd, "test2.aes"), Type: AEGIS},
+			".", "test2.aes", TYPE_AEGIS,
+			&config{File: filepath.Join(cwd, "test2.aes"), Type: TYPE_AEGIS},
 			false,
 		},
 	}
@@ -161,7 +189,6 @@ func TestConfig(t *testing.T) {
 
 			cfg, err := newConfig(filepath.Join(tt.vaultDir, tt.vaultFile), tt.vaultType)
 			if tt.fails {
-				t.Log(cfg)
 				assert.Error(t, err)
 				return
 			}
