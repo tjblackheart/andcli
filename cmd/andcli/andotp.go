@@ -42,9 +42,14 @@ func decryptANDOTP(data, password []byte) ([]entry, error) {
 		return nil, err
 	}
 
-	var entries []entry
-	if err := json.Unmarshal(b, &entries); err != nil {
+	var ae []andotpEntry
+	if err := json.Unmarshal(b, &ae); err != nil {
 		return nil, err
+	}
+
+	var entries []entry
+	for _, e := range ae {
+		entries = append(entries, *e.toEntry())
 	}
 
 	return entries, nil
