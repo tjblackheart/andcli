@@ -14,6 +14,7 @@ type entry struct {
 	Thumbnail string
 	Period    int
 	Tags      []string
+	Choice    string // text to display in the model list view
 }
 
 func (e entry) generateTOTP() (string, int64) {

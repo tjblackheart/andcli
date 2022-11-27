@@ -19,5 +19,5 @@ jobs:
         cache: true
     - name: test
       run: |
-        go test -coverprofile=/tmp/codecov.out ./... && \
+        go test -v -coverprofile=/tmp/codecov.out ./... && \
         go tool cover -func=/tmp/codecov.out

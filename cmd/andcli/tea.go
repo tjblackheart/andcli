@@ -16,7 +16,6 @@ type (
 	model struct {
 		filename string
 		entries  []entry
-		choices  []string
 		cursor   int
 		selected int
 		view     string
@@ -26,11 +25,10 @@ type (
 	tickMsg struct{}
 )
 
-func newModel(file string, entries []entry) *model {
+func newModel(filename string, entries []entry) *model {
 	m := &model{
-		filename: file,
+		filename: filename,
 		entries:  entries,
-		choices:  []string{},
 		selected: -1,
 		view:     VIEW_LIST,
 	}
@@ -43,11 +41,11 @@ func newModel(file string, entries []entry) *model {
 		}
 	}
 
-	for _, e := range entries {
-		choice := strings.TrimSpace(e.Issuer)
-		if choice == "" {
+	for i, e := range m.entries {
+		issuer := strings.TrimSpace(e.Issuer)
+		if issuer == "" {
 			parts := strings.Split(e.Label, " - ")
-			choice = parts[0]
+			issuer = parts[0]
 		}
 
 		label := e.Label
@@ -56,7 +54,10 @@ func newModel(file string, entries []entry) *model {
 			label = parts[1]
 		}
 
-		m.choices = append(m.choices, fmt.Sprintf("%s (%s)", choice, label))
+		m.entries[i].Choice = issuer
+		if label != "" {
+			m.entries[i].Choice = fmt.Sprintf("%s (%s)", issuer, label)
+		}
 	}
 
 	return m
@@ -90,7 +91,10 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *model) updateList(msg tea.Msg) (tea.Model, tea.Cmd) {
-	last := len(m.choices) - 1
+	last := len(m.entries) - 1
+	if last < 0 {
+		last = 0
+	}
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -99,15 +103,13 @@ func (m *model) updateList(msg tea.Msg) (tea.Model, tea.Cmd) {
 			termenv.ClearScreen()
 			return m, tea.Quit
 		case "up", "k":
-			if m.cursor > 0 {
-				m.cursor--
-			} else {
+			m.cursor--
+			if m.cursor < 0 {
 				m.cursor = last
 			}
 		case "down", "j":
-			if m.cursor < last {
-				m.cursor++
-			} else {
+			m.cursor++
+			if m.cursor > last {
 				m.cursor = 0
 			}
 		case "enter":
@@ -166,13 +168,14 @@ func (m *model) updateDetail(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) list() string {
-	s := fmt.Sprintf("Found %d entries. Select:\n\n", len(m.choices))
+	s := fmt.Sprintf("Found %d entries. Select:\n\n", len(m.entries))
 
-	for i, choice := range m.choices {
+	for i, e := range m.entries {
 		cursor := " "
+		choice := e.Choice
 		if m.cursor == i {
 			cursor = success.Sprint("> ")
-			choice = white.Sprint(choice)
+			choice = white.Sprint(e.Choice)
 		}
 		s += fmt.Sprintf("%s %s\n", cursor, choice)
 	}
@@ -181,7 +184,7 @@ func (m model) list() string {
 }
 
 func (m *model) detail() string {
-	s := fmt.Sprintf("\n%s", m.choices[m.selected])
+	s := fmt.Sprintf("\n%s", m.entries[m.selected].Choice)
 	e := m.entries[m.selected]
 
 	token, exp := e.generateTOTP()

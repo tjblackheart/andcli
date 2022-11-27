@@ -199,3 +199,41 @@ func TestConfig(t *testing.T) {
 		})
 	}
 }
+
+func TestChoices(t *testing.T) {
+	tests := []struct {
+		name    string
+		entries []entry
+		want    *model
+	}{
+		{
+			"creates choices",
+			[]entry{
+				{Label: "label1", Issuer: "issuer1"},
+				{Label: "label2", Issuer: "issuer2"},
+				{Label: "label3"},
+				{Issuer: "issuer4"},
+			},
+			&model{
+				entries: []entry{
+					{Label: "label1", Issuer: "issuer1", Choice: "issuer1 (label1)"},
+					{Label: "label2", Issuer: "issuer2", Choice: "issuer2 (label2)"},
+					{Label: "label3", Choice: "label3 (label3)"},
+					{Issuer: "issuer4", Choice: "issuer4"},
+				},
+			},
+		},
+		{
+			"does not fail on empty list",
+			make([]entry, 0),
+			&model{entries: make([]entry, 0)},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			m := newModel("", tt.entries)
+			assert.Equal(t, tt.want.entries, m.entries)
+		})
+	}
+}
