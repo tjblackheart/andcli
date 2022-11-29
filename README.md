@@ -1,6 +1,6 @@
 # andcli
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/tjblackheart/andcli)](https://goreportcard.com/report/github.com/tjblackheart/andcli)
+[![Go Report Card](https://goreportcard.com/badge/github.com/tjblackheart/andcli)](https://goreportcard.com/report/github.com/tjblackheart/andcli) ![Build](https://github.com/tjblackheart/andcli/actions/workflows/build.yaml/badge.svg)
 
 View, decrypt and copy 2FA tokens from encrypted backup files directly in your shell. At the moment andcli can handle encrypted backups from the following providers:
 
