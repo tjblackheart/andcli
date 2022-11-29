@@ -5,7 +5,7 @@ on:
     tags: [v*]
 
 jobs:
-  build:
+  setup:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -14,10 +14,21 @@ jobs:
         go-version: "1.19"
         check-latest: true
         cache: true
-
     - name: Download modules
       run: go mod download
 
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Test
+      run: |
+        go test -v -coverprofile=/tmp/codecov.out ./... && \
+        go tool cover -func=/tmp/codecov.out
+
+  build:
+    runs-on: ubuntu-latest
+    needs: [test]
+    steps:
     - name: Get tag
       id: get_tag
       run: echo ::set-output name=TAG::${GITHUB_REF/refs\/tags\//}
