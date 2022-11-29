@@ -1,8 +1,8 @@
 # andcli
 
-Load, view, decrypt and copy 2FA tokens from encrypted backup files directly in your shell. andcli uses the awesome Bubbletea library for a nice TUI.
+[![Go Report Card](https://goreportcard.com/badge/github.com/tjblackheart/andcli)](https://goreportcard.com/report/github.com/tjblackheart/andcli)
 
-At the moment andcli can handle encrypted backups from the following providers:
+View, decrypt and copy 2FA tokens from encrypted backup files directly in your shell. At the moment andcli can handle encrypted backups from the following providers:
 
 * [andotp](https://github.com/andOTP/andOTP)
 * [aegis](https://getaegis.app)
