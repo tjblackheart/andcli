@@ -231,6 +231,10 @@ func (m model) footer() string {
 }
 
 func (m model) header(s string) string {
+	if s == "" {
+		return "\n"
+	}
+
 	var line string
 	for range s {
 		line += "="
