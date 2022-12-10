@@ -70,10 +70,14 @@ func main() {
 	flag.Parse()
 
 	if showVersion {
-		fmt.Printf(
-			"%s %s %s (%s) built on %s, Go %s\n",
-			APP_NAME, tag, arch, commit, date, gover,
-		)
+		if tag != "" && arch != "" && commit != "" && date != "" && gover != "" {
+			fmt.Printf(
+				"%s %s %s (%s) built on %s with Go %s\n",
+				APP_NAME, tag, arch, commit, date, gover,
+			)
+		} else {
+			fmt.Printf("%s (direct install)\n", APP_NAME)
+		}
 		os.Exit(0)
 	}
 

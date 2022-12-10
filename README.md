@@ -11,7 +11,7 @@ View, decrypt and copy 2FA tokens from encrypted backup files directly in your s
 
 ## Installation
 
-Download a [prebuild release](https://github.com/tjblackheart/andcli/releases) and place it somewhere in your $PATH. If you have Go installed you can build it yourself: `go install github.com/tjblackheart/andcli@latest`.
+Download a [prebuild release](https://github.com/tjblackheart/andcli/releases) and place it somewhere in your $PATH. If you have Go installed you can build it yourself: `go install -v github.com/tjblackheart/andcli/cmd/andcli@latest`.
 
 ## Usage
 
