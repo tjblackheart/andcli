@@ -168,8 +168,14 @@ func (m *model) updateDetail(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) list() string {
-	s := fmt.Sprintf("Found %d entries. Select:\n\n", len(m.entries))
+	w := "entries"
+	l := len(m.entries)
 
+	if l == 1 {
+		w = "entry"
+	}
+
+	s := fmt.Sprintf("Found %d %s. Select:\n\n", l, w)
 	for i, e := range m.entries {
 		cursor := " "
 		choice := e.Choice
