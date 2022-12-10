@@ -58,17 +58,18 @@ func (e aegisEntry) toEntry() *entry {
 //
 
 func decryptAEGIS(data, password []byte) ([]entry, error) {
+
 	var vault aegisVault
 	if err := json.Unmarshal(data, &vault); err != nil {
 		return nil, err
 	}
 
-	masterKey, err := deriveAegisMasterKey(&vault, password)
+	key, err := deriveAegisMasterKey(&vault, password)
 	if err != nil {
 		return nil, err
 	}
 
-	plain, err := decryptAegisDB(&vault, masterKey)
+	plain, err := decryptAegisDB(&vault, key)
 	if err != nil {
 		return nil, err
 	}
@@ -87,6 +88,7 @@ func decryptAEGIS(data, password []byte) ([]entry, error) {
 }
 
 func deriveAegisMasterKey(v *aegisVault, password []byte) ([]byte, error) {
+
 	var salt, keyNonce, keyTag, key, derivedKey []byte
 	var err error
 
@@ -142,7 +144,7 @@ func deriveAegisMasterKey(v *aegisVault, password []byte) ([]byte, error) {
 }
 
 func decryptAegisDB(v *aegisVault, key []byte) ([]byte, error) {
-	// decrypt DB with master key
+
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		return nil, err
@@ -168,11 +170,11 @@ func decryptAegisDB(v *aegisVault, key []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	var enc []byte
-	enc = append(enc, b...)
-	enc = append(enc, tag...)
+	var c []byte
+	c = append(c, b...)
+	c = append(c, tag...)
 
-	plain, err := gcm.Open(nil, nonce, enc, nil)
+	plain, err := gcm.Open(nil, nonce, c, nil)
 	if err != nil {
 		return nil, err
 	}

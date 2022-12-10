@@ -33,6 +33,7 @@ func newConfig(vaultFile, vaultType string) (*config, error) {
 				return nil, err
 			}
 		}
+		return nil, err
 	}
 
 	if _, err = os.Stat(cfgFile); err != nil {
@@ -60,7 +61,7 @@ func newConfig(vaultFile, vaultType string) (*config, error) {
 		cfg.Type = vaultType
 	}
 
-	fmt.Printf("Open file: %s (%s)\n", cfg.File, cfg.Type)
+	fmt.Printf("Using %s (%s)\n", cfg.File, cfg.Type)
 
 	return cfg, nil
 }
