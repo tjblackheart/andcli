@@ -61,7 +61,9 @@ func newConfig(vaultFile, vaultType string) (*config, error) {
 		cfg.Type = vaultType
 	}
 
-	fmt.Printf("Using %s (%s)\n", cfg.File, cfg.Type)
+	if _, ok := os.LookupEnv("ANDCLI_HIDE_ABSPATH"); !ok {
+		fmt.Printf("Using %s (%s)\n", cfg.File, cfg.Type)
+	}
 
 	return cfg, nil
 }

@@ -20,4 +20,4 @@ clean:
 	rm -rf bin/*
 
 docs:
-	vhs < doc/demo.tape
+	export ANDCLI_HIDE_ABSPATH=1; vhs < doc/demo.tape
