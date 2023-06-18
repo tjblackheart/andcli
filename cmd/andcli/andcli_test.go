@@ -32,7 +32,7 @@ func TestDecrypt(t *testing.T) {
 				return
 			}
 			assert.NoError(t, err)
-			assert.IsType(t, []entry{}, e)
+			assert.IsType(t, entries{}, e)
 		})
 	}
 }

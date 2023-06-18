@@ -32,8 +32,9 @@ func newConfig(vaultFile, vaultType string) (*config, error) {
 			if err := os.MkdirAll(cfgDir, 0755); err != nil {
 				return nil, err
 			}
+		} else {
+			return nil, err
 		}
-		return nil, err
 	}
 
 	if _, err = os.Stat(cfgFile); err != nil {

@@ -36,7 +36,7 @@ func (e andotpEntry) toEntry() *entry {
 
 //
 
-func decryptANDOTP(data, password []byte) ([]entry, error) {
+func decryptANDOTP(data, password []byte) (entries, error) {
 	b, err := andotp.Decrypt(data, string(password))
 	if err != nil {
 		return nil, err
@@ -47,10 +47,10 @@ func decryptANDOTP(data, password []byte) ([]entry, error) {
 		return nil, err
 	}
 
-	var entries []entry
+	var list entries
 	for _, e := range ae {
-		entries = append(entries, *e.toEntry())
+		list = append(list, *e.toEntry())
 	}
 
-	return entries, nil
+	return list, nil
 }

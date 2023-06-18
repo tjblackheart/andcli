@@ -37,7 +37,7 @@ func newModel(o *termenv.Output, filename string, entries ...entry) *model {
 		output:   o,
 	}
 
-	cmds := []string{"xclip", "pbcopy"} // linux, macos
+	cmds := []string{"xclip", "wl-copy", "pbcopy"} // xorg, wayland, macos
 	for _, c := range cmds {
 		if _, err := exec.LookPath(c); err == nil {
 			copyCmd = c

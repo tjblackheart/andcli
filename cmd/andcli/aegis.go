@@ -57,7 +57,7 @@ func (e aegisEntry) toEntry() *entry {
 
 //
 
-func decryptAEGIS(data, password []byte) ([]entry, error) {
+func decryptAEGIS(data, password []byte) (entries, error) {
 
 	var vault aegisVault
 	if err := json.Unmarshal(data, &vault); err != nil {
@@ -79,12 +79,12 @@ func decryptAEGIS(data, password []byte) ([]entry, error) {
 		return nil, err
 	}
 
-	var entries []entry
+	var list entries
 	for _, e := range db.Entries {
-		entries = append(entries, *e.toEntry())
+		list = append(list, *e.toEntry())
 	}
 
-	return entries, nil
+	return list, nil
 }
 
 func deriveAegisMasterKey(v *aegisVault, password []byte) ([]byte, error) {

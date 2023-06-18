@@ -33,7 +33,7 @@ var (
 	white   = color.New(color.FgWhite, color.Bold)
 	muted   = color.New(color.FgHiWhite, color.Faint)
 
-	// ui
+	// global ui stuff
 	copyCmd            = ""
 	current            = "" // holds an unformatted copy of the current token
 	copied             = false
@@ -81,26 +81,28 @@ func main() {
 		os.Exit(0)
 	}
 
+	prefix := danger.Sprint("[ERR]")
+
 	cfg, err := newConfig(vaultFile, vaultType)
 	if err != nil {
-		log.Fatal("[ERR] ", err)
+		log.Fatalf("%s: %s\n", prefix, err.Error())
 	}
 
 	if cfg.File == "" {
-		log.Fatal("[ERR] missing input file, specify one with -f")
+		log.Fatalf("%s: missing input file, specify one with -f\n", prefix)
 	}
 
 	if cfg.Type == "" {
-		log.Fatal("[ERR] missing vault type, specify one with -t")
+		log.Fatalf("%s: missing vault type, specify one with -t\n", prefix)
 	}
 
 	entries, err := decrypt(cfg.File, cfg.Type)
 	if err != nil {
-		log.Fatal("[ERR] ", err)
+		log.Fatalf("%s: %s\n", prefix, err.Error())
 	}
 
 	if err := cfg.save(); err != nil {
-		log.Fatal("[ERR] ", err)
+		log.Fatalf("%s: %s\n", prefix, err.Error())
 	}
 
 	output := termenv.DefaultOutput()
@@ -108,11 +110,11 @@ func main() {
 
 	p := tea.NewProgram(newModel(output, cfg.File, entries...))
 	if _, err := p.Run(); err != nil {
-		log.Fatal("[ERR] ", err)
+		log.Fatalf("%s: %s\n", prefix, err.Error())
 	}
 }
 
-func decrypt(vaultFile, vaultType string, p ...[]byte) ([]entry, error) {
+func decrypt(vaultFile, vaultType string, p ...[]byte) (entries, error) {
 	fi, err := os.Stat(vaultFile)
 	if err != nil {
 		return nil, err
