@@ -34,10 +34,10 @@ var (
 	muted   = color.New(color.FgHiWhite, color.Faint)
 
 	// ui
-	copyCmd           = ""
-	current           = "" // holds an unformatted copy of the current token
-	copied            = false
-	copiedVisibleSecs = 2
+	copyCmd            = ""
+	current            = "" // holds an unformatted copy of the current token
+	copied             = false
+	copiedVisibleMSecs = 2000
 
 	// build vars
 	commit = ""

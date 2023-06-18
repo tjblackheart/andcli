@@ -176,11 +176,11 @@ func (m *model) updateDetail(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case tickMsg:
 		if copied {
-			if copiedVisibleSecs > 0 {
-				copiedVisibleSecs--
+			if copiedVisibleMSecs > 0 {
+				copiedVisibleMSecs--
 			} else {
 				copied = false
-				copiedVisibleSecs = 2
+				copiedVisibleMSecs = 2000
 			}
 		}
 
