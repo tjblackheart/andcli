@@ -15,33 +15,37 @@ import (
 type (
 	model struct {
 		filename string
-		entries  []entry
+		items    entries
+		filtered entries
 		cursor   int
 		selected int
 		view     string
 		visible  bool
+		query    string
+		output   *termenv.Output
 	}
 
 	tickMsg struct{}
 )
 
-func newModel(filename string, entries []entry) *model {
+func newModel(o *termenv.Output, filename string, entries ...entry) *model {
 	m := &model{
 		filename: filename,
-		entries:  entries,
+		items:    entries,
 		selected: -1,
 		view:     VIEW_LIST,
+		output:   o,
 	}
 
 	cmds := []string{"xclip", "pbcopy"} // linux, macos
 	for _, c := range cmds {
-		if err := exec.Command(c).Run(); err == nil {
+		if _, err := exec.LookPath(c); err == nil {
 			copyCmd = c
 			break
 		}
 	}
 
-	for i, e := range m.entries {
+	for i, e := range m.items {
 		issuer := strings.TrimSpace(e.Issuer)
 		if issuer == "" {
 			parts := strings.Split(e.Label, " - ")
@@ -54,9 +58,9 @@ func newModel(filename string, entries []entry) *model {
 			label = parts[1]
 		}
 
-		m.entries[i].Choice = issuer
+		m.items[i].Choice = issuer
 		if label != "" {
-			m.entries[i].Choice = fmt.Sprintf("%s (%s)", issuer, label)
+			m.items[i].Choice = fmt.Sprintf("%s (%s)", issuer, label)
 		}
 	}
 
@@ -77,8 +81,8 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "ctrl+c", "q":
-			termenv.ClearScreen()
+		case "ctrl+c":
+			m.output.ClearScreen()
 			return m, tea.Quit
 		}
 	}
@@ -91,34 +95,49 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *model) updateList(msg tea.Msg) (tea.Model, tea.Cmd) {
-	last := len(m.entries) - 1
+	m.filtered = m.items.filter(m.query)
+
+	last := len(m.filtered) - 1
 	if last < 0 {
 		last = 0
 	}
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "esc":
-			termenv.ClearScreen()
-			return m, tea.Quit
-		case "up", "k":
+		switch msg.Type {
+		case tea.KeyEsc:
+			if m.query == "" {
+				m.output.ClearScreen()
+				return m, tea.Quit
+			}
+			m.query = ""
+			m.filtered = m.items
+		case tea.KeyUp:
 			m.cursor--
 			if m.cursor < 0 {
 				m.cursor = last
 			}
-		case "down", "j":
+		case tea.KeyDown:
 			m.cursor++
 			if m.cursor > last {
 				m.cursor = 0
 			}
-		case "enter":
-			m.selected = m.cursor
-			m.view = VIEW_DETAIL
-		case "pgdown":
+		case tea.KeyEnter:
+			if len(m.filtered) > 0 {
+				m.selected = m.cursor
+				m.view = VIEW_DETAIL
+			}
+		case tea.KeyPgDown:
 			m.cursor = last
-		case "pgup":
+		case tea.KeyPgUp:
 			m.cursor = 0
+		case tea.KeyBackspace:
+			if len(m.query) > 0 {
+				m.query = m.query[:len(m.query)-1]
+			}
+		case tea.KeyRunes:
+			m.cursor = 0
+			m.query += msg.String()
 		}
 	case tickMsg:
 		return m, tick()
@@ -130,25 +149,29 @@ func (m *model) updateList(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m *model) updateDetail(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		if msg.Type == tea.KeyEsc {
+		switch msg.Type {
+		case tea.KeyEsc:
+			m.query = ""
 			m.selected = -1
 			m.view = VIEW_LIST
 			m.visible = false
 			current = ""
-		}
-
-		if msg.Type == tea.KeyEnter {
+		case tea.KeyEnter:
 			m.visible = !m.visible
-		}
-
-		if msg.String() == "c" {
-			if current != "" && copyCmd != "" {
-				cmd := fmt.Sprintf("echo %s | %s", current, copyCmd)
-				if err := exec.Command("sh", "-c", cmd).Run(); err != nil {
-					log.Println("copy:", err)
-					return m, tea.Quit
+		case tea.KeyRunes:
+			if msg.String() == "q" {
+				m.output.ClearScreen()
+				return m, tea.Quit
+			}
+			if msg.String() == "c" {
+				if current != "" && copyCmd != "" {
+					cmd := fmt.Sprintf("echo %s | %s", current, copyCmd)
+					if err := exec.Command("sh", "-c", cmd).Run(); err != nil {
+						log.Println("copy:", err)
+						return m, tea.Quit
+					}
+					copied = true
 				}
-				copied = true
 			}
 		}
 	case tickMsg:
@@ -168,32 +191,26 @@ func (m *model) updateDetail(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) list() string {
-	w := "entries"
-	l := len(m.entries)
+	list := ""
 
-	if l == 1 {
-		w = "entry"
-	}
-
-	s := fmt.Sprintf("Found %d %s. Select:\n\n", l, w)
-	for i, e := range m.entries {
+	for i, e := range m.filtered {
 		cursor := " "
 		choice := e.Choice
 		if m.cursor == i {
 			cursor = success.Sprint("> ")
 			choice = white.Sprint(e.Choice)
 		}
-		s += fmt.Sprintf("%s %s\n", cursor, choice)
+		list += fmt.Sprintf("%s %s\n", cursor, choice)
 	}
 
-	return s + m.footer()
+	return list + m.footer()
 }
 
 func (m *model) detail() string {
-	s := fmt.Sprintf("\n%s", m.entries[m.selected].Choice)
-	e := m.entries[m.selected]
+	name := fmt.Sprintf("\n%s", m.filtered[m.selected].Choice)
+	entry := m.filtered[m.selected]
 
-	token, exp := e.generateTOTP()
+	token, exp := entry.generateTOTP()
 	until := exp - time.Now().Unix()
 	current = token
 
@@ -220,19 +237,28 @@ func (m *model) detail() string {
 		fmtToken += success.Sprint(" ✓ ")
 	}
 
-	view := fmt.Sprintf("%s: %s\nValid: %s\n", s, fmtToken, fmtUntil)
+	view := fmt.Sprintf("%s: %s\nValid: %s\n", name, fmtToken, fmtUntil)
 
 	return view + m.footer()
 }
 
 func (m model) footer() string {
-	footer := "[q, esc] quit | [enter] view"
+	footer := "[esc] quit"
+	if len(m.query) > 0 {
+		footer = "[esc] clear search"
+	}
+
+	if len(m.filtered) > 0 {
+		footer += " | [enter] view"
+	}
+
 	if m.view == VIEW_DETAIL {
-		footer = "[q] quit | [enter] toggle visibility | [esc] go back"
+		footer = "[esc] back | [q] quit | [enter] toggle visibility"
 		if copyCmd != "" {
 			footer += " | [c] copy"
 		}
 	}
+
 	return muted.Sprintf("\n%s\n", footer)
 }
 
@@ -246,11 +272,25 @@ func (m model) header(s string) string {
 		line += "="
 	}
 
-	return fmt.Sprintf("%s\n%s\n", s, line)
+	word := "entries"
+	length := len(m.filtered)
+	if length == 1 {
+		word = "entry"
+	}
+
+	counter := fmt.Sprintf("%d %s.", length, word)
+
+	header := fmt.Sprintf("%s\n%s\n%s\n", s, line, counter)
+	if m.view != VIEW_DETAIL {
+		header += "\nType to search: " + white.Sprint(m.query)
+		header += "\n\n"
+	}
+
+	return header
 }
 
 func tick() tea.Cmd {
-	return tea.Tick(time.Second, func(time.Time) tea.Msg {
+	return tea.Tick(time.Millisecond, func(time.Time) tea.Msg {
 		return tickMsg{}
 	})
 }

@@ -103,10 +103,11 @@ func main() {
 		log.Fatal("[ERR] ", err)
 	}
 
-	termenv.ClearScreen()
+	output := termenv.DefaultOutput()
+	output.ClearScreen()
 
-	p := tea.NewProgram(newModel(cfg.File, entries))
-	if err := p.Start(); err != nil {
+	p := tea.NewProgram(newModel(output, cfg.File, entries...))
+	if _, err := p.Run(); err != nil {
 		log.Fatal("[ERR] ", err)
 	}
 }

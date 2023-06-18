@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/muesli/termenv"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -215,7 +216,7 @@ func TestChoices(t *testing.T) {
 				{Issuer: "issuer4"},
 			},
 			&model{
-				entries: []entry{
+				items: []entry{
 					{Label: "label1", Issuer: "issuer1", Choice: "issuer1 (label1)"},
 					{Label: "label2", Issuer: "issuer2", Choice: "issuer2 (label2)"},
 					{Label: "label3", Choice: "label3 (label3)"},
@@ -226,14 +227,15 @@ func TestChoices(t *testing.T) {
 		{
 			"does not fail on empty list",
 			make([]entry, 0),
-			&model{entries: make([]entry, 0)},
+			&model{items: make([]entry, 0)},
 		},
 	}
 
+	o := termenv.DefaultOutput()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			m := newModel("", tt.entries)
-			assert.Equal(t, tt.want.entries, m.entries)
+			m := newModel(o, "", tt.entries...)
+			assert.Equal(t, tt.want.items, m.items)
 		})
 	}
 }
