@@ -12,8 +12,8 @@ func TestHeader(t *testing.T) {
 		input string
 		want  string
 	}{
-		{"underlines word", "test", "test\n====\n"},
-		{"underlines words", " test test ", " test test \n===========\n"},
+		{"underlines word", "test", "test\n====\n0 entries.\n\nType to search: \n\n"},
+		{"underlines words", " test test ", " test test \n===========\n0 entries.\n\nType to search: \n\n"},
 		{"ignores empty", "", "\n"},
 	}
 
@@ -34,19 +34,19 @@ func TestFooter(t *testing.T) {
 			"generates list footer",
 			"",
 			VIEW_LIST,
-			"\n[q, esc] quit | [enter] view\n",
+			"\n[esc] quit\n",
 		},
 		{
 			"generates detail footer",
 			"",
 			VIEW_DETAIL,
-			"\n[q] quit | [enter] toggle visibility | [esc] go back\n",
+			"\n[esc] back | [q] quit | [enter] toggle visibility\n",
 		},
 		{
 			"generates detail footer with copy",
 			"xcopy",
 			VIEW_DETAIL,
-			"\n[q] quit | [enter] toggle visibility | [esc] go back | [c] copy\n",
+			"\n[esc] back | [q] quit | [enter] toggle visibility | [c] copy\n",
 		},
 	}
 

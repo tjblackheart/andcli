@@ -204,19 +204,19 @@ func TestConfig(t *testing.T) {
 func TestChoices(t *testing.T) {
 	tests := []struct {
 		name    string
-		entries []entry
+		entries entries
 		want    *model
 	}{
 		{
 			"creates choices",
-			[]entry{
+			entries{
 				{Label: "label1", Issuer: "issuer1"},
 				{Label: "label2", Issuer: "issuer2"},
 				{Label: "label3"},
 				{Issuer: "issuer4"},
 			},
 			&model{
-				items: []entry{
+				items: entries{
 					{Label: "label1", Issuer: "issuer1", Choice: "issuer1 (label1)"},
 					{Label: "label2", Issuer: "issuer2", Choice: "issuer2 (label2)"},
 					{Label: "label3", Choice: "label3 (label3)"},
@@ -226,8 +226,8 @@ func TestChoices(t *testing.T) {
 		},
 		{
 			"does not fail on empty list",
-			make([]entry, 0),
-			&model{items: make([]entry, 0)},
+			make(entries, 0),
+			&model{items: make(entries, 0)},
 		},
 	}
 
