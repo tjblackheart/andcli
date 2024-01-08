@@ -28,7 +28,7 @@ type (
 	tickMsg struct{}
 )
 
-func newModel(o *termenv.Output, filename string, entries ...entry) *model {
+func newModel(o *termenv.Output, filename, cfgClipboardCmd string, entries ...entry) *model {
 	m := &model{
 		filename: filename,
 		items:    entries,
@@ -37,11 +37,15 @@ func newModel(o *termenv.Output, filename string, entries ...entry) *model {
 		output:   o,
 	}
 
-	cmds := []string{"xclip", "wl-copy", "pbcopy"} // xorg, wayland, macos
-	for _, c := range cmds {
-		if _, err := exec.LookPath(c); err == nil {
-			copyCmd = c
-			break
+	if cfgClipboardCmd != "" {
+		copyCmd = cfgClipboardCmd
+	} else {
+		cmds := []string{"xclip", "wl-copy", "pbcopy"} // xorg, wayland, macos
+		for _, c := range cmds {
+			if _, err := exec.LookPath(c); err == nil {
+				copyCmd = c
+				break
+			}
 		}
 	}
 
