@@ -36,6 +36,8 @@ Usage of andcli:
         Path to the encrypted vault
   -t string
         Vault type (andotp, aegis)
+  -c string
+        Clipboard command (by default is the first of `xclip`, `wl-copy` or `pbcopy` found)
   -v    Show current version
 ```
 
