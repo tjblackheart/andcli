@@ -19,6 +19,7 @@ const (
 	VIEW_DETAIL = "detail"
 	TYPE_ANDOTP = "andotp"
 	TYPE_AEGIS  = "aegis"
+	TYPE_TWOFAS = "twofas"
 )
 
 var (
@@ -65,7 +66,7 @@ func main() {
 	var showVersion bool
 
 	flag.StringVar(&vaultFile, "f", "", "Path to the encrypted vault")
-	flag.StringVar(&vaultType, "t", "", "Vault type (andotp, aegis)")
+	flag.StringVar(&vaultType, "t", "", "Vault type (andotp, aegis, twofas)")
 	flag.BoolVar(&showVersion, "v", false, "Show current version")
 	flag.Parse()
 
@@ -149,6 +150,8 @@ func decrypt(vaultFile, vaultType string, p ...[]byte) (entries, error) {
 		return decryptANDOTP(b, pass)
 	case TYPE_AEGIS:
 		return decryptAEGIS(b, pass)
+	case TYPE_TWOFAS:
+		return decryptTWOFAS(b, pass)
 	}
 
 	return nil, fmt.Errorf("vault type %q: not implemented", vaultType)
