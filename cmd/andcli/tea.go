@@ -166,6 +166,9 @@ func (m *model) updateDetail(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if msg.String() == "c" {
 				if current != "" && copyCmd != "" {
 					cmd := fmt.Sprintf("echo %s | %s", current, copyCmd)
+					if copyCmd == "xclip" {
+						cmd += " -selection clipboard"
+					}
 					if err := exec.Command("sh", "-c", cmd).Run(); err != nil {
 						log.Println("copy:", err)
 						return m, tea.Quit
