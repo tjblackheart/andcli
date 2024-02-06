@@ -12,6 +12,9 @@ import (
 	"golang.org/x/crypto/pbkdf2"
 )
 
+const numFields int = 3
+const authTagLength int = 16
+
 type (
 	twofasVault struct {
 		UpdatedAt         int
@@ -99,10 +102,9 @@ func decryptTWOFAS(data, password []byte) (entries, error) {
 }
 
 func deriveTwoFasMasterKey(v *twofasVault, password []byte) ([]byte, error) {
-
-	servicesEncrypted := strings.SplitN(v.ServicesEncrypted, ":", 3)
-	if len(servicesEncrypted) != 3 {
-		return nil, fmt.Errorf("Invalid vault file. Number of fields is not 3")
+	servicesEncrypted := strings.SplitN(v.ServicesEncrypted, ":", numFields+1)
+	if len(servicesEncrypted) != numFields {
+		return nil, fmt.Errorf("Invalid vault file. Number of fields is not %d", numFields)
 	}
 	var dbAndAuthTag, salt []byte
 	var err error
@@ -116,8 +118,8 @@ func deriveTwoFasMasterKey(v *twofasVault, password []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	if len(dbAndAuthTag) <= 16 {
-		return nil, fmt.Errorf("Invalid vault file. Length of cipher text with auth tag must be more than 16")
+	if len(dbAndAuthTag) <= authTagLength {
+		return nil, fmt.Errorf("Invalid vault file. Length of cipher text with auth tag must be more than %d", authTagLength)
 	}
 
 	return pbkdf2.Key(password, salt, 10000, 32, sha256.New), nil
@@ -125,9 +127,9 @@ func deriveTwoFasMasterKey(v *twofasVault, password []byte) ([]byte, error) {
 
 func decryptTwoFasDB(v *twofasVault, key []byte) ([]byte, error) {
 
-	servicesEncrypted := strings.SplitN(v.ServicesEncrypted, ":", 3)
-	if len(servicesEncrypted) != 3 {
-		return nil, fmt.Errorf("Invalid vault file. Number of fields is not 3")
+	servicesEncrypted := strings.SplitN(v.ServicesEncrypted, ":", numFields+1)
+	if len(servicesEncrypted) != numFields {
+		return nil, fmt.Errorf("Invalid vault file. Number of fields is not %d", numFields)
 	}
 
 	var dbAndAuthTag, b, tag, nonce []byte
@@ -138,8 +140,8 @@ func decryptTwoFasDB(v *twofasVault, key []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	b = dbAndAuthTag[:len(dbAndAuthTag)-16]
-	tag = dbAndAuthTag[len(dbAndAuthTag)-16:]
+	b = dbAndAuthTag[:len(dbAndAuthTag)-authTagLength]
+	tag = dbAndAuthTag[len(dbAndAuthTag)-authTagLength:]
 
 	nonce, err = base64.StdEncoding.DecodeString(servicesEncrypted[2])
 	if err != nil {
