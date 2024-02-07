@@ -20,8 +20,7 @@ jobs:
 
     - name: Test
       run: |
-        go test -v -coverprofile=/tmp/codecov.out ./... && \
-        go tool cover -func=/tmp/codecov.out
+        go test -v -coverprofile codecov.out ./... && go tool cover -func codecov.out
 
     - name: Get tag
       id: get_tag
