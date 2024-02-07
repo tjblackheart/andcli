@@ -34,7 +34,7 @@ var (
 	muted   = color.New(color.FgHiWhite, color.Faint)
 
 	// global ui stuff
-	copyCmd            = ""
+	copyCmd            = true
 	current            = "" // holds an unformatted copy of the current token
 	copied             = false
 	copiedVisibleMSecs = 2000

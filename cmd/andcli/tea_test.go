@@ -26,25 +26,25 @@ func TestHeader(t *testing.T) {
 func TestFooter(t *testing.T) {
 	tests := []struct {
 		name    string
-		copyCmd string
+		copyCmd bool
 		view    string
 		want    string
 	}{
 		{
 			"generates list footer",
-			"",
+			false,
 			VIEW_LIST,
 			"\n[esc] quit\n",
 		},
 		{
 			"generates detail footer",
-			"",
+			false,
 			VIEW_DETAIL,
 			"\n[esc] back | [q] quit | [enter] toggle visibility\n",
 		},
 		{
 			"generates detail footer with copy",
-			"xcopy",
+			true,
 			VIEW_DETAIL,
 			"\n[esc] back | [q] quit | [enter] toggle visibility | [c] copy\n",
 		},

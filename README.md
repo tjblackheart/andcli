@@ -24,7 +24,7 @@ Download a [prebuild release](https://github.com/tjblackheart/andcli/releases) a
 
 ## TODO
 
-* At the moment it is not possible to copy a token on a Windows machine.
+* ~~At the moment it is not possible to copy a token on a Windows machine.~~
 * The test coverage sucks (less).
 * ~~Implement a search.~~
 
