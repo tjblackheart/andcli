@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
@@ -38,9 +39,17 @@ func newModel(o *termenv.Output, filename string, entries ...entry) *model {
 		output:   o,
 	}
 
-	if err := clipboard.Init(); err != nil {
-		log.Println("clipboard:", err)
-		copyCmd = false
+	cmds := []string{"xclip", "wl-copy", "pbcopy"} // xorg, wayland, macos
+	for _, c := range cmds {
+		if _, err := exec.LookPath(c); err == nil {
+			copyCmd = c
+			break
+		}
+	}
+	if copyCmd == "" { // windows
+		if err := clipboard.Init(); err == nil {
+			copyCmd = "clipboard"
+		}
 	}
 
 	for i, e := range m.items {
@@ -162,12 +171,20 @@ func (m *model) updateDetail(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, tea.Quit
 			}
 			if msg.String() == "c" {
-				if current != "" && copyCmd {
-					currentBytes := []byte(current)
-					clipboard.Write(clipboard.FmtText, currentBytes)
-					if !bytes.Equal(clipboard.Read(clipboard.FmtText), currentBytes) {
-						log.Println("copy: failed")
-						return m, tea.Quit
+				if current != "" && copyCmd != "" {
+					if copyCmd == "clipboard" {
+						currentBytes := []byte(current)
+						clipboard.Write(clipboard.FmtText, currentBytes)
+						if !bytes.Equal(clipboard.Read(clipboard.FmtText), currentBytes) {
+							log.Println("copy: failed")
+							return m, tea.Quit
+						}
+					} else {
+						cmd := fmt.Sprintf("echo %s | %s -selection clipboard", current, copyCmd)
+						if err := exec.Command("sh", "-c", cmd).Run(); err != nil {
+							log.Println("copy:", err)
+							return m, tea.Quit
+						}
 					}
 					copied = true
 				}
@@ -253,7 +270,7 @@ func (m model) footer() string {
 
 	if m.view == VIEW_DETAIL {
 		footer = "[esc] back | [q] quit | [enter] toggle visibility"
-		if copyCmd {
+		if copyCmd != "" {
 			footer += " | [c] copy"
 		}
 	}
