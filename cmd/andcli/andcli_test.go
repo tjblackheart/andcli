@@ -188,7 +188,7 @@ func TestConfig(t *testing.T) {
 			cfgDir = os.TempDir()
 			cfgFile = filepath.Join(cfgDir, "config_test.yaml")
 
-			cfg, err := newConfig(filepath.Join(tt.vaultDir, tt.vaultFile), tt.vaultType)
+			cfg, err := newConfig(filepath.Join(tt.vaultDir, tt.vaultFile), tt.vaultType, "")
 			if tt.fails {
 				assert.Error(t, err)
 				return
@@ -234,7 +234,7 @@ func TestChoices(t *testing.T) {
 	o := termenv.DefaultOutput()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			m := newModel(o, "", tt.entries...)
+			m := newModel(o, "", "", tt.entries...)
 			assert.Equal(t, tt.want.items, m.items)
 		})
 	}
