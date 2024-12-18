@@ -9,15 +9,18 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+          os: [macos-latest, ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-go@v3
+    - uses: actions/checkout@v4
+    - uses: actions/setup-go@v5
       with:
         go-version: "1.19"
         check-latest: true
         cache: true
     - name: test
       run: |
-        go test -v -coverprofile=/tmp/codecov.out ./... && \
-        go tool cover -func=/tmp/codecov.out
+        go test -v -coverprofile codecov.out ./... && go tool cover -func codecov.out
