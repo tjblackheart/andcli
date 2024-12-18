@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"log"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -16,34 +15,44 @@ import (
 
 type (
 	model struct {
-		filename string
-		items    entries
-		filtered entries
-		cursor   int
-		selected int
-		view     string
-		visible  bool
-		query    string
-		output   *termenv.Output
+		filename           string
+		items              entries
+		filtered           entries
+		cursor             int
+		selected           int
+		view               string
+		visible            bool
+		query              string
+		output             *termenv.Output
+		copied             bool
+		copyFailed         bool
+		copiedVisibleMSecs int
 	}
 
 	tickMsg struct{}
 )
 
-func newModel(o *termenv.Output, filename string, entries ...entry) *model {
+func newModel(o *termenv.Output, filename, cfgClipboardCmd string, entries ...entry) *model {
 	m := &model{
-		filename: filename,
-		items:    entries,
-		selected: -1,
-		view:     VIEW_LIST,
-		output:   o,
+		filename:           filename,
+		items:              entries,
+		selected:           -1,
+		view:               VIEW_LIST,
+		output:             o,
+		copied:             false,
+		copyFailed:         false,
+		copiedVisibleMSecs: 2000,
 	}
 
-	cmds := []string{"xclip", "wl-copy", "pbcopy"} // xorg, wayland, macos
-	for _, c := range cmds {
-		if _, err := exec.LookPath(c); err == nil {
-			copyCmd = c
-			break
+	if cfgClipboardCmd != "" {
+		copyCmd = cfgClipboardCmd
+	} else {
+		cmds := []string{"xclip", "wl-copy", "pbcopy"} // xorg, wayland, macos
+		for _, c := range cmds {
+			if _, err := exec.LookPath(c); err == nil {
+				copyCmd = c
+				break
+			}
 		}
 	}
 	if copyCmd == "" { // windows
@@ -186,17 +195,18 @@ func (m *model) updateDetail(msg tea.Msg) (tea.Model, tea.Cmd) {
 							return m, tea.Quit
 						}
 					}
-					copied = true
+					m.copyFailed = false
+					m.copied = true
 				}
 			}
 		}
 	case tickMsg:
-		if copied {
-			if copiedVisibleMSecs > 0 {
-				copiedVisibleMSecs--
+		if m.copied {
+			if m.copiedVisibleMSecs > 0 {
+				m.copiedVisibleMSecs--
 			} else {
-				copied = false
-				copiedVisibleMSecs = 2000
+				m.copied = false
+				m.copiedVisibleMSecs = 2000
 			}
 		}
 
@@ -249,8 +259,12 @@ func (m *model) detail() string {
 		fmtUntil = danger.Sprintf("%ds", until)
 	}
 
-	if copied {
+	if m.copied {
 		fmtToken += success.Sprint(" ✓ ")
+	}
+
+	if m.copyFailed {
+		fmtToken += danger.Sprint(" ✗ \nCopy command (" + copyCmd + ") failed, check your configuration!")
 	}
 
 	view := fmt.Sprintf("%s: %s\nValid: %s\n", name, fmtToken, fmtUntil)

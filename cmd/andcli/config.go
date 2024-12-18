@@ -10,11 +10,12 @@ import (
 )
 
 type config struct {
-	File string `yaml:"file"`
-	Type string `yaml:"type"`
+	File         string `yaml:"file"`
+	Type         string `yaml:"type"`
+	ClipboardCmd string `yaml:"clipboard_cmd"`
 }
 
-func newConfig(vaultFile, vaultType string) (*config, error) {
+func newConfig(vaultFile, vaultType, clipboardCmd string) (*config, error) {
 	var err error
 
 	if vaultFile != "" {
@@ -60,6 +61,10 @@ func newConfig(vaultFile, vaultType string) (*config, error) {
 
 	if vaultType != "" {
 		cfg.Type = vaultType
+	}
+
+	if clipboardCmd != "" {
+		cfg.ClipboardCmd = clipboardCmd
 	}
 
 	if _, ok := os.LookupEnv("ANDCLI_HIDE_ABSPATH"); !ok {
