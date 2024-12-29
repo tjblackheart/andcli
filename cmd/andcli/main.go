@@ -19,6 +19,7 @@ const (
 	VIEW_DETAIL = "detail"
 	TYPE_ANDOTP = "andotp"
 	TYPE_AEGIS  = "aegis"
+	TYPE_TWOFAS = "twofas"
 )
 
 var (
@@ -34,10 +35,8 @@ var (
 	muted   = color.New(color.FgHiWhite, color.Faint)
 
 	// global ui stuff
-	copyCmd            = ""
-	current            = "" // holds an unformatted copy of the current token
-	copied             = false
-	copiedVisibleMSecs = 2000
+	copyCmd = ""
+	current = "" // holds an unformatted copy of the current token
 
 	// build vars
 	commit = ""
@@ -61,11 +60,12 @@ func init() {
 }
 
 func main() {
-	var vaultFile, vaultType string
+	var vaultFile, vaultType, clipboardCmd string
 	var showVersion bool
 
 	flag.StringVar(&vaultFile, "f", "", "Path to the encrypted vault")
-	flag.StringVar(&vaultType, "t", "", "Vault type (andotp, aegis)")
+	flag.StringVar(&vaultType, "t", "", "Vault type (andotp, aegis, twofas)")
+	flag.StringVar(&clipboardCmd, "c", "", "Clipboard command (xclip, wl-copy, pbcopy, etc.)")
 	flag.BoolVar(&showVersion, "v", false, "Show current version")
 	flag.Parse()
 
@@ -83,7 +83,7 @@ func main() {
 
 	prefix := danger.Sprint("[ERR]")
 
-	cfg, err := newConfig(vaultFile, vaultType)
+	cfg, err := newConfig(vaultFile, vaultType, clipboardCmd)
 	if err != nil {
 		log.Fatalf("%s: %s\n", prefix, err.Error())
 	}
@@ -108,7 +108,7 @@ func main() {
 	output := termenv.DefaultOutput()
 	output.ClearScreen()
 
-	p := tea.NewProgram(newModel(output, cfg.File, entries...))
+	p := tea.NewProgram(newModel(output, cfg.File, cfg.ClipboardCmd, entries...))
 	if _, err := p.Run(); err != nil {
 		log.Fatalf("%s: %s\n", prefix, err.Error())
 	}
@@ -149,6 +149,8 @@ func decrypt(vaultFile, vaultType string, p ...[]byte) (entries, error) {
 		return decryptANDOTP(b, pass)
 	case TYPE_AEGIS:
 		return decryptAEGIS(b, pass)
+	case TYPE_TWOFAS:
+		return decryptTWOFAS(b, pass)
 	}
 
 	return nil, fmt.Errorf("vault type %q: not implemented", vaultType)

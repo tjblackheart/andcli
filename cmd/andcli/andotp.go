@@ -15,8 +15,8 @@ type andotpEntry struct {
 	Algorithm string
 	Thumbnail string
 	Period    int
-	LastUsed  int `json:"last_used"`
-	UsedFreq  int `json:"used_frequency"`
+	LastUsed  int64 `json:"last_used"`
+	UsedFreq  int   `json:"used_frequency"`
 	Tags      []string
 }
 
