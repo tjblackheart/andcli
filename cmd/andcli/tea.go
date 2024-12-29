@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
+	"log"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -9,6 +11,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/muesli/termenv"
+	"golang.design/x/clipboard"
 )
 
 type (
@@ -51,6 +54,11 @@ func newModel(o *termenv.Output, filename, cfgClipboardCmd string, entries ...en
 				copyCmd = c
 				break
 			}
+		}
+	}
+	if copyCmd == "" { // windows
+		if err := clipboard.Init(); err == nil {
+			copyCmd = "clipboard"
 		}
 	}
 
@@ -174,11 +182,19 @@ func (m *model) updateDetail(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			if msg.String() == "c" {
 				if current != "" && copyCmd != "" {
-					cmd := fmt.Sprintf("echo %s | %s", current, copyCmd)
-					if err := exec.Command("sh", "-c", cmd).Run(); err != nil {
-						m.copyFailed = true
-						m.copied = false
-						return m, nil
+					if copyCmd == "clipboard" {
+						currentBytes := []byte(current)
+						clipboard.Write(clipboard.FmtText, currentBytes)
+						if !bytes.Equal(clipboard.Read(clipboard.FmtText), currentBytes) {
+							log.Println("copy: failed")
+							return m, tea.Quit
+						}
+					} else {
+						cmd := fmt.Sprintf("echo %s | %s -selection clipboard", current, copyCmd)
+						if err := exec.Command("sh", "-c", cmd).Run(); err != nil {
+							log.Println("copy:", err)
+							return m, tea.Quit
+						}
 					}
 					m.copyFailed = false
 					m.copied = true
