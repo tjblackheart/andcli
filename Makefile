@@ -1,6 +1,7 @@
 GOVER=$(shell go version | sed 's/^.*go\([0-9.]*\).*/\1/')
 COMMIT=$(shell git rev-parse --short HEAD)
-NOW=$(shell date --rfc-3339 seconds)
+# macOS/BSD compatible equivalent of `date --rfc-3339=seconds`
+NOW=$(shell date "+%F %T%:z")
 FLAGS=-s -w -X 'main.commit=$(COMMIT)' -X 'main.gover=$(GOVER)' -X 'main.date=$(NOW)'
 
 # set local vars without pipeline access
