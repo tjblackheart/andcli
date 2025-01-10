@@ -190,7 +190,7 @@ func (m *model) updateDetail(msg tea.Msg) (tea.Model, tea.Cmd) {
 							return m, tea.Quit
 						}
 					} else {
-						cmd := fmt.Sprintf("echo %s | %s -selection clipboard", current, copyCmd)
+						cmd := fmt.Sprintf("echo -n %s | %s", current, copyCmd)
 						if err := exec.Command("sh", "-c", cmd).Run(); err != nil {
 							log.Println("copy:", err)
 							return m, tea.Quit
