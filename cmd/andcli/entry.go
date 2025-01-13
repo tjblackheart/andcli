@@ -1,6 +1,9 @@
 package main
 
 import (
+	"crypto/sha1"
+	"crypto/sha256"
+	"crypto/sha512"
 	"strings"
 
 	"github.com/xlzd/gotp"
@@ -20,7 +23,31 @@ type entry struct {
 }
 
 func (e entry) generateTOTP() (string, int64) {
-	return gotp.NewDefaultTOTP(e.Secret).NowWithExpiration()
+	t := gotp.NewTOTP(e.Secret, e.Digits, e.Period, e.generateHasher())
+	return t.NowWithExpiration()
+}
+
+func (e entry) generateHasher() *gotp.Hasher {
+
+	defaultHashName := "sha1"
+	if e.Algorithm != "" {
+		defaultHashName = strings.ToLower(e.Algorithm)
+	}
+
+	// default values.
+	h := &gotp.Hasher{
+		HashName: defaultHashName,
+		Digest:   sha1.New,
+	}
+
+	switch h.HashName {
+	case "sha256":
+		h.Digest = sha256.New
+	case "sha512":
+		h.Digest = sha512.New
+	}
+
+	return h
 }
 
 type entries []entry
