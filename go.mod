@@ -1,6 +1,6 @@
 module github.com/tjblackheart/andcli
 
-go 1.22.0
+go 1.23.4
 
 require (
 	github.com/charmbracelet/bubbletea v1.2.4
