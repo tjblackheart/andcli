@@ -22,3 +22,7 @@ clean:
 
 docs:
 	export ANDCLI_HIDE_ABSPATH=1; vhs < doc/demo.tape
+
+test:
+	go test -v -coverprofile /tmp/codecov.out ./...
+	go tool cover -func /tmp/codecov.out
