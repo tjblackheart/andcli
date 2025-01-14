@@ -176,7 +176,7 @@ func (m *model) updateDetail(msg tea.Msg) (tea.Model, tea.Cmd) {
 						}
 					} else {
 						cmd := fmt.Sprintf("echo -n %s | %s", current, copyCmd)
-						if err := exec.Command(cmd).Run(); err != nil {
+						if err := exec.Command("sh", "-c", cmd).Run(); err != nil {
 							log.Println("copy:", err)
 							return m, tea.Quit
 						}
