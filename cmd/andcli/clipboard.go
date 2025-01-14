@@ -30,7 +30,7 @@ func setupClipboard(cfgCmd string) string {
 	}
 
 	// if no options where given, use the first available binary found.
-	sysUtils := []string{"xclip", "wl-copy", "pbcopy"} // xorg, wayland, macos
+	sysUtils := []string{"xclip", "xsel", "wl-copy", "pbcopy"} // xorg, wayland, macos
 	for _, v := range sysUtils {
 		if path, err := exec.LookPath(v); err == nil {
 			cmd = path
@@ -38,6 +38,12 @@ func setupClipboard(cfgCmd string) string {
 				// force xclip copy to system clipboard.
 				cmd = fmt.Sprintf("%s -selection clipboard", path)
 			}
+
+			if v == "xsel" {
+				// force xsel copy to system clipboard.
+				cmd = fmt.Sprintf("%s --input --clipboard", path)
+			}
+
 			return cmd
 		}
 	}
