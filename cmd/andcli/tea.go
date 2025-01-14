@@ -45,22 +45,7 @@ func newModel(o *termenv.Output, filename, cfgClipboardCmd string, entries ...en
 		copiedVisibleMSecs: 2000,
 	}
 
-	if cfgClipboardCmd != "" {
-		copyCmd = cfgClipboardCmd
-	} else {
-		cmds := []string{"xclip", "wl-copy", "pbcopy"} // xorg, wayland, macos
-		for _, c := range cmds {
-			if _, err := exec.LookPath(c); err == nil {
-				copyCmd = c
-				break
-			}
-		}
-	}
-	if copyCmd == "" { // windows
-		if err := clipboard.Init(); err == nil {
-			copyCmd = "clipboard"
-		}
-	}
+	copyCmd = setupClipboard(cfgClipboardCmd)
 
 	for i, e := range m.items {
 		issuer := strings.TrimSpace(e.Issuer)
@@ -191,7 +176,7 @@ func (m *model) updateDetail(msg tea.Msg) (tea.Model, tea.Cmd) {
 						}
 					} else {
 						cmd := fmt.Sprintf("echo -n %s | %s", current, copyCmd)
-						if err := exec.Command("sh", "-c", cmd).Run(); err != nil {
+						if err := exec.Command(cmd).Run(); err != nil {
 							log.Println("copy:", err)
 							return m, tea.Quit
 						}
