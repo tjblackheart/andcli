@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/tjblackheart/andcli/internal/clipboard"
 )
 
 func TestHeader(t *testing.T) {
@@ -25,34 +26,33 @@ func TestHeader(t *testing.T) {
 
 func TestFooter(t *testing.T) {
 	tests := []struct {
-		name    string
-		copyCmd string
-		view    string
-		want    string
+		name string
+		cb   *clipboard.CB
+		view string
+		want string
 	}{
 		{
 			"generates list footer",
-			"",
+			nil,
 			VIEW_LIST,
 			"\n[esc] quit\n",
 		},
 		{
 			"generates detail footer",
-			"",
+			nil,
 			VIEW_DETAIL,
 			"\n[esc] back | [q] quit | [enter] toggle visibility\n",
 		},
 		{
-			"generates detail footer with copy",
-			"xcopy",
+			"generates detail footer with copy option",
+			clipboard.New(""),
 			VIEW_DETAIL,
 			"\n[esc] back | [q] quit | [enter] toggle visibility | [c] copy\n",
 		},
 	}
 
 	for _, tt := range tests {
-		copyCmd = tt.copyCmd
-		have := model{view: tt.view}.footer()
+		have := model{view: tt.view, cb: tt.cb}.footer()
 		assert.Equal(t, tt.want, have)
 	}
 }

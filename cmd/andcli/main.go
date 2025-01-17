@@ -35,7 +35,6 @@ var (
 	muted   = color.New(color.FgHiWhite, color.Faint)
 
 	// global ui stuff
-	copyCmd = ""
 	current = "" // holds an unformatted copy of the current token
 
 	// build vars
@@ -108,7 +107,7 @@ func main() {
 	output := termenv.DefaultOutput()
 	output.ClearScreen()
 
-	p := tea.NewProgram(newModel(output, cfg.File, cfg.ClipboardCmd, entries...))
+	p := tea.NewProgram(newModel(output, cfg, entries...))
 	if _, err := p.Run(); err != nil {
 		log.Fatalf("%s: %s\n", prefix, err.Error())
 	}

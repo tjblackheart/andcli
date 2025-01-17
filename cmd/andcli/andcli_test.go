@@ -322,7 +322,7 @@ func TestChoices(t *testing.T) {
 	o := termenv.DefaultOutput()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			m := newModel(o, "", "", tt.entries...)
+			m := newModel(o, &config{}, tt.entries...)
 			assert.Equal(t, tt.want.items, m.items)
 		})
 	}
