@@ -25,33 +25,23 @@ func TestHeader(t *testing.T) {
 
 func TestFooter(t *testing.T) {
 	tests := []struct {
-		name    string
-		copyCmd string
-		view    string
-		want    string
+		name string
+		view string
+		want string
 	}{
 		{
 			"generates list footer",
-			"",
 			VIEW_LIST,
 			"\n[esc] quit\n",
 		},
 		{
 			"generates detail footer",
-			"",
 			VIEW_DETAIL,
 			"\n[esc] back | [q] quit | [enter] toggle visibility\n",
-		},
-		{
-			"generates detail footer with copy",
-			"xcopy",
-			VIEW_DETAIL,
-			"\n[esc] back | [q] quit | [enter] toggle visibility | [c] copy\n",
 		},
 	}
 
 	for _, tt := range tests {
-		copyCmd = tt.copyCmd
 		have := model{view: tt.view}.footer()
 		assert.Equal(t, tt.want, have)
 	}
