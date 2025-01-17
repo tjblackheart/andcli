@@ -61,8 +61,6 @@ func New(cfgCmd string) *CB {
 	// if nothing matched, try to use a more generic solution.
 	if err := clipboard.Init(); err == nil {
 		cb.cmd = "clipboard"
-	} else {
-		log.Println(err) // no fatal on broken clipboard pls
 	}
 
 	return cb
