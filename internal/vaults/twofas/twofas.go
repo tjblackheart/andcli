@@ -1,4 +1,4 @@
-package main
+package twofas
 
 import (
 	"crypto/aes"
@@ -7,27 +7,31 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 
+	"github.com/tjblackheart/andcli/internal/vaults"
 	"golang.org/x/crypto/pbkdf2"
 )
 
-const numFields int = 3
-const authTagLength int = 16
+const (
+	numFields     int = 3
+	authTagLength int = 16
+)
 
 type (
-	twofasVault struct {
+	vault struct {
 		UpdatedAt         int
 		SchemaVersion     int
 		AppVersionCode    int
 		AppVersionName    string
 		AppOrigin         string
 		ServicesEncrypted string
+		//
+		db []entry `json:"-"`
 	}
 
-	twofasDB []twofasEntry
-
-	twofasEntry struct {
+	entry struct {
 		Name      string
 		Secret    string
 		UpdatedAt int
@@ -57,55 +61,63 @@ type (
 	}
 )
 
-func (e twofasEntry) toEntry() *entry {
-	return &entry{
-		Secret:    e.Secret,
-		Issuer:    e.Otp.Issuer,
-		Label:     e.Otp.Label,
-		Digits:    e.Otp.Digits,
-		Type:      e.Otp.TokenType,
-		Algorithm: e.Otp.Algorithm,
-		Period:    e.Otp.Period,
+func Open(filename string, pass []byte) (vaults.Vault, error) {
+
+	var t = vaults.TYPE_TWOFAS
+	var v vault
+
+	b, err := os.ReadFile(filename)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", t, err)
 	}
+
+	if err := json.Unmarshal(b, &v); err != nil {
+		return nil, fmt.Errorf("%s: %w", t, err)
+	}
+
+	key, err := v.masterKeyFromPass(pass)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", t, err)
+	}
+
+	plain, err := v.decryptDB(key)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", t, err)
+	}
+
+	if err := json.Unmarshal(plain, &v.db); err != nil {
+		return nil, fmt.Errorf("%s: %w", t, err)
+	}
+
+	return v, nil
 }
 
-//
+func (v vault) Entries() []vaults.Entry {
 
-func decryptTWOFAS(data, password []byte) (entries, error) {
+	entries := make([]vaults.Entry, 0)
 
-	var vault twofasVault
-	if err := json.Unmarshal(data, &vault); err != nil {
-		return nil, err
+	for _, e := range v.db {
+		entries = append(entries, vaults.Entry{
+			Secret:    e.Secret,
+			Issuer:    e.Otp.Issuer,
+			Label:     e.Otp.Label,
+			Digits:    e.Otp.Digits,
+			Type:      e.Otp.TokenType,
+			Algorithm: e.Otp.Algorithm,
+			Period:    e.Otp.Period,
+		})
 	}
 
-	key, err := deriveTwoFasMasterKey(&vault, password)
-	if err != nil {
-		return nil, err
-	}
-
-	plain, err := decryptTwoFasDB(&vault, key)
-	if err != nil {
-		return nil, err
-	}
-
-	var db twofasDB
-	if err := json.Unmarshal(plain, &db); err != nil {
-		return nil, err
-	}
-
-	var list entries
-	for _, e := range db {
-		list = append(list, *e.toEntry())
-	}
-
-	return list, nil
+	return entries
 }
 
-func deriveTwoFasMasterKey(v *twofasVault, password []byte) ([]byte, error) {
+func (v vault) masterKeyFromPass(password []byte) ([]byte, error) {
+
 	servicesEncrypted := strings.SplitN(v.ServicesEncrypted, ":", numFields+1)
 	if len(servicesEncrypted) != numFields {
-		return nil, fmt.Errorf("Invalid vault file. Number of fields is not %d", numFields)
+		return nil, fmt.Errorf("invalid vault file. number of fields is not %d", numFields)
 	}
+
 	var dbAndAuthTag, salt []byte
 	var err error
 
@@ -113,23 +125,24 @@ func deriveTwoFasMasterKey(v *twofasVault, password []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	salt, err = base64.StdEncoding.DecodeString(servicesEncrypted[1])
 	if err != nil {
 		return nil, err
 	}
 
 	if len(dbAndAuthTag) <= authTagLength {
-		return nil, fmt.Errorf("Invalid vault file. Length of cipher text with auth tag must be more than %d", authTagLength)
+		msg := "invalid vault file: length of cipher text with auth tag must be more than %d"
+		return nil, fmt.Errorf(msg, authTagLength)
 	}
 
 	return pbkdf2.Key(password, salt, 10000, 32, sha256.New), nil
 }
 
-func decryptTwoFasDB(v *twofasVault, key []byte) ([]byte, error) {
-
+func (v vault) decryptDB(key []byte) ([]byte, error) {
 	servicesEncrypted := strings.SplitN(v.ServicesEncrypted, ":", numFields+1)
 	if len(servicesEncrypted) != numFields {
-		return nil, fmt.Errorf("Invalid vault file. Number of fields is not %d", numFields)
+		return nil, fmt.Errorf("invalid vault file: number of fields is not %d", numFields)
 	}
 
 	var dbAndAuthTag, b, tag, nonce []byte
