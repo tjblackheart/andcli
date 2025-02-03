@@ -10,6 +10,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/tjblackheart/andcli/internal/buildinfo"
+	"github.com/tjblackheart/andcli/internal/clipboard"
 	"github.com/tjblackheart/andcli/internal/config"
 	"github.com/tjblackheart/andcli/internal/vaults"
 )
@@ -21,18 +22,20 @@ type (
 		style lipgloss.Style
 	}
 
-	tickMsg  struct{}
-	frameMsg struct{}
-
 	appState struct {
-		showToken bool
+		showToken    bool
+		currentToken string
 		//showDescription bool
 	}
+
+	tickMsg  struct{}
+	frameMsg struct{}
 )
 
 var (
 	style *appStyle
 	state *appState
+	cb    *clipboard.Clipboard
 )
 
 func New(entries []vaults.Entry, cfg *config.Config) Model {
@@ -41,13 +44,14 @@ func New(entries []vaults.Entry, cfg *config.Config) Model {
 		items = append(items, e)
 	}
 
+	cb = clipboard.New(cfg.ClipboardCmd)
 	state = &appState{}
 	style = newDefaultStyle()
-
 	delegate := itemDelegate{style}
-	keys := []key.Binding{
-		key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "show/hide token")),
-		key.NewBinding(key.WithKeys("c"), key.WithHelp("c", "copy")),
+
+	keys := []key.Binding{key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "show/hide token"))}
+	if cb.IsInitialized() {
+		keys = append(keys, key.NewBinding(key.WithKeys("c"), key.WithHelp("c", "copy")))
 	}
 
 	l := list.New(items, delegate, 0, 0)
@@ -80,11 +84,16 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				state.showToken = !state.showToken
 			}
 		case "c":
-			m.list.NewStatusMessage("copy token: TODO")
-			/* c := exec.Command("vim", "file.txt")
-			cmd := ExecProcess(c, func(err error) Msg {
-				return VimFinishedMsg{err: err}
-			}) */
+			if !cb.IsInitialized() {
+				break
+			}
+
+			msg := "Copied to clipboard!"
+			if err := cb.Set([]byte(state.currentToken)); err != nil {
+				msg = fmt.Sprintf("%s: %s", cb.String(), err)
+			}
+
+			return m, m.list.NewStatusMessage(msg)
 		}
 
 	case tickMsg:

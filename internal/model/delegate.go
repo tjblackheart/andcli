@@ -34,6 +34,8 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, idx int, i list.Item) {
 	text := d.style.listItem.Render(entry.Title())
 
 	if idx == m.Index() {
+		state.currentToken = token
+
 		formattedToken := "*** ***"
 		if state.showToken {
 			formattedToken = fmt.Sprintf("%s %s", token[:3], token[3:])
