@@ -26,16 +26,19 @@ type (
 // plus given flags into a current app config. Missing dirs apart
 // from the default system config directory will be created in the process.
 func Create() (*Config, error) {
-	dir, err := os.UserConfigDir()
+
+	userDir, err := os.UserConfigDir()
 	if err != nil {
 		return nil, fmt.Errorf("config: can not read directory: %s", err)
 	}
 
-	path := filepath.Join(dir, buildinfo.AppName)
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		if err := os.MkdirAll(path, 0700); err != nil {
-			return nil, err
-		}
+	return create(userDir)
+}
+
+func create(d string) (*Config, error) {
+	path, err := createDirectories(filepath.Join(d, buildinfo.AppName))
+	if err != nil {
+		return nil, err
 	}
 
 	cfg := &Config{
@@ -43,15 +46,15 @@ func Create() (*Config, error) {
 	}
 
 	if err := cfg.mergeExisting(); err != nil {
-		return nil, fmt.Errorf("config: merge: %s", err)
+		return nil, fmt.Errorf("config: %s", err)
 	}
 
 	if err := cfg.parseFlags(); err != nil {
-		return nil, fmt.Errorf("config: parseFlags: %s", err)
+		return nil, fmt.Errorf("config: %s", err)
 	}
 
 	if err := cfg.validate(); err != nil {
-		return nil, fmt.Errorf("config: validate: %s", err)
+		return nil, fmt.Errorf("config: %s", err)
 	}
 
 	return cfg, nil
@@ -61,7 +64,7 @@ func Create() (*Config, error) {
 func (c Config) Persist() error {
 	b, err := yaml.Marshal(c)
 	if err != nil {
-		return fmt.Errorf("config: persist: %s", err)
+		return fmt.Errorf("config: %s", err)
 	}
 
 	return os.WriteFile(c.path, b, 0600)
@@ -113,7 +116,7 @@ func (c *Config) validate() error {
 	}
 
 	if fi.IsDir() {
-		return fmt.Errorf("%s: is a directory", c.File)
+		return fmt.Errorf("%s: is a directory, not a vault file", c.File)
 	}
 
 	// if set, check if the basic clipboard cmd is available in system PATH.
@@ -126,24 +129,16 @@ func (c *Config) validate() error {
 		c.ClipboardCmd = strings.ReplaceAll(c.ClipboardCmd, parts[0], path)
 	}
 
-	// TODO: implement clipboard copy somewhere else
-	/* parts := strings.SplitN(c.ClipboardCmd, " ", 2)
-	cmd, opts := parts[0], make([]string, 0)
+	return nil
+}
 
-	if cmd != "" {
-		cmd, err = exec.LookPath(cmd)
-		if err != nil {
-			return fmt.Errorf("%s: %s", cmd, err.Error())
+func createDirectories(path string) (string, error) {
+
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		if err := os.MkdirAll(path, 0700); err != nil {
+			return "", err
 		}
 	}
 
-	if len(parts) > 1 {
-		opts = append(opts, strings.Split(parts[1], " ")...)
-	}
-
-	syscall := exec.Command(cmd, opts...)
-	log.Fatal(syscall.Args)
-	*/
-
-	return nil
+	return path, nil
 }

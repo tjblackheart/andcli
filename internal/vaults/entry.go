@@ -75,6 +75,5 @@ func (e Entry) Description() string {
 
 // Implementation of bubbletea listitem.FilterValue()
 func (e Entry) FilterValue() string {
-	//return fmt.Sprintf("%s %s", e.Title(), e.Description())
 	return e.Title()
 }

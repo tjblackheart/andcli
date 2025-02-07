@@ -6,12 +6,16 @@ import (
 )
 
 func TestFull(t *testing.T) {
+	AppVersion = "2.0.0-test"
+	Commit = "test"
+	GoVersion = "1.x"
+
 	tests := []struct{ name, want string }{
 		{
 			"prints full info",
 			fmt.Sprintf(
-				"%s %s (%s) built %s with Go %s",
-				AppName, "test", Commit, BuildDate, "",
+				"%s %s (%s) built %s, %s",
+				AppName, AppVersion, Commit, BuildDate, GoVersion,
 			),
 		},
 	}
@@ -27,7 +31,7 @@ func TestFull(t *testing.T) {
 
 func TestSimple(t *testing.T) {
 	tests := []struct{ name, want string }{
-		{"prints simple info", fmt.Sprintf("%s %s", AppName, "AppVersion")},
+		{"prints simple info", fmt.Sprintf("%s %s", AppName, AppVersion)},
 	}
 
 	for _, tt := range tests {

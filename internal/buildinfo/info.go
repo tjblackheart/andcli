@@ -7,9 +7,11 @@ import (
 
 // build vars
 var (
-	AppName   = "andcli"
-	Commit    = "none"
-	BuildDate = "right now"
+	AppName    = "andcli"
+	Commit     = "dev"
+	BuildDate  = "now"
+	AppVersion = "v2.0.x"
+	GoVersion  = ""
 )
 
 // Returns a formatted build info string
@@ -18,21 +20,28 @@ func Long() string {
 	if !ok {
 		return fmt.Sprintf(
 			"%s (%s): error reading debug information",
-			AppName, Commit,
+			AppName, AppVersion,
 		)
 	}
 
+	if info.Main.Version != "" {
+		AppVersion = info.Main.Version
+	}
+
+	if GoVersion == "" {
+		GoVersion = info.GoVersion
+	}
+
 	return fmt.Sprintf(
-		"%s %s built on %s, %s",
-		AppName, info.Main.Version, BuildDate, info.GoVersion,
+		"%s %s (%s) built %s, %s",
+		AppName, AppVersion, Commit, BuildDate, GoVersion,
 	)
 }
 
 func Short() string {
-	version := "?"
-	if info, ok := debug.ReadBuildInfo(); ok {
-		version = info.Main.Version
+	if info, ok := debug.ReadBuildInfo(); ok && info.Main.Version != "" {
+		AppVersion = info.Main.Version
 	}
 
-	return fmt.Sprintf("%s %s", AppName, version)
+	return fmt.Sprintf("%s %s", AppName, AppVersion)
 }

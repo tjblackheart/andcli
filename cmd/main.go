@@ -23,14 +23,12 @@ func main() {
 		log.Fatal(err)
 	}
 
-	vault, err := openFile(cfg)
+	vault, err := open(cfg)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	m := model.New(vault.Entries(), cfg)
-	p := tea.NewProgram(m, tea.WithAltScreen())
-
+	p := tea.NewProgram(model.New(vault.Entries(), cfg))
 	if _, err := p.Run(); err != nil {
 		log.Fatal(err)
 	}
@@ -40,7 +38,7 @@ func main() {
 	}
 }
 
-func openFile(c *config.Config) (vaults.Vault, error) {
+func open(c *config.Config) (vaults.Vault, error) {
 	log.Printf("Opening %s ...", c.File)
 
 	b, err := input.AskHidden("Password: ")

@@ -4,48 +4,54 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/tjblackheart/andcli/internal/buildinfo"
 	"github.com/tjblackheart/andcli/internal/vaults"
 )
 
-// Parses given flags into the existing config.
-func (cfg *Config) parseFlags() error {
-	var (
-		vfile, vtype, cmd string
-		version           bool
-		types             string
-	)
-
+var (
 	types = strings.Join(vaults.Types(), ", ")
 
+	vfile   = flag.String("f", "", "Path to the encrypted vault (deprecated: Pass the filename directly)")
+	vtype   = flag.String("t", "", fmt.Sprintf("Vault type (%s)", types))
+	cmd     = flag.String("c", "", "Clipboard command (xclip, wl-copy, pbcopy etc.)")
+	version = flag.Bool("v", false, "Prints version info and exits")
+)
+
+// Parses given flags into the existing config.
+func (cfg *Config) parseFlags() error {
+
 	flag.Usage = usage
-	flag.StringVar(&vfile, "f", "", "Path to the encrypted vault (deprecated: Pass the filename directly)")
-	flag.StringVar(&vtype, "t", "", fmt.Sprintf("Vault type (%s)", types))
-	flag.StringVar(&cmd, "c", "", "Clipboard command (xclip, wl-copy, pbcopy etc.)")
-	flag.BoolVar(&version, "v", false, "Prints version info and exits")
 	flag.Parse()
 
-	if version {
+	if *version {
 		usage()
 		os.Exit(0)
 	}
 
-	if vfile != "" {
-		cfg.File = vfile
+	f := trim(*vfile)
+	if f != "" {
+		abs, err := filepath.Abs(f)
+		if err != nil {
+			return err
+		}
+		cfg.File = abs
 	}
 
-	if vtype != "" {
-		cfg.Type = vtype
+	t := trim(*vtype)
+	if t != "" {
+		cfg.Type = t
 	}
 
-	if cmd != "" {
-		cfg.ClipboardCmd = cmd
+	c := trim(*cmd)
+	if c != "" {
+		cfg.ClipboardCmd = c
 	}
 
 	if flag.Arg(0) != "" {
-		cfg.File = flag.Arg(0)
+		cfg.File = trim(flag.Arg(0))
 	}
 
 	return nil
@@ -61,4 +67,8 @@ Options:
 	fmt.Print(buildinfo.Long(), "\n")
 	fmt.Fprintf(flag.CommandLine.Output(), msg, os.Args[0])
 	flag.PrintDefaults()
+}
+
+func trim(s string) string {
+	return strings.ToLower(strings.TrimSpace(s))
 }

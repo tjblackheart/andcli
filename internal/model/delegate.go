@@ -21,32 +21,36 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, idx int, i list.Item) {
 	entry, _ := i.(vaults.Entry)
 	token, exp := entry.GenerateTOTP()
 	until := exp - time.Now().Unix()
-
-	tokenColor := green
-	if until <= 15 && until > 10 {
-		tokenColor = yellow
-	}
-
-	if until <= 10 {
-		tokenColor = red
-	}
-
 	text := d.style.listItem.Render(entry.Title())
+
+	bgColor, fgColor := green, white
+	if until <= 10 && until > 5 {
+		bgColor, fgColor = yellow, black
+	}
+
+	if until <= 5 {
+		bgColor = red
+	}
 
 	if idx == m.Index() {
 		state.currentToken = token
 
-		formattedToken := "*** ***"
+		formatted := "*** ***"
 		if state.showToken {
-			formattedToken = fmt.Sprintf("%s %s", token[:3], token[3:])
+			formatted = fmt.Sprintf("%s %s", token[:3], token[3:])
 		}
 
-		// TODO: integrate optional entry.Description
+		item := d.style.activeItem.Render(entry.Title())
+		if state.showUsernames {
+			user := style.username.Render(fmt.Sprintf("(%s) ", entry.Description()))
+			item = fmt.Sprintf("%s%s", item, user)
+		}
+
 		text = fmt.Sprintf(
 			"%s%s %s",
-			d.style.activeItem.Render(entry.Title()),
-			style.token.Background(tokenColor).Padding(0, 1, 0, 1).Render(formattedToken),
-			style.until.Foreground(tokenColor).Render(fmt.Sprintf("%vs", until)),
+			item,
+			style.token.Background(bgColor).Foreground(fgColor).Render(formatted),
+			style.until.Foreground(bgColor).Render(fmt.Sprintf("%vs", until)),
 		)
 	}
 

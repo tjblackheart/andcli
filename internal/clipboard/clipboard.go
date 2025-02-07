@@ -17,6 +17,9 @@ type Clipboard struct {
 	args []string
 }
 
+// New inits a new Clipboard instance with a given comand string.
+// If nothing is provided, it fals back to either system tools
+// or uses a generic go solution as last hope.
 func New(s string) *Clipboard {
 	cb := &Clipboard{cmd: "", args: make([]string, 0)}
 	if s != "" {
@@ -25,6 +28,7 @@ func New(s string) *Clipboard {
 	return cb.initSystem()
 }
 
+// Set writes b to the selected clipboard.
 func (cb Clipboard) Set(b []byte) error {
 	if cb.cmd == "clipboard" {
 		clipboard.Write(clipboard.FmtText, b)
@@ -35,9 +39,11 @@ func (cb Clipboard) Set(b []byte) error {
 	}
 
 	pipe := fmt.Sprintf("echo -n %s | %s", string(b), cb.String())
+
 	return exec.Command("sh", "-c", pipe).Run()
 }
 
+// Checks if a command is povided and the clipboard is usable
 func (cb Clipboard) IsInitialized() bool {
 	return cb.cmd != ""
 }
@@ -85,6 +91,7 @@ func (cb *Clipboard) initSystem() *Clipboard {
 	return cb
 }
 
+// Retrusn a formatted string built from the current command + args.
 func (cb Clipboard) String() string {
 	return fmt.Sprintf("%s %s", cb.cmd, strings.Join(cb.args, " "))
 }

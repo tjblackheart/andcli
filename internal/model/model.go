@@ -23,9 +23,9 @@ type (
 	}
 
 	appState struct {
-		showToken    bool
-		currentToken string
-		//showDescription bool
+		showToken     bool
+		showUsernames bool
+		currentToken  string
 	}
 
 	tickMsg  struct{}
@@ -45,27 +45,15 @@ func New(entries []vaults.Entry, cfg *config.Config) Model {
 	}
 
 	cb = clipboard.New(cfg.ClipboardCmd)
-	state = &appState{}
+	state = &appState{showUsernames: true}
 	style = newDefaultStyle()
-	delegate := itemDelegate{style}
+	title := fmt.Sprintf("%s: %s", buildinfo.AppName, filepath.Base(cfg.File))
 
-	keys := []key.Binding{key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "show/hide token"))}
-	if cb.IsInitialized() {
-		keys = append(keys, key.NewBinding(key.WithKeys("c"), key.WithHelp("c", "copy")))
-	}
+	keys := initKeys()
+	d := &itemDelegate{style}
+	list := initList(items, d, keys, title)
 
-	l := list.New(items, delegate, 0, 0)
-	l.FilterInput.Prompt = "Search for: "
-	l.FilterInput.PromptStyle = style.filterPrompt
-	l.FilterInput.Cursor.Style = style.filterCursor
-	l.Styles.Title = style.title
-	l.InfiniteScrolling = true
-	l.StatusMessageLifetime = 3 * time.Second
-	l.Title = fmt.Sprintf("%s: %s", buildinfo.AppName, filepath.Base(cfg.File))
-	l.AdditionalShortHelpKeys = func() []key.Binding { return keys }
-	l.AdditionalFullHelpKeys = func() []key.Binding { return keys }
-
-	return Model{list: l}
+	return Model{list: list}
 }
 
 func (m Model) Init() tea.Cmd {
@@ -83,12 +71,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.list.FilterState() != list.Filtering {
 				state.showToken = !state.showToken
 			}
+		case "u":
+			state.showUsernames = !state.showUsernames
 		case "c":
 			if !cb.IsInitialized() {
 				break
 			}
 
-			msg := "Copied to clipboard!"
+			msg := "Token copied to clipboard!"
 			if err := cb.Set([]byte(state.currentToken)); err != nil {
 				msg = fmt.Sprintf("%s: %s", cb.String(), err)
 			}
@@ -126,4 +116,33 @@ func frame() tea.Cmd {
 	return tea.Tick(time.Second/60, func(time.Time) tea.Msg {
 		return frameMsg{}
 	})
+}
+
+func initKeys() []key.Binding {
+	keys := []key.Binding{
+		key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "show/hide token")),
+		key.NewBinding(key.WithKeys("u"), key.WithHelp("u", "show/hide usernames")),
+	}
+
+	if cb.IsInitialized() {
+		keys = append(keys, key.NewBinding(key.WithKeys("c"), key.WithHelp("c", "copy")))
+	}
+
+	return keys
+}
+
+func initList(i []list.Item, d *itemDelegate, k []key.Binding, title string) list.Model {
+	l := list.New(i, d, 0, 0)
+
+	l.FilterInput.Prompt = "Search for: "
+	l.FilterInput.PromptStyle = style.filterPrompt
+	l.FilterInput.Cursor.Style = style.filterCursor
+	l.Styles.Title = style.title
+	l.InfiniteScrolling = true
+	l.StatusMessageLifetime = 3 * time.Second
+	l.Title = title
+	l.AdditionalShortHelpKeys = func() []key.Binding { return k }
+	l.AdditionalFullHelpKeys = func() []key.Binding { return k }
+
+	return l
 }
