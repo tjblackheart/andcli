@@ -45,7 +45,7 @@ func New(entries []vaults.Entry, cfg *config.Config) Model {
 	}
 
 	cb = clipboard.New(cfg.ClipboardCmd)
-	state = &appState{showUsernames: true}
+	state = &appState{showUsernames: false}
 	style = newDefaultStyle()
 	title := fmt.Sprintf("%s: %s", buildinfo.AppName, filepath.Base(cfg.File))
 
@@ -72,13 +72,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				state.showToken = !state.showToken
 			}
 		case "u":
-			state.showUsernames = !state.showUsernames
+			if m.list.FilterState() != list.Filtering {
+				state.showUsernames = !state.showUsernames
+			}
 		case "c":
-			if !cb.IsInitialized() {
+			if !cb.IsInitialized() || m.list.FilterState() == list.Filtering {
 				break
 			}
 
-			msg := "Token copied to clipboard!"
+			msg := "Token copied to clipboard"
 			if err := cb.Set([]byte(state.currentToken)); err != nil {
 				msg = fmt.Sprintf("%s: %s", cb.String(), err)
 			}
@@ -124,7 +126,7 @@ func initKeys() []key.Binding {
 		key.NewBinding(key.WithKeys("u"), key.WithHelp("u", "show/hide usernames")),
 	}
 
-	if cb.IsInitialized() {
+	if cb != nil && cb.IsInitialized() {
 		keys = append(keys, key.NewBinding(key.WithKeys("c"), key.WithHelp("c", "copy")))
 	}
 

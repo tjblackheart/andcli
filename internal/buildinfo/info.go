@@ -8,9 +8,9 @@ import (
 // build vars
 var (
 	AppName    = "andcli"
-	Commit     = "dev"
 	BuildDate  = "now"
 	AppVersion = "v2.0.x"
+	Commit     = ""
 	GoVersion  = ""
 )
 

@@ -160,7 +160,7 @@ func TestConfig_validate(t *testing.T) {
 	}
 }
 
-func Test_persist(t *testing.T) {
+func TestConfig_Persist(t *testing.T) {
 	fname := filepath.Join(os.TempDir(), "andcli_test_config.yaml")
 	defer os.RemoveAll(fname)
 
