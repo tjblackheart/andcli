@@ -64,7 +64,7 @@ func usage() {
 Options:
 `
 
-	fmt.Print(buildinfo.Long(), "\n\n")
+	fmt.Print(buildinfo.Long(), "\n")
 	fmt.Fprintf(flag.CommandLine.Output(), msg, os.Args[0])
 	flag.PrintDefaults()
 }

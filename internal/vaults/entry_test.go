@@ -147,7 +147,7 @@ func TestEntry_GenerateTOTP(t *testing.T) {
 			}
 
 			if len(s) != tt.e.Digits {
-				t.Fatalf("Entry.GenerateTOTP(): got len %v, want %v", len(s), tt.e.Digits)
+				t.Fatalf("Entry.GenerateTOTP(): len is %v, want %v", len(s), tt.e.Digits)
 			}
 
 			if i == 0 {
