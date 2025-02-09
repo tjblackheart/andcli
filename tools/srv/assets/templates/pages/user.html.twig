@@ -1,0 +1,7 @@
+{% extends "base.html.twig" %}
+
+{% block body %}
+{% include "blocks/flash.html.twig" %}
+Hello {{ user.Username }}!
+<a href="/user/logout">Logout</a>
+{% endblock %}
