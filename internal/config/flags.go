@@ -70,5 +70,5 @@ Options:
 }
 
 func trim(s string) string {
-	return strings.ToLower(strings.TrimSpace(s))
+	return strings.TrimSpace(s)
 }
