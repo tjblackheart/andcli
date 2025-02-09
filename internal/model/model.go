@@ -7,8 +7,10 @@ import (
 
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
+
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/muesli/termenv"
 	"github.com/tjblackheart/andcli/internal/buildinfo"
 	"github.com/tjblackheart/andcli/internal/clipboard"
 	"github.com/tjblackheart/andcli/internal/config"
@@ -18,8 +20,9 @@ import (
 type (
 	// tea.Model implementation
 	Model struct {
-		list  list.Model
-		style lipgloss.Style
+		list   list.Model
+		style  lipgloss.Style
+		output *termenv.Output
 	}
 
 	appState struct {
@@ -53,7 +56,7 @@ func New(entries []vaults.Entry, cfg *config.Config) Model {
 	d := &itemDelegate{style}
 	list := initList(items, d, keys, title)
 
-	return Model{list: list}
+	return Model{list: list, output: termenv.DefaultOutput()}
 }
 
 func (m Model) Init() tea.Cmd {
@@ -67,6 +70,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
+		case "q":
+			if m.list.FilterState() != list.Filtering {
+				m.output.ClearScreen()
+				return m, tea.Quit
+			}
 		case "enter":
 			if m.list.FilterState() != list.Filtering {
 				state.showToken = !state.showToken
