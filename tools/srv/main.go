@@ -24,7 +24,7 @@ import (
 const (
 	addr          = "127.0.0.1:8080"
 	issuer        = "otp.provider.dev"
-	otpAlg        = otp.AlgorithmSHA256
+	otpAlg        = otp.AlgorithmSHA1
 	otpLen        = otp.DigitsSix
 	otpSecretSize = 32
 )
@@ -37,10 +37,7 @@ type (
 		OtpConfirmed bool
 	}
 
-	flash struct {
-		Message string
-		Type    string
-	}
+	flash struct{ Message, Type string }
 
 	m map[string]stick.Value
 
@@ -62,13 +59,13 @@ func main() {
 	gob.Register(&user{})
 	gob.Register(&flash{})
 
-	s := http.Server{Addr: addr, Handler: session.LoadAndSave(newMux())}
+	s := http.Server{Addr: addr, Handler: session.LoadAndSave(mux())}
 
 	log.Printf("Server started: http://%s\n", addr)
 	log.Fatal(s.ListenAndServe())
 }
 
-func newMux() chi.Router {
+func mux() chi.Router {
 	mux := chi.NewMux()
 	mux.Use(middleware.Logger, middleware.Recoverer)
 
@@ -123,14 +120,14 @@ func postLogin(w http.ResponseWriter, r *http.Request) {
 	u, err := store.Find(r.PostFormValue("username"))
 	if err != nil {
 		log.Println(err)
-		session.Put(r.Context(), "flash", &flash{"no such user", "danger"})
+		session.Put(r.Context(), "flash", &flash{"invalid credentials!", "danger"})
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
 
 	have, want := []byte(u.Password), []byte(r.PostFormValue("password"))
 	if err := bcrypt.CompareHashAndPassword(have, want); err != nil {
-		session.Put(r.Context(), "flash", &flash{"invalid password", "danger"})
+		session.Put(r.Context(), "flash", &flash{"invalid credentials!", "danger"})
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
@@ -154,7 +151,7 @@ func postRegister(w http.ResponseWriter, r *http.Request) {
 	p := strings.TrimSpace(r.PostFormValue("password"))
 
 	if u == "" || p == "" {
-		session.Put(r.Context(), "flash", &flash{"invalid user data", "danger"})
+		session.Put(r.Context(), "flash", &flash{"invalid user data!", "danger"})
 		http.Redirect(w, r, "/register", http.StatusFound)
 		return
 	}
@@ -162,7 +159,7 @@ func postRegister(w http.ResponseWriter, r *http.Request) {
 	b, err := bcrypt.GenerateFromPassword([]byte(p), 12)
 	if err != nil {
 		log.Println(err)
-		session.Put(r.Context(), "flash", &flash{"internal error", "danger"})
+		session.Put(r.Context(), "flash", &flash{"internal error!", "danger"})
 		http.Redirect(w, r, "/register", http.StatusFound)
 		return
 	}
@@ -296,7 +293,7 @@ func getLogout(w http.ResponseWriter, r *http.Request) {
 func isLoggedIn(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if u, _ := session.Get(r.Context(), "user").(*user); u == nil {
-			session.Put(r.Context(), "flash", &flash{"please login first", "danger"})
+			session.Put(r.Context(), "flash", &flash{"please login first!", "danger"})
 			http.Redirect(w, r, "/", http.StatusFound)
 			return
 		}
@@ -308,7 +305,7 @@ func isLoggedIn(next http.Handler) http.Handler {
 func isOTPValidated(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !session.GetBool(r.Context(), "otp-validated") {
-			session.Put(r.Context(), "flash", &flash{"invalid otp.", "danger"})
+			session.Put(r.Context(), "flash", &flash{"invalid otp!", "danger"})
 			http.Redirect(w, r, "/otp", http.StatusFound)
 			return
 		}
