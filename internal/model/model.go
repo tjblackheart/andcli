@@ -10,7 +10,6 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/muesli/termenv"
 	"github.com/tjblackheart/andcli/internal/buildinfo"
 	"github.com/tjblackheart/andcli/internal/clipboard"
 	"github.com/tjblackheart/andcli/internal/config"
@@ -20,9 +19,8 @@ import (
 type (
 	// tea.Model implementation
 	Model struct {
-		list   list.Model
-		style  lipgloss.Style
-		output *termenv.Output
+		list  list.Model
+		style lipgloss.Style
 	}
 
 	appState struct {
@@ -31,8 +29,7 @@ type (
 		currentToken  string
 	}
 
-	tickMsg  struct{}
-	frameMsg struct{}
+	tickMsg struct{}
 )
 
 var (
@@ -56,7 +53,7 @@ func New(entries []vaults.Entry, cfg *config.Config) Model {
 	d := &itemDelegate{style}
 	list := initList(items, d, keys, title)
 
-	return Model{list: list, output: termenv.DefaultOutput()}
+	return Model{list: list}
 }
 
 func (m Model) Init() tea.Cmd {
@@ -69,22 +66,17 @@ func (m Model) Init() tea.Cmd {
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
+		if m.list.FilterState() == list.Filtering {
+			break
+		}
+
 		switch msg.String() {
-		case "q":
-			if m.list.FilterState() != list.Filtering {
-				m.output.ClearScreen()
-				return m, tea.Quit
-			}
 		case "enter":
-			if m.list.FilterState() != list.Filtering {
-				state.showToken = !state.showToken
-			}
+			state.showToken = !state.showToken
 		case "u":
-			if m.list.FilterState() != list.Filtering {
-				state.showUsernames = !state.showUsernames
-			}
+			state.showUsernames = !state.showUsernames
 		case "c":
-			if !cb.IsInitialized() || m.list.FilterState() == list.Filtering {
+			if !cb.IsInitialized() {
 				break
 			}
 
@@ -98,9 +90,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tickMsg:
 		return m, tick()
-
-	case frameMsg:
-		return m, frame()
 
 	case tea.WindowSizeMsg:
 		h, v := m.style.GetFrameSize()
@@ -117,14 +106,8 @@ func (m Model) View() string {
 }
 
 func tick() tea.Cmd {
-	return tea.Tick(time.Second, func(time.Time) tea.Msg {
+	return tea.Tick(time.Millisecond, func(time.Time) tea.Msg {
 		return tickMsg{}
-	})
-}
-
-func frame() tea.Cmd {
-	return tea.Tick(time.Second/60, func(time.Time) tea.Msg {
-		return frameMsg{}
 	})
 }
 
