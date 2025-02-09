@@ -26,7 +26,7 @@ Download a [prebuild release](https://github.com/tjblackheart/andcli/releases) a
 
 ## Clipboard config
 
-By default, andcli will choose the first system clipboard tool found. For Linux, this could be either `xclip`, `xsel` or `wl-copy` for example. For Mac, it will always be `pbcopy`. If you need more control over this command, you can either edit the config file and set your preferred command including all flags in the `clipboard_cmd` entry, ot you could pass the full command via the `-c` flag.
+By default, andcli will choose the first system clipboard tool found. For Linux, this could be either `xclip`, `xsel` or `wl-copy` for example. For Mac, it will always be `pbcopy`. If you need more control over this command, you can either edit the config file and set your preferred command including all flags in the `clipboard_cmd` entry, or you could pass the full command via the `-c` flag.
 
 ## Config file
 
@@ -46,6 +46,14 @@ Options:
     	Vault type (andotp, aegis, twofas)
   -v	Prints version info and exits
 ```
+
+## Implementing new vaults
+
+A usabe vault implementation for andcli is basically just an interface providing one function called `Entries()`. You just have to figure out the encryption of your app and you're done. Have a look at the [current implementations](internal/vaults) to see how this works.
+
+You can use the demo registration server implementation at [tools/srv](tools/srv) to quickly create some demo tokens for your vault.
+
+## ACK
 
 andcli was built with the awesome [Bubbletea](https://github.com/charmbracelet/bubbletea) library.
 
