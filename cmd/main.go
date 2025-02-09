@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
+	"path/filepath"
 
 	tea "github.com/charmbracelet/bubbletea"
 
@@ -39,7 +41,12 @@ func main() {
 }
 
 func open(c *config.Config) (vaults.Vault, error) {
-	log.Printf("Opening %s ...", c.File)
+	name := c.File
+	if os.Getenv("ANDCLI_HIDE_ABSPATH") != "" {
+		name = filepath.Base(c.File)
+	}
+
+	log.Printf("Opening %s ...", name)
 
 	b, err := input.AskHidden("Password: ")
 	if err != nil {
