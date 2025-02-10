@@ -12,10 +12,10 @@ import (
 )
 
 var (
-	types = strings.Join(vaults.Types(), ", ")
+	availableVaults = strings.Join(vaults.Types(), ", ")
 
 	vfile   = flag.String("f", "", "Path to the encrypted vault (deprecated: Pass the filename directly)")
-	vtype   = flag.String("t", "", fmt.Sprintf("Vault type (%s)", types))
+	vtype   = flag.String("t", "", fmt.Sprintf("Vault type (%s)", availableVaults))
 	cmd     = flag.String("c", "", "Clipboard command (xclip, wl-copy, pbcopy etc.)")
 	version = flag.Bool("v", false, "Prints version info and exits")
 )
@@ -31,27 +31,24 @@ func (cfg *Config) parseFlags() error {
 		os.Exit(0)
 	}
 
-	f := trim(*vfile)
-	if f != "" {
-		abs, err := filepath.Abs(f)
+	if *vfile != "" {
+		abs, err := filepath.Abs(*vfile)
 		if err != nil {
 			return err
 		}
 		cfg.File = abs
 	}
 
-	t := trim(*vtype)
-	if t != "" {
-		cfg.Type = t
+	if *vtype != "" {
+		cfg.Type = *vtype
 	}
 
-	c := trim(*cmd)
-	if c != "" {
-		cfg.ClipboardCmd = c
+	if *cmd != "" {
+		cfg.ClipboardCmd = *cmd
 	}
 
 	if flag.Arg(0) != "" {
-		cfg.File = trim(flag.Arg(0))
+		cfg.File = flag.Arg(0)
 	}
 
 	return nil
@@ -67,8 +64,4 @@ Options:
 	fmt.Print(buildinfo.Long(), "\n")
 	fmt.Fprintf(flag.CommandLine.Output(), msg, os.Args[0])
 	flag.PrintDefaults()
-}
-
-func trim(s string) string {
-	return strings.TrimSpace(s)
 }

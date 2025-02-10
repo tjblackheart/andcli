@@ -2,6 +2,7 @@ package model
 
 import "github.com/charmbracelet/lipgloss"
 
+// TODO: configurable colors via config file
 var (
 	base   = lipgloss.Color("#39A02E")
 	green  = lipgloss.Color("#39A02E")
@@ -12,47 +13,36 @@ var (
 	white  = lipgloss.Color("#ffffff")
 )
 
-type appStyle struct {
-	title, listItem, activeItem, username lipgloss.Style
-	filterCursor, filterPrompt            lipgloss.Style
-	token, until                          lipgloss.Style
+type defaultStyle struct {
+	title, listItem, activeItem lipgloss.Style
+	username, filterCursor      lipgloss.Style
+	filterPrompt, token, until  lipgloss.Style
 }
 
-func newDefaultStyle() *appStyle {
-	return &appStyle{
-		title: lipgloss.NewStyle().
-			Background(base).
+var ns = lipgloss.NewStyle
+
+func newDefaultStyle() *defaultStyle {
+	return &defaultStyle{
+		title: ns().Background(base).Padding(0, 1),
+
+		listItem: ns().PaddingLeft(2).Faint(true),
+
+		activeItem: ns().
 			Padding(0, 1).
-			MarginTop(1),
-
-		listItem: lipgloss.NewStyle().
-			PaddingLeft(3).
-			MarginLeft(1).
-			Faint(true),
-
-		activeItem: lipgloss.NewStyle().
-			Padding(0, 1, 0, 2).
-			MarginLeft(1).
 			Bold(true).
 			Background(grey).
 			Border(lipgloss.ThickBorder(), false, false, false, true).
 			BorderForeground(base).
 			Faint(false),
 
-		username: lipgloss.NewStyle().
-			Background(grey),
+		username: ns().Background(grey),
 
-		filterPrompt: lipgloss.NewStyle().
-			Foreground(base).
-			MarginTop(1),
+		filterPrompt: ns().Foreground(base),
 
-		filterCursor: lipgloss.NewStyle().
-			Background(base),
+		filterCursor: ns().Background(base),
 
-		token: lipgloss.NewStyle().
-			Bold(true).
-			Padding(0, 1, 0, 1),
+		token: ns().Bold(true).Padding(0, 1, 0, 1),
 
-		until: lipgloss.NewStyle().Bold(true),
+		until: ns().Bold(true),
 	}
 }

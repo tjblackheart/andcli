@@ -10,7 +10,7 @@ import (
 	"github.com/tjblackheart/andcli/internal/vaults"
 )
 
-type itemDelegate struct{ style *appStyle }
+type itemDelegate struct{ style *defaultStyle }
 
 func (d itemDelegate) Height() int                             { return 1 }
 func (d itemDelegate) Spacing() int                            { return 0 }
