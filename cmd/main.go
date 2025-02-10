@@ -18,6 +18,8 @@ import (
 	"github.com/tjblackheart/andcli/internal/vaults/twofas"
 )
 
+var output = termenv.DefaultOutput()
+
 func main() {
 	log.SetFlags(0)
 
@@ -31,7 +33,11 @@ func main() {
 		log.Fatal(err)
 	}
 
-	p := tea.NewProgram(model.New(vault.Entries(), cfg), tea.WithFilter(cls))
+	p := tea.NewProgram(
+		model.New(vault.Entries(), cfg),
+		tea.WithFilter(clearScreenOnExit),
+	)
+
 	if _, err := p.Run(); err != nil {
 		log.Fatal(err)
 	}
@@ -67,12 +73,12 @@ func open(c *config.Config) (vaults.Vault, error) {
 }
 
 // clears the screen before quitting the program
-func cls(m tea.Model, msg tea.Msg) tea.Msg {
+func clearScreenOnExit(m tea.Model, msg tea.Msg) tea.Msg {
 	if _, ok := msg.(tea.QuitMsg); !ok {
 		return msg
 	}
 
-	termenv.DefaultOutput().ClearScreen()
+	output.ClearScreen()
 
 	return msg
 }

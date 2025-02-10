@@ -17,6 +17,8 @@ type Clipboard struct {
 	args []string
 }
 
+var sysUtils = []string{"xclip", "xsel", "wl-copy", "pbcopy"}
+
 // New inits a new Clipboard instance with a given comand string.
 // If nothing is provided, it fals back to either system tools
 // or uses a generic go solution as last hope.
@@ -67,9 +69,7 @@ func (cb *Clipboard) initUser(s string) *Clipboard {
 // if none of these are available, use a generic solution.
 func (cb *Clipboard) initSystem() *Clipboard {
 
-	system := []string{"xclip", "xsel", "wl-copy", "pbcopy"}
-
-	for _, v := range system {
+	for _, v := range sysUtils {
 		if path, err := exec.LookPath(v); err == nil {
 			cb.cmd = path
 			if v == "xclip" {
@@ -91,7 +91,8 @@ func (cb *Clipboard) initSystem() *Clipboard {
 	return cb
 }
 
-// Retrusn a formatted string built from the current command + args.
+// Return a formatted string built from the current command, including args.
 func (cb Clipboard) String() string {
-	return fmt.Sprintf("%s %s", cb.cmd, strings.Join(cb.args, " "))
+	args := strings.TrimSpace(strings.Join(cb.args, " "))
+	return strings.TrimSpace(strings.Join([]string{cb.cmd, args}, " "))
 }

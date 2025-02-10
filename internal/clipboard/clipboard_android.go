@@ -1,7 +1,7 @@
-// why, yes, I *do* use this on android. all hail termux. :]
+// Why, yes, I *do* use this on android. All hail Termux! :]
 //
-// the reason for this split is the "clipboard" package,
-// which depends on x/mobile, which needs some weird CGO stuff to build
+// The reason for this split is the "clipboard" package: depends on x/mobile,
+// which needs enabled CGO and the whole Android NDK, and thats a little bit overkill.
 
 package clipboard
 
@@ -18,10 +18,7 @@ type Clipboard struct {
 
 func New(s string) *Clipboard {
 	cb := &Clipboard{cmd: "", args: make([]string, 0)}
-	if s != "" {
-		return cb.initUser(s)
-	}
-	return cb
+	return cb.initUser(s)
 }
 
 func (cb Clipboard) Set(b []byte) error {
