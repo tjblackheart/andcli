@@ -20,8 +20,8 @@ type Clipboard struct {
 var sysUtils = []string{"xclip", "xsel", "wl-copy", "pbcopy"}
 
 // New inits a new Clipboard instance with a given comand string.
-// If nothing is provided, it fals back to either system tools
-// or uses a generic go solution as last hope.
+// If nothing is provided, it falls back to either system tools
+// or, if that also fails, uses a even more generic solution as last resort.
 func New(s string) *Clipboard {
 	cb := &Clipboard{cmd: "", args: make([]string, 0)}
 	if s != "" {
@@ -64,9 +64,8 @@ func (cb *Clipboard) initUser(s string) *Clipboard {
 	return cb
 }
 
-// Inits the clipboard with the first occurence found of either
-// "xclip", "xsel", "wl-copy" or "pbcopy".
-// if none of these are available, use a generic solution.
+// Inits the clipboard with the first occurence found of the defined system tools.
+// If none of these are available, use a generic solution.
 func (cb *Clipboard) initSystem() *Clipboard {
 
 	for _, v := range sysUtils {
