@@ -106,7 +106,7 @@ func (m Model) View() string {
 }
 
 func tick() tea.Cmd {
-	return tea.Tick(time.Second/60, func(time.Time) tea.Msg {
+	return tea.Tick(time.Second, func(time.Time) tea.Msg {
 		return tickMsg{}
 	})
 }

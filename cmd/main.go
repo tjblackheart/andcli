@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/muesli/termenv"
 
 	"github.com/tjblackheart/andcli/internal/config"
 	"github.com/tjblackheart/andcli/internal/input"
@@ -17,8 +16,6 @@ import (
 	"github.com/tjblackheart/andcli/internal/vaults/andotp"
 	"github.com/tjblackheart/andcli/internal/vaults/twofas"
 )
-
-var output = termenv.DefaultOutput()
 
 func main() {
 	log.SetFlags(0)
@@ -33,10 +30,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	p := tea.NewProgram(
-		model.New(vault.Entries(), cfg),
-		tea.WithFilter(clearScreenOnExit),
-	)
+	m := model.New(vault.Entries(), cfg)
+	p := tea.NewProgram(m, tea.WithAltScreen())
 
 	if _, err := p.Run(); err != nil {
 		log.Fatal(err)
@@ -70,15 +65,4 @@ func open(c *config.Config) (vaults.Vault, error) {
 	}
 
 	return nil, fmt.Errorf("vault type %q: not implemented", c.Type)
-}
-
-// clears the screen before quitting the program
-func clearScreenOnExit(m tea.Model, msg tea.Msg) tea.Msg {
-	if _, ok := msg.(tea.QuitMsg); !ok {
-		return msg
-	}
-
-	output.ClearScreen()
-
-	return msg
 }
