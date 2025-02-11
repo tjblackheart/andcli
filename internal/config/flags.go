@@ -27,7 +27,7 @@ func (cfg *Config) parseFlags() error {
 	flag.Parse()
 
 	if *version {
-		usage()
+		fmt.Println(buildinfo.Long())
 		os.Exit(0)
 	}
 
