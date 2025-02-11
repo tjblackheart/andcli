@@ -26,7 +26,7 @@ type (
 	appState struct {
 		showToken     bool
 		showUsernames bool
-		currentToken  string
+		currentOTP    string
 	}
 
 	tickMsg struct{}
@@ -81,7 +81,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			msg := "Token copied to clipboard"
-			if err := cb.Set([]byte(state.currentToken)); err != nil {
+			if err := cb.Set([]byte(state.currentOTP)); err != nil {
 				msg = fmt.Sprintf("%s: %s", cb.String(), err)
 			}
 

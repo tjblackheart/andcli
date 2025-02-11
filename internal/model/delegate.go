@@ -19,25 +19,25 @@ func (d itemDelegate) Update(_ tea.Msg, _ *list.Model) tea.Cmd { return nil }
 func (d itemDelegate) Render(w io.Writer, m list.Model, idx int, i list.Item) {
 
 	entry, _ := i.(vaults.Entry)
-	token, exp := entry.GenerateTOTP()
-	until := exp - time.Now().Unix()
 	text := d.style.listItem.Render(entry.Title())
 
-	bgColor, fgColor := green, white
-	if until <= 10 && until > 5 {
-		bgColor, fgColor = yellow, black
-	}
-
-	if until <= 5 {
-		bgColor = red
-	}
-
 	if idx == m.Index() {
-		state.currentToken = token
+		token, exp := entry.GenerateTOTP()
+		until := exp - time.Now().Unix()
+		state.currentOTP = token
+
+		bgColor, fgColor := green, white
+		if until <= 10 && until > 5 {
+			bgColor, fgColor = yellow, black
+		}
+
+		if until <= 5 {
+			bgColor = red
+		}
 
 		formatted := "*** ***"
 		if state.showToken {
-			formatted = fmt.Sprintf("%s %s", token[:3], token[3:])
+			formatted = fmt.Sprintf("%s %s", state.currentOTP[:3], state.currentOTP[3:])
 		}
 
 		item := d.style.activeItem.Render(entry.Title())
