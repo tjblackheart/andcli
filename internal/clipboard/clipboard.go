@@ -1,95 +1,109 @@
-//go:build !android
-
 package clipboard
 
 import (
-	"bytes"
-	"errors"
-	"fmt"
-	"log"
 	"os/exec"
+	"runtime"
 	"strings"
-
-	"golang.design/x/clipboard"
 )
 
-type CB struct {
-	cmd  string
-	args []string
+type (
+	Clipboard struct {
+		cmd  string
+		args []string
+	}
+
+	sysUtil struct {
+		cmd  string
+		args []string
+	}
+)
+
+var utils = map[string][]sysUtil{
+	"windows": {{cmd: "clip.exe"}},
+	"darwin":  {{cmd: "pbcopy"}},
+	"linux": {
+		{cmd: "xclip", args: []string{"-selection", "clipboard"}},
+		{cmd: "xsel", args: []string{"-b"}},
+		{cmd: "wl-copy"},
+	},
+	"android": {{cmd: "termux-clipboard-set"}},
 }
 
-func New(cfgCmd string) *CB {
-	cb := &CB{cmd: "", args: make([]string, 0)}
+// New inits a new Clipboard instance with a given comand string.
+// If nothing is provided, it falls back to available system tools.
+func New(s string) *Clipboard {
+	cb := &Clipboard{cmd: "", args: make([]string, 0)}
+	if s != "" {
+		return cb.initUser(s)
+	}
+	return cb.initSystem()
+}
 
-	// use any given user values first and validate system paths
-	parts := strings.SplitN(cfgCmd, " ", 2)
+// Set writes b to the selected clipboard.
+func (cb Clipboard) Set(b []byte) error {
+
+	cmd := exec.Command(cb.cmd, cb.args...)
+
+	pipe, err := cmd.StdinPipe()
+	if err != nil {
+		return err
+	}
+
+	if err := cmd.Start(); err != nil {
+		return err
+	}
+
+	if _, err := pipe.Write(b); err != nil {
+		return err
+	}
+
+	if err := pipe.Close(); err != nil {
+		return err
+	}
+
+	return cmd.Wait()
+}
+
+// Checks if a command is povided and the clipboard is usable
+func (cb Clipboard) IsInitialized() bool {
+	return cb.cmd != ""
+}
+
+// Inits the clipboard with the given user values.
+// path validation is done in config already.
+func (cb *Clipboard) initUser(s string) *Clipboard {
+	parts := strings.SplitN(s, " ", 2)
 	if parts[0] != "" {
-		path, err := exec.LookPath(parts[0])
-		if err != nil {
-			log.Fatalf("Error: Configured clipboard command not found in $PATH: %s", parts[0])
-		}
-		cb.cmd = path
-
+		cb.cmd = parts[0]
 		if len(parts) > 1 {
 			cb.args = strings.Split(parts[1], " ")
 		}
-
-		return cb
-	}
-
-	// if no options where given, use the first available system util found.
-	// xorg (x2), wayland, macos
-	sysUtils := []string{"xclip", "xsel", "wl-copy", "pbcopy"}
-	for _, v := range sysUtils {
-		if path, err := exec.LookPath(v); err == nil {
-			args := make([]string, 0)
-			if v == "xclip" {
-				args = append(args, "-selection", "clipboard") // force xclip copy to system clipboard.
-			}
-
-			if v == "xsel" {
-				args = append(args, "--input", "--clipboard") // force xsel copy to system clipboard.
-			}
-
-			cb.cmd = path
-			cb.args = args
-
-			return cb
-		}
-	}
-
-	// if nothing matched, try to use a more generic solution.
-	if err := clipboard.Init(); err == nil {
-		cb.cmd = "clipboard"
 	}
 
 	return cb
 }
 
-func (cb CB) Set(b []byte) error {
+// Inits the clipboard with the first occurence found of the defined system tools.
+func (cb *Clipboard) initSystem() *Clipboard {
 
-	// just ignore this.
-	if !cb.IsInitialized() {
-		return nil
+	utils, ok := utils[runtime.GOOS]
+	if !ok {
+		return cb
 	}
 
-	switch cb.cmd {
-	case "clipboard":
-		clipboard.Write(clipboard.FmtText, b)
-		if !bytes.Equal(clipboard.Read(clipboard.FmtText), b) {
-			return errors.New("")
-		}
-	default:
-		cmd := fmt.Sprintf("%s %s", cb.cmd, strings.Join(cb.args, " "))
-		cmd = fmt.Sprintf("echo -n %s | %s", string(b), cmd)
-		if err := exec.Command("sh", "-c", cmd).Run(); err != nil {
-			return err
+	for _, v := range utils {
+		if path, err := exec.LookPath(v.cmd); err == nil {
+			cb.cmd = path
+			cb.args = v.args
+			break
 		}
 	}
 
-	return nil
+	return cb
 }
 
-func (cb CB) IsInitialized() bool {
-	return cb.cmd != ""
+// Return a formatted string built from the current command, including args.
+func (cb Clipboard) String() string {
+	args := strings.TrimSpace(strings.Join(cb.args, " "))
+	return strings.TrimSpace(strings.Join([]string{cb.cmd, args}, " "))
 }

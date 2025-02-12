@@ -1,0 +1,21 @@
+{% extends "base.html.twig" %}
+
+{% block body %}
+<h1 class="title">Login</h1>
+<hr>
+
+{% include "blocks/flash.html.twig" %}
+
+<form method="post" action="/login">
+    <div class="field">
+        <label for="" class="label">Username</label>
+        <div class="control"> <input type="text" class="input" name="username"> </div>
+    </div>
+    <div class="field">
+        <label for="" class="label">Password</label>
+        <div class="control"> <input class="input" type="password" name="password"> </div>
+    </div>
+    <button type="submit" class="button is-primary">Login</button>
+    <a href="/register" class="button">Register new account</a>
+</form>
+{% endblock %}

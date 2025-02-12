@@ -1,1 +1,5 @@
 bin
+builds
+.coverage
+.DS_Store
+build.sh

@@ -1,29 +1,25 @@
-GOVER=$(shell go version | sed 's/^.*go\([0-9.]*\).*/\1/')
 COMMIT=$(shell git rev-parse --short HEAD)
-# macOS/BSD compatible equivalent of `date --rfc-3339=seconds`
 NOW=$(shell date "+%F %T%:z")
-FLAGS=-s -w -X 'main.commit=$(COMMIT)' -X 'main.gover=$(GOVER)' -X 'main.date=$(NOW)'
+FLAGS=-s -w \
+	-X 'github.com/tjblackheart/andcli/internal/buildinfo.Commit=$(COMMIT)' \
+	-X 'github.com/tjblackheart/andcli/internal/buildinfo.BuildDate=$(NOW)'
 
-# set local vars without pipeline access
-TAG=$(shell git describe --tags --abbrev=0)
-ARCH=$(shell go env GOARCH)
-
-build: clean
-	go build -ldflags "$(FLAGS) -X 'main.tag=$(TAG)' -X 'main.arch=$(ARCH)'" -o bin/andcli ./cmd/andcli/...
+build:
+	go build -ldflags "$(FLAGS)" -trimpath -o builds/andcli ./cmd
 
 ci:
-	go build -ldflags "$(FLAGS) -X 'main.tag=$(CI_TAG)' -X 'main.arch=$(GOARCH)'" -o bin/andcli_$(RELEASE) ./cmd/andcli/...
+	go build -ldflags "$(FLAGS)" -trimpath -o builds/andcli_$(RELEASE) ./cmd
 
 compress: build
-	upx bin/andcli
+	upx builds/andcli*
 
 clean:
-	rm -rf bin/*
+	rm -rf builds/*
 
 docs:
 	export ANDCLI_HIDE_ABSPATH=1; vhs < doc/demo.tape
 
 test:
-	go test -v -coverprofile .coverage ./...
+	go test -coverprofile .coverage ./...
 	go tool cover -func .coverage
 	rm -f .coverage

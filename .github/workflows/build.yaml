@@ -69,7 +69,7 @@ jobs:
     - name: Release
       uses: ncipollo/release-action@v1
       with:
-        artifacts: "bin/*"
+        artifacts: "builds/*"
         token: ${{ secrets.GITHUB_TOKEN }}
         generateReleaseNotes: true
         allowUpdates: true
