@@ -13,9 +13,6 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
-        include:
-          - os: ubuntu-latest
-            extra: true # install needed x11 dev packages on ubuntu
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v4
@@ -24,7 +21,5 @@ jobs:
         go-version: "1.23"
         check-latest: true
         cache: true
-    - if: ${{ matrix.extra }}
-      run: sudo apt install -y libx11-dev
     - name: test
       run: make test
