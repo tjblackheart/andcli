@@ -8,7 +8,7 @@ build:
 	go build -ldflags "$(FLAGS)" -trimpath -o builds/andcli ./cmd
 
 ci:
-	go build -ldflags "$(FLAGS)" -trimpath -o builds/andcli_$(RELEASE) ./cmd
+	go build -ldflags "$(FLAGS) -X 'github.com/tjblackheart/andcli/internal/buildinfo.AppVersion=$(CI_TAG)'" -trimpath -o builds/andcli_$(RELEASE) ./cmd
 
 compress: build
 	upx builds/andcli*
