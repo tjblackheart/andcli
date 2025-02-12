@@ -8,7 +8,6 @@ require (
 	github.com/charmbracelet/lipgloss v1.0.0
 	github.com/grijul/go-andotp v1.0.23
 	github.com/xlzd/gotp v0.1.0
-	golang.design/x/clipboard v0.7.0
 	golang.org/x/crypto v0.33.0
 	golang.org/x/term v0.29.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -29,9 +28,6 @@ require (
 	github.com/muesli/termenv v0.15.2 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/sahilm/fuzzy v0.1.1 // indirect
-	golang.org/x/exp/shiny v0.0.0-20250210185358-939b2ce775ac // indirect
-	golang.org/x/image v0.24.0 // indirect
-	golang.org/x/mobile v0.0.0-20250210185054-b38b8813d607 // indirect
 	golang.org/x/sync v0.11.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
 	golang.org/x/text v0.22.0 // indirect

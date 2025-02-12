@@ -3,25 +3,36 @@
 package clipboard
 
 import (
-	"bytes"
-	"errors"
-	"fmt"
 	"os/exec"
+	"runtime"
 	"strings"
-
-	"golang.design/x/clipboard"
 )
 
-type Clipboard struct {
-	cmd  string
-	args []string
+type (
+	Clipboard struct {
+		cmd  string
+		args []string
+	}
+
+	sysUtil struct {
+		cmd  string
+		args []string
+	}
+)
+
+var utils = map[string][]sysUtil{
+	"windows": {{cmd: "clip.exe"}},
+	"darwin":  {{cmd: "pbcopy"}},
+	"linux": {
+		{cmd: "xclip", args: []string{"-selection", "clipboard"}},
+		{cmd: "xsel", args: []string{"-b"}},
+		{cmd: "wl-copy"},
+	},
+	"android": {{cmd: "termux-clipboard-set"}},
 }
 
-var sysUtils = []string{"xclip", "xsel", "wl-copy", "pbcopy"}
-
 // New inits a new Clipboard instance with a given comand string.
-// If nothing is provided, it falls back to either system tools
-// or, if that also fails, uses a even more generic solution as last resort.
+// If nothing is provided, it falls back to available system tools.
 func New(s string) *Clipboard {
 	cb := &Clipboard{cmd: "", args: make([]string, 0)}
 	if s != "" {
@@ -32,17 +43,27 @@ func New(s string) *Clipboard {
 
 // Set writes b to the selected clipboard.
 func (cb Clipboard) Set(b []byte) error {
-	if cb.cmd == "clipboard" {
-		clipboard.Write(clipboard.FmtText, b)
-		if !bytes.Equal(clipboard.Read(clipboard.FmtText), b) {
-			return errors.New("failed to set clipboard content")
-		}
-		return nil
+
+	cmd := exec.Command(cb.cmd, cb.args...)
+
+	pipe, err := cmd.StdinPipe()
+	if err != nil {
+		return err
 	}
 
-	pipe := fmt.Sprintf("echo -n %s | %s", string(b), cb.String())
+	if err := cmd.Start(); err != nil {
+		return err
+	}
 
-	return exec.Command("sh", "-c", pipe).Run()
+	if _, err := pipe.Write(b); err != nil {
+		return err
+	}
+
+	if err := pipe.Close(); err != nil {
+		return err
+	}
+
+	return cmd.Wait()
 }
 
 // Checks if a command is povided and the clipboard is usable
@@ -65,26 +86,19 @@ func (cb *Clipboard) initUser(s string) *Clipboard {
 }
 
 // Inits the clipboard with the first occurence found of the defined system tools.
-// If none of these are available, use a generic solution.
 func (cb *Clipboard) initSystem() *Clipboard {
 
-	for _, v := range sysUtils {
-		if path, err := exec.LookPath(v); err == nil {
-			cb.cmd = path
-			if v == "xclip" {
-				cb.args = append(cb.args, "-selection", "clipboard")
-			}
-
-			if v == "xsel" {
-				cb.args = append(cb.args, "-b")
-			}
-
-			return cb
-		}
+	utils, ok := utils[runtime.GOOS]
+	if !ok {
+		return cb
 	}
 
-	if err := clipboard.Init(); err == nil {
-		cb.cmd = "clipboard"
+	for _, v := range utils {
+		if path, err := exec.LookPath(v.cmd); err == nil {
+			cb.cmd = path
+			cb.args = v.args
+			break
+		}
 	}
 
 	return cb

@@ -4,7 +4,7 @@ FLAGS=-s -w \
 	-X 'github.com/tjblackheart/andcli/internal/buildinfo.Commit=$(COMMIT)' \
 	-X 'github.com/tjblackheart/andcli/internal/buildinfo.BuildDate=$(NOW)'
 
-build: clean
+build:
 	go build -ldflags "$(FLAGS)" -trimpath -o builds/andcli ./cmd
 
 ci:

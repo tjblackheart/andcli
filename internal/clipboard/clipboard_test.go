@@ -1,5 +1,3 @@
-//go:build !android
-
 package clipboard
 
 import (
@@ -9,17 +7,14 @@ import (
 
 func TestNew(t *testing.T) {
 
-	// reset usable system tools for tests.
-	sysUtils = []string{}
-
 	tests := []struct {
 		name, arg string
 		want      *Clipboard
 	}{
 		{"inits user", "test", &Clipboard{cmd: "test", args: []string{}}},
 		{"parses user args", "test -a -b -c", &Clipboard{cmd: "test", args: []string{"-a", "-b", "-c"}}},
-		//{"inits system", "", &Clipboard{cmd: "clipboard", args: []string{}}}, //TODO: workflow fail
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := New(tt.arg); !reflect.DeepEqual(got, tt.want) {
@@ -39,6 +34,7 @@ func TestClipboard_IsInitialized(t *testing.T) {
 		{"true if set", &Clipboard{cmd: "test"}, true},
 		{"false if unset", &Clipboard{cmd: ""}, false},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.cb.IsInitialized(); got != tt.want {
@@ -65,6 +61,7 @@ func TestClipboard_String(t *testing.T) {
 			"/usr/bin/test -a -b",
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.cb.String(); got != tt.want {
@@ -73,28 +70,3 @@ func TestClipboard_String(t *testing.T) {
 		})
 	}
 }
-
-// TODO: workflow fail
-/* func TestClipboard_Set(t *testing.T) {
-
-	cb := &Clipboard{cmd: "clipboard"}
-
-	tests := []struct {
-		name    string
-		args    []byte
-		wantErr bool
-	}{
-		{
-			"sets", []byte("test"), false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := cb.Set(tt.args); (err != nil) != tt.wantErr {
-				t.Errorf("Clipboard.Set() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-*/

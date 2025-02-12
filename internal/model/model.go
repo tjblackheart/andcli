@@ -7,9 +7,9 @@ import (
 
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
-
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+
 	"github.com/tjblackheart/andcli/internal/buildinfo"
 	"github.com/tjblackheart/andcli/internal/clipboard"
 	"github.com/tjblackheart/andcli/internal/config"
