@@ -24,6 +24,18 @@ Download a [prebuild release](https://github.com/tjblackheart/andcli/releases) a
 4. To search for an entry, type `/`.
 5. Navigate via keyboard, press `Enter` to view a token and press `c` to copy it into the clipboard. Press `u` to hide usernames for this entry, which are visible by default.
 
+## Keys
+
+```text
+↑/k up
+↓/j down
+/ filter
+enter show/hide token
+u show/hide usernames
+c copy
+q quit
+```
+
 ## Clipboard config
 
 By default, andcli will choose the first system clipboard tool found. For Linux, this could be either `xclip`, `xsel` or `wl-copy` for example. For Mac, it will always be `pbcopy`. If you need more control over this command, you can either edit the config file and set your preferred command including all flags in the `clipboard_cmd` entry, or you could pass the full command via the `-c` flag.
@@ -53,9 +65,13 @@ A usabe vault implementation for andcli is basically just an interface providing
 
 You can use the demo registration server implementation at [tools/srv](tools/srv) to quickly create some demo tokens for your vault.
 
-## ACK
+## Thanks
 
-andcli was built with the awesome [Bubbletea](https://github.com/charmbracelet/bubbletea) library.
+* [Bubbletea](https://github.com/charmbracelet/bubbletea)
+* [lipgloss](https://github.com/charmbracelet/lipgloss)
+* [GoTP](https://github.com/xlzd/gotp)
+* [go-andotp](https://github.com/grijul/go-andotp)
+* [vhs](https://github.com/charmbracelet/vhs)
 
 ## License
 
