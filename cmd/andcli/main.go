@@ -8,13 +8,13 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/tjblackheart/andcli/internal/config"
-	"github.com/tjblackheart/andcli/internal/input"
-	"github.com/tjblackheart/andcli/internal/model"
-	"github.com/tjblackheart/andcli/internal/vaults"
-	"github.com/tjblackheart/andcli/internal/vaults/aegis"
-	"github.com/tjblackheart/andcli/internal/vaults/andotp"
-	"github.com/tjblackheart/andcli/internal/vaults/twofas"
+	"github.com/tjblackheart/andcli/v2/internal/config"
+	"github.com/tjblackheart/andcli/v2/internal/input"
+	"github.com/tjblackheart/andcli/v2/internal/model"
+	"github.com/tjblackheart/andcli/v2/internal/vaults"
+	"github.com/tjblackheart/andcli/v2/internal/vaults/aegis"
+	"github.com/tjblackheart/andcli/v2/internal/vaults/andotp"
+	"github.com/tjblackheart/andcli/v2/internal/vaults/twofas"
 )
 
 func main() {

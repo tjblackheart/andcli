@@ -2,14 +2,14 @@ TAG=$(shell git describe --tags --abbrev=0)
 COMMIT=$(shell git rev-parse --short HEAD)
 NOW=$(shell date "+%F %T%:z")
 FLAGS=-s -w \
-	-X 'github.com/tjblackheart/andcli/internal/buildinfo.Commit=$(COMMIT)' \
-	-X 'github.com/tjblackheart/andcli/internal/buildinfo.BuildDate=$(NOW)'
+	-X 'github.com/tjblackheart/andcli/v2/internal/buildinfo.Commit=$(COMMIT)' \
+	-X 'github.com/tjblackheart/andcli/v2/internal/buildinfo.BuildDate=$(NOW)'
 
 build:
-	go build -ldflags "$(FLAGS) -X 'github.com/tjblackheart/andcli/internal/buildinfo.AppVersion=$(TAG)'" -trimpath -o builds/andcli ./cmd/andcli
+	go build -ldflags "$(FLAGS) -X 'github.com/tjblackheart/andcli/v2/internal/buildinfo.AppVersion=$(TAG)'" -trimpath -o builds/andcli ./cmd/andcli
 
 ci:
-	go build -ldflags "$(FLAGS) -X 'github.com/tjblackheart/andcli/internal/buildinfo.AppVersion=$(CI_TAG)'" -trimpath -o builds/andcli_$(RELEASE) ./cmd/andcli
+	go build -ldflags "$(FLAGS) -X 'github.com/tjblackheart/andcli/v2/internal/buildinfo.AppVersion=$(CI_TAG)'" -trimpath -o builds/andcli_$(RELEASE) ./cmd/andcli
 
 compress: build
 	upx builds/andcli*

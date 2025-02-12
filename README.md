@@ -14,7 +14,7 @@ At the moment andcli can handle input from the following providers:
 
 ## Installation
 
-Download a [prebuild release](https://github.com/tjblackheart/andcli/releases) and place it somewhere in your $PATH. If you have Go installed you can build it yourself: `go install -v github.com/tjblackheart/andcli/cmd@latest`.
+Download a [prebuild release](https://github.com/tjblackheart/andcli/releases) and place it somewhere in your $PATH. If you have Go installed you can build it yourself: `go install -v github.com/tjblackheart/andcli/cmd/andcli@latest`.
 
 ## Usage
 

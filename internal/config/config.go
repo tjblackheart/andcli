@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/tjblackheart/andcli/internal/buildinfo"
+	"github.com/tjblackheart/andcli/v2/internal/buildinfo"
 	"gopkg.in/yaml.v3"
 )
 

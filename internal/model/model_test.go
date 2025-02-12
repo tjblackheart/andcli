@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/charmbracelet/bubbles/key"
-	"github.com/tjblackheart/andcli/internal/clipboard"
+	"github.com/tjblackheart/andcli/v2/internal/clipboard"
 )
 
 func Test_initKeys(t *testing.T) {

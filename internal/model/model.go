@@ -10,10 +10,10 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
-	"github.com/tjblackheart/andcli/internal/buildinfo"
-	"github.com/tjblackheart/andcli/internal/clipboard"
-	"github.com/tjblackheart/andcli/internal/config"
-	"github.com/tjblackheart/andcli/internal/vaults"
+	"github.com/tjblackheart/andcli/v2/internal/buildinfo"
+	"github.com/tjblackheart/andcli/v2/internal/clipboard"
+	"github.com/tjblackheart/andcli/v2/internal/config"
+	"github.com/tjblackheart/andcli/v2/internal/vaults"
 )
 
 type (

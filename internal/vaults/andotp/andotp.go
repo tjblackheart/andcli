@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/grijul/go-andotp/andotp"
-	"github.com/tjblackheart/andcli/internal/vaults"
+	"github.com/tjblackheart/andcli/v2/internal/vaults"
 )
 
 type (

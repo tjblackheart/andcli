@@ -1,4 +1,4 @@
-module github.com/tjblackheart/andcli
+module github.com/tjblackheart/andcli/v2
 
 go 1.23.4
 

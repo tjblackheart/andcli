@@ -7,7 +7,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/tjblackheart/andcli/internal/vaults"
+	"github.com/tjblackheart/andcli/v2/internal/vaults"
 )
 
 type itemDelegate struct{ style *defaultStyle }

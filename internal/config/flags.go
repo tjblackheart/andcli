@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/tjblackheart/andcli/internal/buildinfo"
-	"github.com/tjblackheart/andcli/internal/vaults"
+	"github.com/tjblackheart/andcli/v2/internal/buildinfo"
+	"github.com/tjblackheart/andcli/v2/internal/vaults"
 )
 
 var (
