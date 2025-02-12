@@ -9,7 +9,7 @@ import (
 var (
 	AppName    = "andcli"
 	BuildDate  = "now"
-	AppVersion = "v2.0.x"
+	AppVersion = "(devel)"
 	Commit     = ""
 	GoVersion  = ""
 )
@@ -22,10 +22,6 @@ func Long() string {
 			"%s (%s): error reading debug information",
 			AppName, AppVersion,
 		)
-	}
-
-	if info.Main.Version != "" {
-		AppVersion = info.Main.Version
 	}
 
 	if GoVersion == "" {
