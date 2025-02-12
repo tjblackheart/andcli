@@ -14,7 +14,7 @@ At the moment andcli can handle input from the following providers:
 
 ## Installation
 
-Download a [prebuild release](https://github.com/tjblackheart/andcli/releases) and place it somewhere in your $PATH. If you have Go installed you can build it yourself: `go install -v github.com/tjblackheart/andcli/cmd/andcli@latest`.
+Download a [prebuild release](https://github.com/tjblackheart/andcli/releases) and place it somewhere in your $PATH. If you have Go installed you can install directly: `go install -ldflags='-s -w' github.com/tjblackheart/andcli/v2/cmd/andcli@latest`.
 
 ## Usage
 
@@ -38,7 +38,7 @@ q quit
 
 ## Clipboard config
 
-By default, andcli will choose the first system clipboard tool found. For Linux, this could be either `xclip`, `xsel` or `wl-copy` for example. For Mac, it will always be `pbcopy`. If you need more control over this command, you can either edit the config file and set your preferred command including all flags in the `clipboard_cmd` entry, or you could pass the full command via the `-c` flag.
+By default andcli will choose the first system clipboard tool found. For Linux, this could be either `xclip`, `xsel` or `wl-copy` for example. For Mac, it will always be `pbcopy`. If you need more control over this command, you can either edit the config file and set your preferred command including all flags in the `clipboard_cmd` entry, or you could pass the full command via the `-c` flag.
 
 ## Config file
 
