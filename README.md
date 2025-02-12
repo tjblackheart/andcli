@@ -22,7 +22,7 @@ Download a [prebuild release](https://github.com/tjblackheart/andcli/releases) a
 2. Start `andcli` and point it to this file with `andcli <path/to/file>`. Specify the vault type via `-t <type>`. The path and type will be persisted, so you have to do this only once.
 3. Enter the password.
 4. To search for an entry, type `/`.
-5. Navigate via keyboard, press `Enter` to view a token and press `c` to copy it into the clipboard. Press `u` to reveal usernames for this entry, which are hidden by default.
+5. Navigate via keyboard, press `Enter` to view a token and press `c` to copy it into the clipboard. Press `u` to hide usernames for this entry, which are visible by default.
 
 ## Clipboard config
 
