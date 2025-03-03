@@ -91,7 +91,7 @@ func mux() chi.Router {
 	})
 
 	fs := http.FileServer(http.Dir("./assets/css"))
-	mux.Handle("/assets/*", http.StripPrefix("/assets/", fs))
+	mux.Handle("/assets/*", http.StripPrefix("/assets", fs))
 
 	return mux
 }

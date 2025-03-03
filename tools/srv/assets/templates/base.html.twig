@@ -5,14 +5,15 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>2fa demo</title>
-    <link rel="stylesheet" href="/assets/bulma.min.css">
-    <style> .container { max-width: 660px !important; } </style>
+    <link rel="stylesheet" href="/assets/pico.min.css">
+    <style>
+        .container { max-width: 660px !important; margin-top: 60px; }
+        .centered { text-align: center; }
+        .is-danger { background: #f00; color: #fff; border-radius: 4px; }
+        .notification { padding: 20px; text-align: center; margin: 10px 0; }
+    </style>
 </head>
 <body>
-<section class="section">
-    <div class="container">
-        {% block body %}{% endblock %}
-    </div>
-</section>
+    <main class="container"> {% block body %}{% endblock %} </main>
 </body>
 </html>
