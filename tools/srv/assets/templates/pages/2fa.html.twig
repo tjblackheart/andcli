@@ -1,18 +1,14 @@
 {% extends "base.html.twig" %}
 
 {% block body %}
-<h1 class="title">Token</h1>
+<h3 class="title">Token</h3>
 <hr>
 
 {% include "blocks/flash.html.twig" %}
 
 <form method="post" action="/otp">
-    <div class="field">
-        <label for="" class="label">Enter OTP:</label>
-        <div class="control">
-            <input type="number" class="input" name="token">
-        </div>
-    </div>
-    <button type="submit" class="button">Submit</button>
+    <label for="">Enter OTP:</label>
+    <input type="number" name="token">
+    <button type="submit">Submit</button>
 </form>
 {% endblock %}
