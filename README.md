@@ -7,8 +7,9 @@ andcli lets you work with 2FA tokens directly in your shell, using encrypted bac
 At the moment andcli can handle input from the following providers:
 
 * [andotp](https://github.com/andOTP/andOTP)
-* [aegis](https://getaegis.app)
-* [twofas](https://2fas.com)
+* [Aegis](https://getaegis.app)
+* [2fas](https://2fas.com)
+* [Stratum / Authenticator Pro](https://stratumauth.com)
 
 ![Demo](doc/demo.gif "Demo")
 
@@ -38,7 +39,7 @@ q quit
 
 ## Clipboard config
 
-By default andcli will choose the first system clipboard tool found. For Linux, this could be either `xclip`, `xsel` or `wl-copy` for example. For Mac, it will always be `pbcopy`. If you need more control over this command, you can either edit the config file and set your preferred command including all flags in the `clipboard_cmd` entry, or you could pass the full command via the `-c` flag.
+By default andcli will choose the first system clipboard tool found. For Linux, this could be either `xclip`, `xsel` or `wl-copy`. For Mac, it will always be `pbcopy`, and for a Windows machine it defaults to `clip.exe`. If you need more control over this command, you can either edit the config file and set your preferred command including all flags in the `clipboard_cmd` entry, or you could pass the full command via the `-c` flag.
 
 ## Config file
 
