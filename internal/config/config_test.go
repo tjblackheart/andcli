@@ -62,6 +62,41 @@ func TestConfig_mergeExisting(t *testing.T) {
 			nil,
 			false,
 		},
+		{
+			"handles default options",
+			&Config{path: path},
+			&Config{
+				File:         "test.json",
+				Type:         "test",
+				ClipboardCmd: "",
+				Options: &Opts{
+					ShowUsernames: false,
+					ShowTokens:    false,
+				},
+				path: path,
+			},
+			false,
+		},
+		{
+			"handles custom options",
+			&Config{Options: &Opts{
+				ShowUsernames: true,
+				ShowTokens:    true,
+			},
+				path: path,
+			},
+			&Config{
+				File:         "test.json",
+				Type:         "test",
+				ClipboardCmd: "",
+				Options: &Opts{
+					ShowUsernames: true,
+					ShowTokens:    true,
+				},
+				path: path,
+			},
+			false,
+		},
 	}
 
 	for _, tt := range tests {
@@ -201,14 +236,19 @@ func Test_create(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	// default config
 	want := &Config{
 		File:         abs,
 		Type:         *vtype,
 		ClipboardCmd: "",
-		path:         filepath.Join(cfgDir, buildinfo.AppName, "config.yaml"),
+		Options: &Opts{
+			ShowUsernames: true,
+			ShowTokens:    false,
+		},
+		path: filepath.Join(cfgDir, buildinfo.AppName, "config.yaml"),
 	}
 
 	if !reflect.DeepEqual(cfg, want) {
-		t.Errorf("want: %v, have: %v", want, cfg)
+		t.Errorf("want: %#v, have: %#v", want, cfg)
 	}
 }
