@@ -45,7 +45,10 @@ func New(entries []vaults.Entry, cfg *config.Config) Model {
 	}
 
 	cb = clipboard.New(cfg.ClipboardCmd)
-	state = &appState{showUsernames: true}
+	state = &appState{
+		showToken:     cfg.Options.ShowTokens,
+		showUsernames: cfg.Options.ShowUsernames,
+	}
 	style = newDefaultStyle()
 	title := fmt.Sprintf("%s: %s", buildinfo.AppName, filepath.Base(cfg.File))
 

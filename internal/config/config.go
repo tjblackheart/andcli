@@ -17,8 +17,14 @@ type (
 		File         string `yaml:"file"`
 		Type         string `yaml:"type"`
 		ClipboardCmd string `yaml:"clipboard_cmd"`
+		Options      *Opts  `yaml:"options"`
 		//
 		path string `yaml:"-"`
+	}
+
+	Opts struct {
+		ShowUsernames bool `yaml:"show_usernames"`
+		ShowTokens    bool `yaml:"show_tokens"`
 	}
 )
 
@@ -35,14 +41,18 @@ func Create() (*Config, error) {
 	return create(userDir)
 }
 
-func create(d string) (*Config, error) {
-	path, err := createDirectories(filepath.Join(d, buildinfo.AppName))
+func create(dir string) (*Config, error) {
+	path, err := createDirectories(filepath.Join(dir, buildinfo.AppName))
 	if err != nil {
 		return nil, err
 	}
 
 	cfg := &Config{
 		path: filepath.Join(path, "config.yaml"),
+		Options: &Opts{
+			ShowUsernames: true,
+			ShowTokens:    false,
+		},
 	}
 
 	if err := cfg.mergeExisting(); err != nil {
@@ -90,6 +100,7 @@ func (c *Config) mergeExisting() error {
 	c.File = existing.File
 	c.Type = existing.Type
 	c.ClipboardCmd = existing.ClipboardCmd
+	c.Options = existing.Options
 
 	return nil
 }
