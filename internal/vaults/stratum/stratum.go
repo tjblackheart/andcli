@@ -1,8 +1,5 @@
 package stratum
 
-// https://github.com/stratumauth/app/blob/master/doc/BACKUP_FORMAT.md
-// https://github.com/stratumauth/app/blob/master/extra/decrypt_backup.py
-
 import (
 	"crypto/aes"
 	"crypto/cipher"
@@ -66,20 +63,28 @@ func Open(filename string, pass []byte) (vaults.Vault, error) {
 	}
 
 	v := &vault{Authenticators: make([]entry, 0)}
+	t := vaults.TYPE_STRATUM
 
 	switch string(b[:len(HEADER)]) {
 	case HEADER:
 		b, err := v.decrypt(b, pass)
 		if err != nil {
-			return nil, fmt.Errorf("%s: %s", vaults.TYPE_STRATUM, err)
+			return nil, fmt.Errorf("%s: %w", t, err)
 		}
 
 		if err := json.Unmarshal(b, &v); err != nil {
-			return nil, fmt.Errorf("%s: %s", vaults.TYPE_STRATUM, err)
+			return nil, fmt.Errorf("%s: %w", t, err)
 		}
 
 	case LEGACY_HEADER:
-		v.decryptLegacy(b, pass)
+		b, err := v.decryptLegacy(b, pass)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", t, err)
+		}
+
+		if err := json.Unmarshal(b, &v); err != nil {
+			return nil, fmt.Errorf("%s: %w", t, err)
+		}
 	}
 
 	return v, nil
@@ -87,6 +92,7 @@ func Open(filename string, pass []byte) (vaults.Vault, error) {
 
 func (v vault) Entries() []vaults.Entry {
 
+	// https://github.com/stratumauth/app/blob/master/doc/BACKUP_FORMAT.md
 	// Algorithm (applies to HOTP and TOTP): 0 = SHA-1, 1 = SHA-256, 2 = SHA-512
 	// Type: 1 = HOTP, 2 = TOTP, 3 = Mobile-Otp, 4 = Steam, 5 = Yandex
 
@@ -140,5 +146,5 @@ func (v vault) decrypt(b, pass []byte) ([]byte, error) {
 }
 
 func (v vault) decryptLegacy(_, _ []byte) ([]byte, error) {
-	return nil, errors.New("legacy decryption support is not implemented")
+	return nil, errors.New("legacy decryption support is not supported right now")
 }
