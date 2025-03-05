@@ -1,23 +1,16 @@
 {% extends "base.html.twig" %}
 
 {% block body %}
-<h1 class="title">Create new token</h1>
+<h3>Create OTP</h3>
 <hr>
 
 {% include "blocks/flash.html.twig" %}
 
 <form method="post" action="/otp">
-    <div class="has-text-centered">
-        <img src="data:image/png;base64,{{ qr }}" alt="qr">
-    </div>
-
-    <div class="field">
-        <label for="" class="label">Enter OTP:</label>
-        <div class="control">
-            <input type="number" class="input" name="token">
-        </div>
-    </div>
-    <button type="submit" class="button">Submit</button>
+    <div class="centered"> <img src="data:image/png;base64,{{ qr }}" alt="qr"> </div>
+    <label for="">Enter Token:</label>
+    <input type="number" name="token">
+    <button type="submit">Submit</button>
 </form>
 
 {% endblock %}
