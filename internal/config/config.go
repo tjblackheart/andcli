@@ -100,7 +100,10 @@ func (c *Config) mergeExisting() error {
 	c.File = existing.File
 	c.Type = existing.Type
 	c.ClipboardCmd = existing.ClipboardCmd
-	c.Options = existing.Options
+
+	if existing.Options != nil {
+		c.Options = existing.Options
+	}
 
 	return nil
 }
