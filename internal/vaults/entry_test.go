@@ -36,6 +36,11 @@ func TestEntryGenerateHasher(t *testing.T) {
 			&Entry{Algorithm: "sha1"},
 			&gotp.Hasher{HashName: "sha1", Digest: sha1.New},
 		},
+		{
+			"handles dashes",
+			&Entry{Algorithm: "SHA-1"},
+			&gotp.Hasher{HashName: "sha1", Digest: sha1.New},
+		},
 	}
 
 	for _, tt := range tests {

@@ -36,7 +36,9 @@ func Long() string {
 
 func Short() string {
 	if info, ok := debug.ReadBuildInfo(); ok && info.Main.Version != "" {
-		AppVersion = info.Main.Version
+		if AppVersion == "" {
+			AppVersion = info.Main.Version
+		}
 	}
 
 	return fmt.Sprintf("%s %s", AppName, AppVersion)

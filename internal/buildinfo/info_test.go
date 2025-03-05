@@ -30,6 +30,8 @@ func TestFull(t *testing.T) {
 }
 
 func TestSimple(t *testing.T) {
+	AppVersion = "2.0.0-test"
+
 	tests := []struct{ name, want string }{
 		{"prints simple info", fmt.Sprintf("%s %s", AppName, AppVersion)},
 	}
