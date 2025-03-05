@@ -12,7 +12,7 @@ func TestTypes(t *testing.T) {
 	}{
 		{
 			"returns defined types",
-			[]string{TYPE_ANDOTP, TYPE_AEGIS, TYPE_TWOFAS},
+			[]string{TYPE_ANDOTP, TYPE_AEGIS, TYPE_TWOFAS, TYPE_STRATUM},
 		},
 	}
 
