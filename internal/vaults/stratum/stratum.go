@@ -16,22 +16,14 @@ import (
 var _ vaults.Vault = &vault{}
 
 const (
-	KEY_LENGTH = 32
-
-	// Default
-	HEADER      = "AUTHENTICATORPRO"
-	SALT_LENGTH = 16
-	IV_LENGTH   = 12
-	THREADS     = 4
-	ITERATIONS  = 3
-	MEM_SIZE    = 65536
-
-	// Legacy
-	LEGACY_HEADER      = "AuthenticatorPro"
-	LEGACY_HASH_MODE   = "sha1"
-	LEGACY_ITERATIONS  = 64000
-	LEGACY_SALT_LENGTH = 20
-	LEGACY_IV_LENGTH   = 16
+	stKeyLength    = 32
+	stHeader       = "AUTHENTICATORPRO"
+	stLegacyHeader = "AuthenticatorPro"
+	stSaltLength   = 16
+	stIVLength     = 12
+	stParallel     = 4
+	stIterations   = 3
+	stMemSize      = 65536
 )
 
 type (
@@ -65,8 +57,8 @@ func Open(filename string, pass []byte) (vaults.Vault, error) {
 	v := &vault{Authenticators: make([]entry, 0)}
 	t := vaults.TYPE_STRATUM
 
-	switch string(b[:len(HEADER)]) {
-	case HEADER:
+	switch string(b[:len(stHeader)]) {
+	case stHeader:
 		b, err := v.decrypt(b, pass)
 		if err != nil {
 			return nil, fmt.Errorf("%s: %w", t, err)
@@ -76,7 +68,7 @@ func Open(filename string, pass []byte) (vaults.Vault, error) {
 			return nil, fmt.Errorf("%s: %w", t, err)
 		}
 
-	case LEGACY_HEADER:
+	case stLegacyHeader:
 		b, err := v.decryptLegacy(b, pass)
 		if err != nil {
 			return nil, fmt.Errorf("%s: %w", t, err)
@@ -127,10 +119,10 @@ func (v vault) Entries() []vaults.Entry {
 
 func (v vault) decrypt(b, pass []byte) ([]byte, error) {
 
-	salt := b[len(HEADER) : len(HEADER)+SALT_LENGTH]
-	nonce := b[len(HEADER)+SALT_LENGTH : len(HEADER)+SALT_LENGTH+IV_LENGTH]
-	payload := b[len(HEADER)+SALT_LENGTH+IV_LENGTH:]
-	key := argon2.IDKey(pass, salt, ITERATIONS, MEM_SIZE, THREADS, KEY_LENGTH)
+	salt := b[len(stHeader) : len(stHeader)+stSaltLength]
+	nonce := b[len(stHeader)+stSaltLength : len(stHeader)+stSaltLength+stIVLength]
+	payload := b[len(stHeader)+stSaltLength+stIVLength:]
+	key := argon2.IDKey(pass, salt, stIterations, stMemSize, stParallel, stKeyLength)
 
 	cb, err := aes.NewCipher(key)
 	if err != nil {
@@ -146,5 +138,5 @@ func (v vault) decrypt(b, pass []byte) ([]byte, error) {
 }
 
 func (v vault) decryptLegacy(_, _ []byte) ([]byte, error) {
-	return nil, errors.New("legacy decryption support is not supported right now")
+	return nil, errors.New("legacy decryption support is not implemented")
 }
