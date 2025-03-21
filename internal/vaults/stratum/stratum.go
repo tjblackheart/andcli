@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/tjblackheart/andcli/v2/internal/vaults"
 	"golang.org/x/crypto/argon2"
@@ -101,7 +102,7 @@ func (v vault) Entries() []vaults.Entry {
 	for _, e := range v.Authenticators {
 		// TODO: ignore everything but TOTP
 		if e.Type != 2 {
-			log.Printf("ignoring entry %s (%s)", e.Issuer, e.typeToString())
+			log.Printf("\nIgnoring entry %q (%s)", e.Issuer, e.typeToString())
 			continue
 		}
 
@@ -152,9 +153,11 @@ func (v vault) decryptLegacy(_, _ []byte) ([]byte, error) {
 }
 
 func (e entry) typeToString() string {
-	s := "hotp"
+	s := "unknown"
 
 	switch e.Type {
+	case 1:
+		s = "totp"
 	case 2:
 		s = "totp"
 	case 3:
@@ -163,9 +166,7 @@ func (e entry) typeToString() string {
 		s = "steam"
 	case 5:
 		s = "yandex"
-	default:
-		s = ""
 	}
 
-	return s
+	return strings.ToUpper(s)
 }

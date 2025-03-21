@@ -60,7 +60,7 @@ func (v vault) Entries() []vaults.Entry {
 
 	for _, e := range v.entries {
 		if strings.ToLower(e.Type) != "totp" {
-			log.Printf("ignoring entry %s (%s)", e.Issuer, e.Type)
+			log.Printf("\nIgnoring entry %q (%s)", e.Issuer, strings.ToUpper(e.Type))
 			continue
 		}
 

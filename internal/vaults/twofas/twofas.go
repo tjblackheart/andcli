@@ -99,7 +99,7 @@ func (v vault) Entries() []vaults.Entry {
 
 	for _, e := range v.db {
 		if strings.ToLower(e.Otp.TokenType) != "totp" {
-			log.Printf("ignoring entry %s (%s)", e.Otp.Issuer, e.Otp.TokenType)
+			log.Printf("\nIgnoring entry %q (%s)", e.Otp.Issuer, strings.ToUpper(e.Otp.TokenType))
 			continue
 		}
 
