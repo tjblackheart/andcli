@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/tjblackheart/andcli/v2/internal/vaults"
 	"golang.org/x/crypto/scrypt"
@@ -88,7 +89,7 @@ func (v vault) Entries() []vaults.Entry {
 	entries := make([]vaults.Entry, 0)
 
 	for _, e := range v.db.Entries {
-		if e.Type != "totp" {
+		if strings.ToLower(e.Type) != "totp" {
 			log.Printf("ignoring entry %s (%s)", e.Name, e.Type)
 			continue
 		}

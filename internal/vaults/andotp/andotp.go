@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/grijul/go-andotp/andotp"
 	"github.com/tjblackheart/andcli/v2/internal/vaults"
@@ -58,7 +59,7 @@ func (v vault) Entries() []vaults.Entry {
 	entries := make([]vaults.Entry, 0)
 
 	for _, e := range v.entries {
-		if e.Type != "totp" {
+		if strings.ToLower(e.Type) != "totp" {
 			log.Printf("ignoring entry %s (%s)", e.Issuer, e.Type)
 			continue
 		}

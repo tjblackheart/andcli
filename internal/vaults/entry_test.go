@@ -17,19 +17,29 @@ func TestEntryGenerateHasher(t *testing.T) {
 		want  *gotp.Hasher
 	}{
 		{
-			"generates default hasher",
+			"default",
 			&Entry{},
 			&gotp.Hasher{HashName: "sha1", Digest: sha1.New},
 		},
 		{
-			"generates sha256 hasher",
+			"sha256",
 			&Entry{Algorithm: "SHA256"},
 			&gotp.Hasher{HashName: "sha256", Digest: sha256.New},
 		},
 		{
-			"generates sha512 hasher",
+			"sha512",
 			&Entry{Algorithm: "SHA512"},
 			&gotp.Hasher{HashName: "sha512", Digest: sha512.New},
+		},
+		{
+			"sha224",
+			&Entry{Algorithm: "SHA-224"},
+			&gotp.Hasher{HashName: "sha224", Digest: sha256.New224},
+		},
+		{
+			"sha384",
+			&Entry{Algorithm: "SHA-384"},
+			&gotp.Hasher{HashName: "sha384", Digest: sha512.New384},
 		},
 		{
 			"ignores cases",
