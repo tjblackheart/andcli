@@ -100,7 +100,7 @@ func (v vault) Entries() []vaults.Entry {
 
 	list := make([]vaults.Entry, 0)
 	for _, e := range v.Authenticators {
-		// TODO: ignore everything but TOTP
+
 		if e.Type != 2 {
 			log.Printf("\nIgnoring entry %q (%s)", e.Issuer, e.typeToString())
 			continue
@@ -118,7 +118,7 @@ func (v vault) Entries() []vaults.Entry {
 			Secret:    e.Secret,
 			Issuer:    e.Issuer,
 			Digits:    int(e.Digits),
-			Type:      "TOTP",
+			Type:      "totp",
 			Algorithm: alg,
 			Period:    e.Period,
 			Label:     e.Username,
