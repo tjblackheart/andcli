@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/tjblackheart/andcli/v2/internal/vaults"
@@ -100,6 +101,7 @@ func (v vault) Entries() []vaults.Entry {
 	for _, e := range v.Authenticators {
 		// TODO: ignore everything but TOTP
 		if e.Type != 2 {
+			log.Printf("ignoring entry %s (%s)", e.Issuer, e.typeToString())
 			continue
 		}
 
@@ -147,4 +149,23 @@ func (v vault) decrypt(b, pass []byte) ([]byte, error) {
 
 func (v vault) decryptLegacy(_, _ []byte) ([]byte, error) {
 	return nil, errors.New("decryption of stratum legacy vaults is not implemented")
+}
+
+func (e entry) typeToString() string {
+	s := "hotp"
+
+	switch e.Type {
+	case 2:
+		s = "totp"
+	case 3:
+		s = "mobile"
+	case 4:
+		s = "steam"
+	case 5:
+		s = "yandex"
+	default:
+		s = ""
+	}
+
+	return s
 }

@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/tjblackheart/andcli/v2/internal/vaults"
@@ -87,6 +88,11 @@ func (v vault) Entries() []vaults.Entry {
 	entries := make([]vaults.Entry, 0)
 
 	for _, e := range v.db.Entries {
+		if e.Type != "totp" {
+			log.Printf("ignoring entry %s (%s)", e.Name, e.Type)
+			continue
+		}
+
 		entries = append(entries, vaults.Entry{
 			Secret:    e.Info.Secret,
 			Issuer:    e.Issuer,
