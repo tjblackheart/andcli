@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 
@@ -97,6 +98,11 @@ func (v vault) Entries() []vaults.Entry {
 	entries := make([]vaults.Entry, 0)
 
 	for _, e := range v.db {
+		if strings.ToLower(e.Otp.TokenType) != "totp" {
+			log.Printf("\nIgnoring entry %q (%s)", e.Otp.Issuer, strings.ToUpper(e.Otp.TokenType))
+			continue
+		}
+
 		entries = append(entries, vaults.Entry{
 			Secret:    e.Secret,
 			Issuer:    e.Otp.Issuer,

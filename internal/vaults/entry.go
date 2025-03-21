@@ -35,9 +35,15 @@ func (e Entry) hasher() *gotp.Hasher {
 	}
 
 	switch strings.ToLower(e.Algorithm) {
+	case "sha224", "sha-224":
+		h.HashName = "sha224"
+		h.Digest = sha256.New224
 	case "sha256", "sha-256":
 		h.HashName = "sha256"
 		h.Digest = sha256.New
+	case "sha384", "sha-384":
+		h.HashName = "sha384"
+		h.Digest = sha512.New384
 	case "sha512", "sha-512":
 		h.HashName = "sha512"
 		h.Digest = sha512.New

@@ -6,7 +6,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"os"
+	"strings"
 
 	"github.com/tjblackheart/andcli/v2/internal/vaults"
 	"golang.org/x/crypto/argon2"
@@ -98,8 +100,9 @@ func (v vault) Entries() []vaults.Entry {
 
 	list := make([]vaults.Entry, 0)
 	for _, e := range v.Authenticators {
-		// TODO: ignore everything but TOTP
+
 		if e.Type != 2 {
+			log.Printf("\nIgnoring entry %q (%s)", e.Issuer, e.typeToString())
 			continue
 		}
 
@@ -115,7 +118,7 @@ func (v vault) Entries() []vaults.Entry {
 			Secret:    e.Secret,
 			Issuer:    e.Issuer,
 			Digits:    int(e.Digits),
-			Type:      "TOTP",
+			Type:      "totp",
 			Algorithm: alg,
 			Period:    e.Period,
 			Label:     e.Username,
@@ -147,4 +150,23 @@ func (v vault) decrypt(b, pass []byte) ([]byte, error) {
 
 func (v vault) decryptLegacy(_, _ []byte) ([]byte, error) {
 	return nil, errors.New("decryption of stratum legacy vaults is not implemented")
+}
+
+func (e entry) typeToString() string {
+	s := "unknown"
+
+	switch e.Type {
+	case 1:
+		s = "totp"
+	case 2:
+		s = "totp"
+	case 3:
+		s = "mobile"
+	case 4:
+		s = "steam"
+	case 5:
+		s = "yandex"
+	}
+
+	return strings.ToUpper(s)
 }

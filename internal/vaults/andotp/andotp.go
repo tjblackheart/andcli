@@ -3,7 +3,9 @@ package andotp
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
+	"strings"
 
 	"github.com/grijul/go-andotp/andotp"
 	"github.com/tjblackheart/andcli/v2/internal/vaults"
@@ -57,6 +59,11 @@ func (v vault) Entries() []vaults.Entry {
 	entries := make([]vaults.Entry, 0)
 
 	for _, e := range v.entries {
+		if strings.ToLower(e.Type) != "totp" {
+			log.Printf("\nIgnoring entry %q (%s)", e.Issuer, strings.ToUpper(e.Type))
+			continue
+		}
+
 		entries = append(entries, vaults.Entry{
 			Secret:    e.Secret,
 			Issuer:    e.Issuer,
