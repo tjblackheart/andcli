@@ -1,12 +1,12 @@
 package config
 
 import (
-	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
+	flag "github.com/spf13/pflag"
 	"github.com/tjblackheart/andcli/v2/internal/buildinfo"
 	"github.com/tjblackheart/andcli/v2/internal/vaults"
 )
@@ -14,20 +14,27 @@ import (
 var (
 	availableVaults = strings.Join(vaults.Types(), ", ")
 
-	vfile   = flag.String("f", "", "Path to the encrypted vault (deprecated: Pass the filename directly)")
-	vtype   = flag.String("t", "", fmt.Sprintf("Vault type (%s)", availableVaults))
-	cmd     = flag.String("c", "", "Clipboard command (xclip, wl-copy, pbcopy etc.)")
-	version = flag.Bool("v", false, "Prints version info and exits")
+	vfile   = flag.StringP("file", "f", "", "Path to the encrypted vault (deprecated: Pass the filename directly)")
+	vtype   = flag.StringP("type", "t", "", fmt.Sprintf("Vault type (%s)", availableVaults))
+	cmd     = flag.StringP("clipboard-cmd", "c", "", "A custom clipboard command, including args (xclip, wl-copy, pbcopy etc.)")
+	version = flag.BoolP("version", "v", false, "Prints version info and exits")
+	help    = flag.BoolP("help", "h", false, "Show this help")
 )
 
 // Parses given flags into the existing config.
 func (cfg *Config) parseFlags() error {
 
+	flag.CommandLine.SortFlags = false
 	flag.Usage = usage
 	flag.Parse()
 
 	if *version {
 		fmt.Println(buildinfo.Long())
+		os.Exit(0)
+	}
+
+	if *help {
+		usage()
 		os.Exit(0)
 	}
 
