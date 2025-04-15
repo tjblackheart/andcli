@@ -63,9 +63,9 @@ func (cfg *Config) parseFlags() error {
 
 // prints custom formatted usage information
 func usage() {
-	msg := `Usage: %s [options] <path/to/file>
+	msg := `Usage: %s [flags] <path/to/file>
 
-Options:
+Flags:
 `
 
 	fmt.Print(buildinfo.Long(), "\n")

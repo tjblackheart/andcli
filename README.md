@@ -50,16 +50,14 @@ The configuration will get persisted in the default user home config directory. 
 ## Options
 
 ```text
-Usage: andcli [options] <path/to/file>
+Usage: andcli [flags] <path/to/file>
 
-Options:
-  -c string
-    	Clipboard command (xclip, wl-copy, pbcopy etc.)
-  -f string
-    	Path to the encrypted vault (deprecated: Pass the filename directly)
-  -t string
-    	Vault type (andotp, aegis, twofas)
-  -v	Prints version info and exits
+Flags:
+  -f, --file string            Path to the encrypted vault (deprecated: Pass the filename directly)
+  -t, --type string            Vault type (andotp, aegis, twofas, stratum)
+  -c, --clipboard-cmd string   A custom clipboard command, including args (xclip, wl-copy, pbcopy etc.)
+  -v, --version                Prints version info and exits
+  -h, --help                   Show this help
 ```
 
 ## Implementing new vaults
