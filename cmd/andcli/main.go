@@ -18,12 +18,9 @@ import (
 	"github.com/tjblackheart/andcli/v2/internal/vaults/twofas"
 )
 
-func init() {
-	log.SetFlags(0)
-	log.SetPrefix("andcli: ")
-}
-
 func main() {
+	log.SetFlags(0)
+
 	cfg, err := config.Create()
 	if err != nil {
 		log.Fatal(err)
