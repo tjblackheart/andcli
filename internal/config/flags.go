@@ -30,13 +30,13 @@ func (cfg *Config) parseFlags() error {
 
 	// FIXME: https://github.com/spf13/pflag/issues/352
 	if err := set.Parse(os.Args[1:]); err != nil {
-		if err != flag.ErrHelp {
-			log.Printf("andcli: %s", err)
-			usage(false)
-			os.Exit(1)
-		} else {
+		if err == flag.ErrHelp {
 			os.Exit(0)
 		}
+
+		log.Printf("andcli: %s", err)
+		usage(false)
+		os.Exit(1)
 	}
 
 	if *version {
