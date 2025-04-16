@@ -35,7 +35,7 @@ func Create() (*Config, error) {
 
 	userDir, err := os.UserConfigDir()
 	if err != nil {
-		return nil, fmt.Errorf("config: can not read directory: %s", err)
+		return nil, fmt.Errorf("andcli: can not read directory: %s", err)
 	}
 
 	return create(userDir)
@@ -56,15 +56,15 @@ func create(dir string) (*Config, error) {
 	}
 
 	if err := cfg.mergeExisting(); err != nil {
-		return nil, fmt.Errorf("config: %s", err)
+		return nil, fmt.Errorf("andcli: %s", err)
 	}
 
 	if err := cfg.parseFlags(); err != nil {
-		return nil, fmt.Errorf("config: %s", err)
+		return nil, fmt.Errorf("andcli: %s", err)
 	}
 
 	if err := cfg.validate(); err != nil {
-		return nil, fmt.Errorf("config: %s", err)
+		return nil, fmt.Errorf("andcli: %s", err)
 	}
 
 	return cfg, nil
@@ -74,7 +74,7 @@ func create(dir string) (*Config, error) {
 func (c Config) Persist() error {
 	b, err := yaml.Marshal(c)
 	if err != nil {
-		return fmt.Errorf("config: %s", err)
+		return fmt.Errorf("andcli: %s", err)
 	}
 
 	return os.WriteFile(c.path, b, 0600)
