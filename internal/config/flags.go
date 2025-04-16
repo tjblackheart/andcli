@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -14,19 +15,29 @@ import (
 var (
 	availableVaults = strings.Join(vaults.Types(), ", ")
 
-	vfile   = flag.StringP("file", "f", "", "Path to the encrypted vault (deprecated: Pass the filename directly)")
-	vtype   = flag.StringP("type", "t", "", fmt.Sprintf("Vault type (%s)", availableVaults))
-	cmd     = flag.StringP("clipboard-cmd", "c", "", "A custom clipboard command, including args (xclip, wl-copy, pbcopy etc.)")
-	version = flag.BoolP("version", "v", false, "Prints version info and exits")
-	help    = flag.BoolP("help", "h", false, "Show this help")
+	set     = flag.NewFlagSet("default", flag.ContinueOnError)
+	vfile   = set.StringP("file", "f", "", "Path to the encrypted vault (deprecated: Pass the filename directly)")
+	vtype   = set.StringP("type", "t", "", fmt.Sprintf("Vault type (%s)", availableVaults))
+	cmd     = set.StringP("clipboard-cmd", "c", "", "A custom clipboard command, including args (xclip, wl-copy, pbcopy etc.)")
+	version = set.BoolP("version", "v", false, "Prints version info and exits")
+	help    = set.BoolP("help", "h", false, "Show this help")
 )
 
 // Parses given flags into the existing config.
 func (cfg *Config) parseFlags() error {
 
-	flag.CommandLine.SortFlags = false
-	flag.Usage = usage
-	flag.Parse()
+	set.Usage = func() { usage(true) }
+
+	// FIXME: https://github.com/spf13/pflag/issues/352
+	if err := set.Parse(os.Args[1:]); err != nil {
+		if err != flag.ErrHelp {
+			log.Printf("andcli: %s", err)
+			usage(false)
+			os.Exit(1)
+		} else {
+			os.Exit(0)
+		}
+	}
 
 	if *version {
 		fmt.Println(buildinfo.Long())
@@ -34,7 +45,7 @@ func (cfg *Config) parseFlags() error {
 	}
 
 	if *help {
-		usage()
+		usage(true)
 		os.Exit(0)
 	}
 
@@ -54,21 +65,28 @@ func (cfg *Config) parseFlags() error {
 		cfg.ClipboardCmd = *cmd
 	}
 
-	if flag.Arg(0) != "" {
-		cfg.File = flag.Arg(0)
+	if set.Arg(0) != "" {
+		abs, err := filepath.Abs(set.Arg(0))
+		if err != nil {
+			return err
+		}
+		cfg.File = abs
 	}
 
 	return nil
 }
 
 // prints custom formatted usage information
-func usage() {
-	msg := `Usage: %s [flags] <path/to/file>
+func usage(includeBuildInfo bool) {
+	msg := `
+Usage: %s [options] <path/to/file>
 
-Flags:
+Options:
 `
+	if includeBuildInfo {
+		fmt.Print(buildinfo.Long(), "\n")
+	}
 
-	fmt.Print(buildinfo.Long(), "\n")
-	fmt.Fprintf(flag.CommandLine.Output(), msg, os.Args[0])
-	flag.PrintDefaults()
+	fmt.Fprintf(set.Output(), msg, os.Args[0])
+	set.PrintDefaults()
 }
