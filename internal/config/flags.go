@@ -78,15 +78,17 @@ func (cfg *Config) parseFlags() error {
 }
 
 // prints custom formatted usage information
-func usage(includeBuildInfo bool) {
+func usage(includeDescription bool) {
+
+	if includeDescription {
+		fmt.Println("andcli - A 2FA TUI for your shell")
+	}
+
 	msg := `
 Usage: %s [options] <path/to/file>
 
 Options:
 `
-	if includeBuildInfo {
-		fmt.Print(buildinfo.Long(), "\n")
-	}
 
 	fmt.Fprintf(set.Output(), msg, os.Args[0])
 	set.PrintDefaults()
