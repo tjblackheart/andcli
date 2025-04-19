@@ -62,7 +62,7 @@ Flags:
 
 ## Implementing new vaults
 
-A usabe vault implementation for andcli is basically just an interface providing one function called `Entries()`. You just have to figure out the encryption of your app and you're done. Have a look at the [current implementations](internal/vaults) to see how this works.
+A usable vault implementation for andcli has to implement an interface providing only one function called `Entries()`. Have a look at the [current implementations](internal/vaults) to see how this works.
 
 You can use the demo registration server implementation at [tools/srv](tools/srv) to quickly create some demo tokens for your vault.
 
