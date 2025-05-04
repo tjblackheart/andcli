@@ -19,7 +19,8 @@ type (
 		ClipboardCmd string `yaml:"clipboard_cmd"`
 		Options      *Opts  `yaml:"options"`
 		//
-		path string `yaml:"-"`
+		path              string
+		passwordFromStdin bool
 	}
 
 	Opts struct {
@@ -78,6 +79,11 @@ func (c Config) Persist() error {
 	}
 
 	return os.WriteFile(c.path, b, 0600)
+}
+
+// Returns true if the flag option "passwd-stdin" was set.
+func (c Config) ReadFromStdin() bool {
+	return c.passwordFromStdin
 }
 
 // Reads an possibly existing config file and merges the content

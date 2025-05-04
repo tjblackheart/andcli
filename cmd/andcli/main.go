@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bufio"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -51,9 +53,32 @@ func open(c *config.Config) (vaults.Vault, error) {
 
 	log.Printf("Opening %s ...", name)
 
-	b, err := input.AskHidden("Password: ")
-	if err != nil {
-		return nil, err
+	var b []byte
+	var err error
+
+	if !c.ReadFromStdin() {
+		b, err = input.AskHidden("Password: ")
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		log.Printf("Reading pass from stdin ...")
+
+		stat, err := os.Stdin.Stat()
+		if err != nil {
+			return nil, err
+		}
+
+		if (stat.Mode() & os.ModeCharDevice) != 0 {
+			return nil, errors.New("stdin: no input provided")
+		}
+
+		s := bufio.NewScanner(bufio.NewReader(os.Stdin))
+		if s.Scan(); s.Err() != nil {
+			return nil, s.Err()
+		}
+
+		b = s.Bytes()
 	}
 
 	switch c.Type {
