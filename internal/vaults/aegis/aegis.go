@@ -46,10 +46,12 @@ type (
 		Type, UUID, Name   string
 		Issuer, Note, Icon string
 		IconMime           string `json:"icon_mime"`
-		Info               struct {
-			Secret, Algo   string
-			Digits, Period int
-		}
+		Info               info
+	}
+
+	info struct {
+		Secret, Algo   string
+		Digits, Period int
 	}
 )
 

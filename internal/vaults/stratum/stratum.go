@@ -106,12 +106,12 @@ func (v vault) Entries() []vaults.Entry {
 			continue
 		}
 
-		alg := "sha1"
+		alg := "SHA1"
 		switch e.Algorithm {
 		case 1:
-			alg = "sha256"
+			alg = "SHA256"
 		case 2:
-			alg = "sha512"
+			alg = "SHA512"
 		}
 
 		if e.Secret == "" {
@@ -133,7 +133,7 @@ func (v vault) Entries() []vaults.Entry {
 			Secret:    e.Secret,
 			Issuer:    e.Issuer,
 			Digits:    int(e.Digits),
-			Type:      "totp",
+			Type:      "TOTP",
 			Algorithm: alg,
 			Period:    e.Period,
 			Label:     e.Username,
