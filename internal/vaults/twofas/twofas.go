@@ -36,20 +36,9 @@ type (
 		Name      string
 		Secret    string
 		UpdatedAt int
-		Otp       struct {
-			Label     string
-			Account   string
-			Issuer    string
-			Digits    int
-			Period    int
-			Algorithm string
-			TokenType string `json:"tokenType"`
-			Source    string
-		}
-		Order struct {
-			Position int
-		}
-		Icon struct {
+		Otp       otp
+		Order     struct{ Position int }
+		Icon      struct {
 			Selected string
 			Label    struct {
 				Text            string
@@ -59,6 +48,17 @@ type (
 				Id string
 			} `json:"iconCollection"`
 		}
+	}
+
+	otp struct {
+		Label     string
+		Account   string
+		Issuer    string
+		Digits    int
+		Period    int
+		Algorithm string
+		TokenType string `json:"tokenType"`
+		Source    string
 	}
 )
 
@@ -98,9 +98,30 @@ func (v vault) Entries() []vaults.Entry {
 	entries := make([]vaults.Entry, 0)
 
 	for _, e := range v.db {
-		if strings.ToLower(e.Otp.TokenType) != "totp" {
-			log.Printf("\nIgnoring entry %q (%s)", e.Otp.Issuer, strings.ToUpper(e.Otp.TokenType))
+		e.Otp.TokenType = strings.ToUpper(e.Otp.TokenType)
+		if e.Otp.TokenType != "TOTP" {
+			log.Printf("Ignoring entry %q: %s", e.Otp.Issuer, e.Otp.TokenType)
 			continue
+		}
+
+		if e.Secret == "" {
+			log.Printf("Ignoring entry %q: missing secret", e.Otp.Issuer)
+			continue
+		}
+
+		if e.Otp.Period == 0 {
+			log.Printf("Missing period for entry %q: using default (30)", e.Otp.Issuer)
+			e.Otp.Period = 30
+		}
+
+		if e.Otp.Algorithm == "" {
+			log.Printf("Missing algorithm for entry %q: using default (SHA1)", e.Otp.Issuer)
+			e.Otp.Algorithm = "SHA1"
+		}
+
+		if e.Otp.Digits == 0 {
+			log.Printf("Missing digits for entry %q: using default (6)", e.Otp.Issuer)
+			e.Otp.Digits = 6
 		}
 
 		entries = append(entries, vaults.Entry{
@@ -121,7 +142,7 @@ func (v vault) masterKeyFromPass(password []byte) ([]byte, error) {
 
 	servicesEncrypted := strings.SplitN(v.ServicesEncrypted, ":", numFields+1)
 	if len(servicesEncrypted) != numFields {
-		return nil, fmt.Errorf("invalid vault file. number of fields is not %d", numFields)
+		return nil, fmt.Errorf("invalid vault file: number of fields is not %d", numFields)
 	}
 
 	var dbAndAuthTag, salt []byte

@@ -59,9 +59,31 @@ func (v vault) Entries() []vaults.Entry {
 	entries := make([]vaults.Entry, 0)
 
 	for _, e := range v.entries {
-		if strings.ToLower(e.Type) != "totp" {
-			log.Printf("\nIgnoring entry %q (%s)", e.Issuer, strings.ToUpper(e.Type))
+
+		e.Type = strings.ToUpper(e.Type)
+		if e.Type != "TOTP" {
+			log.Printf("Ignoring entry %q: %s", e.Issuer, e.Type)
 			continue
+		}
+
+		if e.Secret == "" {
+			log.Printf("Ignoring entry %q: missing secret", e.Issuer)
+			continue
+		}
+
+		if e.Period == 0 {
+			log.Printf("Missing period for entry %q: using default (30)", e.Issuer)
+			e.Period = 30
+		}
+
+		if e.Algorithm == "" {
+			log.Printf("Missing algorithm for entry %q: using default (SHA1)", e.Issuer)
+			e.Algorithm = "SHA1"
+		}
+
+		if e.Digits == 0 {
+			log.Printf("Missing digits for entry %q: using default (6)", e.Issuer)
+			e.Digits = 6
 		}
 
 		entries = append(entries, vaults.Entry{
