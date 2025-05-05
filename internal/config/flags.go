@@ -28,7 +28,6 @@ var (
 func (cfg *Config) parseFlags() error {
 
 	set.Usage = func() { usage(true) }
-	set.SortFlags = false
 
 	// FIXME: https://github.com/spf13/pflag/issues/352
 	if err := set.Parse(os.Args[1:]); err != nil {

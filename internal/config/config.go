@@ -155,7 +155,7 @@ func (c *Config) validate() error {
 func createDirectories(path string) (string, error) {
 
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		if err := os.MkdirAll(path, 0700); err != nil {
+		if err := os.MkdirAll(path, os.ModePerm); err != nil {
 			return "", err
 		}
 	}
