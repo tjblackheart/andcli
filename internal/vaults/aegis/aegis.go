@@ -46,10 +46,12 @@ type (
 		Type, UUID, Name   string
 		Issuer, Note, Icon string
 		IconMime           string `json:"icon_mime"`
-		Info               struct {
-			Secret, Algo   string
-			Digits, Period int
-		}
+		Info               info
+	}
+
+	info struct {
+		Secret, Algo   string
+		Digits, Period int
 	}
 )
 
@@ -89,9 +91,31 @@ func (v vault) Entries() []vaults.Entry {
 	entries := make([]vaults.Entry, 0)
 
 	for _, e := range v.db.Entries {
-		if strings.ToLower(e.Type) != "totp" {
-			log.Printf("\nIgnoring entry %q (%s)", e.Issuer, strings.ToUpper(e.Type))
+
+		e.Type = strings.ToUpper(e.Type)
+		if e.Type != "TOTP" {
+			log.Printf("Ignoring entry %q: %s", e.Issuer, e.Type)
 			continue
+		}
+
+		if e.Info.Secret == "" {
+			log.Printf("Ignoring entry %q: missing secret", e.Issuer)
+			continue
+		}
+
+		if e.Info.Period == 0 {
+			log.Printf("Missing period for entry %q: using default (30)", e.Issuer)
+			e.Info.Period = 30
+		}
+
+		if e.Info.Algo == "" {
+			log.Printf("Missing algorithm for entry %q: using default (SHA1)", e.Issuer)
+			e.Info.Algo = "SHA1"
+		}
+
+		if e.Info.Digits == 0 {
+			log.Printf("Missing digits for entry %q: using default (6)", e.Issuer)
+			e.Info.Digits = 6
 		}
 
 		entries = append(entries, vaults.Entry{

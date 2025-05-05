@@ -102,23 +102,38 @@ func (v vault) Entries() []vaults.Entry {
 	for _, e := range v.Authenticators {
 
 		if e.Type != 2 {
-			log.Printf("\nIgnoring entry %q (%s)", e.Issuer, e.typeToString())
+			log.Printf("Ignoring entry %q: %s", e.Issuer, e.typeToString())
 			continue
 		}
 
-		alg := "sha1"
+		alg := "SHA1"
 		switch e.Algorithm {
 		case 1:
-			alg = "sha256"
+			alg = "SHA256"
 		case 2:
-			alg = "sha512"
+			alg = "SHA512"
+		}
+
+		if e.Secret == "" {
+			log.Printf("Ignoring entry %q: missing secret", e.Issuer)
+			continue
+		}
+
+		if e.Period == 0 {
+			log.Printf("Missing period for entry %q: using default (30)", e.Issuer)
+			e.Period = 30
+		}
+
+		if e.Digits == 0 {
+			log.Printf("Missing digits for entry %q: using default (6)", e.Issuer)
+			e.Digits = 6
 		}
 
 		list = append(list, vaults.Entry{
 			Secret:    e.Secret,
 			Issuer:    e.Issuer,
 			Digits:    int(e.Digits),
-			Type:      "totp",
+			Type:      "TOTP",
 			Algorithm: alg,
 			Period:    e.Period,
 			Label:     e.Username,
@@ -157,7 +172,7 @@ func (e entry) typeToString() string {
 
 	switch e.Type {
 	case 1:
-		s = "totp"
+		s = "hotp"
 	case 2:
 		s = "totp"
 	case 3:
