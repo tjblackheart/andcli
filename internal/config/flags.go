@@ -19,6 +19,7 @@ var (
 	vfile   = set.StringP("file", "f", "", "Path to the encrypted vault (deprecated: Pass the filename directly)")
 	vtype   = set.StringP("type", "t", "", fmt.Sprintf("Vault type (%s)", availableVaults))
 	cmd     = set.StringP("clipboard-cmd", "c", "", "A custom clipboard command, including args (xclip, wl-copy, pbcopy etc.)")
+	pwstdin = set.Bool("passwd-stdin", false, "Read the vault password from stdin. If set, skips the password input.")
 	version = set.BoolP("version", "v", false, "Prints version info and exits")
 	help    = set.BoolP("help", "h", false, "Show this help")
 )
@@ -27,7 +28,6 @@ var (
 func (cfg *Config) parseFlags() error {
 
 	set.Usage = func() { usage(true) }
-	set.SortFlags = false
 
 	// FIXME: https://github.com/spf13/pflag/issues/352
 	if err := set.Parse(os.Args[1:]); err != nil {
@@ -64,6 +64,10 @@ func (cfg *Config) parseFlags() error {
 
 	if *cmd != "" {
 		cfg.ClipboardCmd = *cmd
+	}
+
+	if *pwstdin {
+		cfg.passwordFromStdin = true
 	}
 
 	if set.Arg(0) != "" {

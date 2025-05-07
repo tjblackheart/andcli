@@ -19,7 +19,8 @@ type (
 		ClipboardCmd string `yaml:"clipboard_cmd"`
 		Options      *Opts  `yaml:"options"`
 		//
-		path string `yaml:"-"`
+		path              string
+		passwordFromStdin bool
 	}
 
 	Opts struct {
@@ -35,7 +36,7 @@ func Create() (*Config, error) {
 
 	userDir, err := os.UserConfigDir()
 	if err != nil {
-		return nil, fmt.Errorf("andcli: can not read directory: %s", err)
+		return nil, fmt.Errorf("can not read directory: %s", err)
 	}
 
 	return create(userDir)
@@ -56,15 +57,15 @@ func create(dir string) (*Config, error) {
 	}
 
 	if err := cfg.mergeExisting(); err != nil {
-		return nil, fmt.Errorf("andcli: %s", err)
+		return nil, err
 	}
 
 	if err := cfg.parseFlags(); err != nil {
-		return nil, fmt.Errorf("andcli: %s", err)
+		return nil, err
 	}
 
 	if err := cfg.validate(); err != nil {
-		return nil, fmt.Errorf("andcli: %s", err)
+		return nil, err
 	}
 
 	return cfg, nil
@@ -74,10 +75,15 @@ func create(dir string) (*Config, error) {
 func (c Config) Persist() error {
 	b, err := yaml.Marshal(c)
 	if err != nil {
-		return fmt.Errorf("andcli: %s", err)
+		return err
 	}
 
 	return os.WriteFile(c.path, b, 0600)
+}
+
+// Returns true if the flag option "passwd-stdin" was set.
+func (c Config) PasswdStdin() bool {
+	return c.passwordFromStdin
 }
 
 // Reads an possibly existing config file and merges the content
@@ -149,7 +155,7 @@ func (c *Config) validate() error {
 func createDirectories(path string) (string, error) {
 
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		if err := os.MkdirAll(path, 0700); err != nil {
+		if err := os.MkdirAll(path, os.ModePerm); err != nil {
 			return "", err
 		}
 	}
