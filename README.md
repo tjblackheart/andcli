@@ -27,6 +27,8 @@ Download a [prebuild release](https://github.com/tjblackheart/andcli/releases) a
 4. To search for an entry, type `/`.
 5. Navigate via keyboard, press `Enter` to view a token and press `c` to copy it into the clipboard. Press `u` to hide usernames for this entry, which are visible by default.
 
+Since v2.1.3 it is possible to pipe the password from stdin and skip the input question: `echo $PASSWORD | andcli --passwd-stdin`
+
 ## Keys
 
 ```text
@@ -50,14 +52,15 @@ The configuration will get persisted in the default user home config directory. 
 ## Options
 
 ```text
-Usage: andcli [flags] <path/to/file>
+Usage: andcli [options] <path/to/file>
 
-Flags:
-  -f, --file string            Path to the encrypted vault (deprecated: Pass the filename directly)
-  -t, --type string            Vault type (andotp, aegis, twofas, stratum)
+Options:
   -c, --clipboard-cmd string   A custom clipboard command, including args (xclip, wl-copy, pbcopy etc.)
-  -v, --version                Prints version info and exits
+  -f, --file string            Path to the encrypted vault (deprecated: Pass the filename directly)
   -h, --help                   Show this help
+      --passwd-stdin           Read the vault password from stdin. If set, skips the password input.
+  -t, --type string            Vault type (andotp, aegis, twofas, stratum)
+  -v, --version                Prints version info and exits
 ```
 
 ## Implementing new vaults
