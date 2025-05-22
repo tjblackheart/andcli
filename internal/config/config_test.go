@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/goccy/go-yaml"
 	"github.com/tjblackheart/andcli/v2/internal/buildinfo"
-	"gopkg.in/yaml.v3"
 )
 
 func Test_createDirectories(t *testing.T) {
@@ -57,7 +57,7 @@ func TestConfig_mergeExisting(t *testing.T) {
 			false,
 		},
 		{
-			"merges nonexisting",
+			"ignores nonexisting",
 			&Config{File: "test.json", Type: "test", ClipboardCmd: "", path: path},
 			nil,
 			false,
@@ -104,10 +104,11 @@ func TestConfig_mergeExisting(t *testing.T) {
 			if tt.want != nil {
 				b, err := yaml.Marshal(tt.want)
 				if err != nil {
-					t.Error(err)
+					t.Fatal(err)
 				}
+
 				if err := os.WriteFile(tt.want.path, b, 0644); err != nil {
-					t.Error(err)
+					t.Fatal(err)
 				}
 			} else {
 				tt.want = tt.have
@@ -215,7 +216,7 @@ func TestConfig_Persist(t *testing.T) {
 
 	cfg2 := new(Config)
 	b, _ := os.ReadFile(fname)
-	if err := yaml.Unmarshal(b, &cfg2); err != nil {
+	if err := yaml.Unmarshal(b, cfg2); err != nil {
 		t.Fatal(err)
 	}
 	cfg2.path = fname
