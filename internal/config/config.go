@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/goccy/go-yaml"
 	"github.com/tjblackheart/andcli/v2/internal/buildinfo"
-	"gopkg.in/yaml.v3"
 )
 
 type (
@@ -99,7 +99,7 @@ func (c *Config) mergeExisting() error {
 	}
 
 	var existing = new(Config)
-	if err := yaml.Unmarshal(b, &existing); err != nil {
+	if err := yaml.Unmarshal(b, existing); err != nil {
 		return err
 	}
 
