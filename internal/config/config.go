@@ -24,8 +24,9 @@ type (
 	}
 
 	Opts struct {
-		ShowUsernames bool `yaml:"show_usernames"`
-		ShowTokens    bool `yaml:"show_tokens"`
+		ShowUsernames       bool `yaml:"show_usernames"`
+		AlwaysShowUsernames bool `yaml:"always_show_usernames"`
+		ShowTokens          bool `yaml:"show_tokens"`
 	}
 )
 
@@ -51,8 +52,9 @@ func create(dir string) (*Config, error) {
 	cfg := &Config{
 		path: filepath.Join(path, "config.yaml"),
 		Options: &Opts{
-			ShowUsernames: true,
-			ShowTokens:    false,
+			ShowUsernames:       true,
+			ShowTokens:          false,
+			AlwaysShowUsernames: false,
 		},
 	}
 

@@ -24,9 +24,10 @@ type (
 	}
 
 	appState struct {
-		showToken     bool
-		showUsernames bool
-		currentOTP    string
+		showToken           bool
+		showUsernames       bool
+		alwaysShowUsernames bool
+		currentOTP          string
 	}
 
 	tickMsg struct{}
@@ -46,8 +47,9 @@ func New(entries []vaults.Entry, cfg *config.Config) Model {
 
 	cb = clipboard.New(cfg.ClipboardCmd)
 	state = &appState{
-		showToken:     cfg.Options.ShowTokens,
-		showUsernames: cfg.Options.ShowUsernames,
+		showToken:           cfg.Options.ShowTokens,
+		showUsernames:       cfg.Options.ShowUsernames,
+		alwaysShowUsernames: cfg.Options.AlwaysShowUsernames,
 	}
 	style = newDefaultStyle()
 	title := fmt.Sprintf("%s: %s", buildinfo.AppName, filepath.Base(cfg.File))

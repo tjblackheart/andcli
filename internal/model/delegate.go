@@ -22,6 +22,11 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, idx int, i list.Item) {
 	text := d.style.listItem.Render(entry.Title())
 
 	if idx != m.Index() {
+		if state.alwaysShowUsernames {
+			user := style.username.Render(fmt.Sprintf("(%s) ", entry.Description()))
+			text = fmt.Sprintf("%s%s", text, user)
+		}
+
 		fmt.Fprint(w, text)
 		return
 	}
@@ -46,7 +51,7 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, idx int, i list.Item) {
 
 	item := d.style.activeItem.Render(entry.Title())
 	if state.showUsernames {
-		user := style.username.Render(fmt.Sprintf("(%s) ", entry.Description()))
+		user := style.usernameActive.Render(fmt.Sprintf("(%s) ", entry.Description()))
 		item = fmt.Sprintf("%s%s", item, user)
 	}
 

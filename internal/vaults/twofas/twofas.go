@@ -127,7 +127,7 @@ func (v vault) Entries() []vaults.Entry {
 		entries = append(entries, vaults.Entry{
 			Secret:    e.Secret,
 			Issuer:    e.Otp.Issuer,
-			Label:     e.Otp.Label,
+			Label:     e.Otp.Account, // TODO: remove, wait for PR #34
 			Digits:    e.Otp.Digits,
 			Type:      e.Otp.TokenType,
 			Algorithm: e.Otp.Algorithm,
