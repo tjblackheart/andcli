@@ -124,10 +124,16 @@ func (v vault) Entries() []vaults.Entry {
 			e.Otp.Digits = 6
 		}
 
+		label := e.Otp.Label
+
+		if label == "" {
+			label = e.Otp.Account
+		}
+
 		entries = append(entries, vaults.Entry{
 			Secret:    e.Secret,
 			Issuer:    e.Otp.Issuer,
-			Label:     e.Otp.Label,
+			Label:     label,
 			Digits:    e.Otp.Digits,
 			Type:      e.Otp.TokenType,
 			Algorithm: e.Otp.Algorithm,
