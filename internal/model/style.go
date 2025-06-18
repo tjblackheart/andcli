@@ -4,19 +4,20 @@ import "github.com/charmbracelet/lipgloss"
 
 // TODO: configurable colors via config file
 var (
-	base   = lipgloss.Color("#39A02E")
-	green  = lipgloss.Color("#39A02E")
-	yellow = lipgloss.Color("#DB9F1F")
-	red    = lipgloss.Color("#f10000")
-	grey   = lipgloss.Color("#424242")
-	black  = lipgloss.Color("#000000")
-	white  = lipgloss.Color("#ffffff")
+	base      = lipgloss.Color("#39A02E")
+	green     = lipgloss.Color("#39A02E")
+	yellow    = lipgloss.Color("#DB9F1F")
+	red       = lipgloss.Color("#f10000")
+	grey      = lipgloss.Color("#424242")
+	greyLight = lipgloss.Color("#898989")
+	black     = lipgloss.Color("#000000")
+	white     = lipgloss.Color("#ffffff")
 )
 
 type defaultStyle struct {
-	title, listItem, activeItem lipgloss.Style
-	username, filterCursor      lipgloss.Style
-	filterPrompt, token, until  lipgloss.Style
+	title, listItem, activeItem            lipgloss.Style
+	username, usernameActive, filterCursor lipgloss.Style
+	filterPrompt, token, until             lipgloss.Style
 }
 
 var ns = lipgloss.NewStyle
@@ -35,7 +36,9 @@ func newDefaultStyle() *defaultStyle {
 			BorderForeground(base).
 			Faint(false),
 
-		username: ns().Background(grey),
+		username: ns().Padding(0, 1).Foreground(greyLight).Faint(true),
+
+		usernameActive: ns().Background(grey),
 
 		filterPrompt: ns().Foreground(base),
 
