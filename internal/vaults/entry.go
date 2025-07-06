@@ -4,6 +4,8 @@ import (
 	"crypto/sha1"
 	"crypto/sha256"
 	"crypto/sha512"
+	"errors"
+	"log"
 	"strings"
 
 	"github.com/xlzd/gotp"
@@ -20,6 +22,9 @@ type Entry struct {
 	Digits    int
 	Period    int
 }
+
+var ErrMissingSecret = errors.New("missing secret value")
+var ErrInvalidType = errors.New("entry is not a TOTP")
 
 // Returns a generated OTP and expiration time for the current entry.
 func (e Entry) GenerateTOTP() (string, int64) {
@@ -82,4 +87,36 @@ func (e Entry) Description() string {
 // Implementation of bubbletea listitem.FilterValue()
 func (e Entry) FilterValue() string {
 	return e.Title()
+}
+
+// SanitizeAndValidate will add missing defaults if necessary
+// (to prevent division by zero, for example). If there are crucial fields
+// missing (i.e. secret), it will return an error.
+func (e *Entry) SanitizeAndValidate() error {
+	if e.Secret == "" {
+		log.Printf("%q: ignoring: missing secret", e.Issuer)
+		return ErrMissingSecret
+	}
+
+	if strings.ToUpper(e.Type) != "TOTP" {
+		log.Printf("%q: ignoring: %s", e.Issuer, e.Type)
+		return ErrInvalidType
+	}
+
+	if e.Period == 0 {
+		log.Printf("%q: missing period, using default (30)", e.Issuer)
+		e.Period = 30
+	}
+
+	if e.Algorithm == "" {
+		log.Printf("%q: missing algorithm: using default (SHA1)", e.Issuer)
+		e.Algorithm = "SHA1"
+	}
+
+	if e.Digits == 0 {
+		log.Printf("%q: missing digits: using default (6)", e.Issuer)
+		e.Digits = 6
+	}
+
+	return nil
 }

@@ -10,7 +10,7 @@ andcli can handle input from the following providers:
 * [Aegis](https://getaegis.app)
 * [2fas](https://2fas.com)
 * [Stratum / Authenticator Pro](https://stratumauth.com)
-* [Keepass](https://www.keepassdx.com/)
+* [Keepass](https://www.keepassdx.com/) or anything else that handles *.kdbx
 
 At the moment only TOTP entries are supported.
 

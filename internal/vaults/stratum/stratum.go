@@ -6,13 +6,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 
 	"github.com/tjblackheart/andcli/v2/internal/vaults"
 	"golang.org/x/crypto/argon2"
 )
+
+const t = vaults.TYPE_STRATUM
 
 // force interface impl
 var _ vaults.Vault = &vault{}
@@ -65,7 +66,6 @@ func Open(filename string, pass []byte) (vaults.Vault, error) {
 	}
 
 	v := &vault{Authenticators: make([]entry, 0)}
-	t := vaults.TYPE_STRATUM
 
 	switch string(b[:len(HEADER)]) {
 	case HEADER:
@@ -101,11 +101,6 @@ func (v vault) Entries() []vaults.Entry {
 	list := make([]vaults.Entry, 0)
 	for _, e := range v.Authenticators {
 
-		if e.Type != 2 {
-			log.Printf("Ignoring entry %q: %s", e.Issuer, e.typeToString())
-			continue
-		}
-
 		alg := "SHA1"
 		switch e.Algorithm {
 		case 1:
@@ -114,30 +109,19 @@ func (v vault) Entries() []vaults.Entry {
 			alg = "SHA512"
 		}
 
-		if e.Secret == "" {
-			log.Printf("Ignoring entry %q: missing secret", e.Issuer)
-			continue
-		}
-
-		if e.Period == 0 {
-			log.Printf("Missing period for entry %q: using default (30)", e.Issuer)
-			e.Period = 30
-		}
-
-		if e.Digits == 0 {
-			log.Printf("Missing digits for entry %q: using default (6)", e.Issuer)
-			e.Digits = 6
-		}
-
-		list = append(list, vaults.Entry{
+		entry := vaults.Entry{
 			Secret:    e.Secret,
 			Issuer:    e.Issuer,
 			Digits:    int(e.Digits),
-			Type:      "TOTP",
+			Type:      e.typeToString(),
 			Algorithm: alg,
 			Period:    e.Period,
 			Label:     e.Username,
-		})
+		}
+
+		if err := entry.SanitizeAndValidate(); err == nil {
+			list = append(list, entry)
+		}
 	}
 
 	return list
