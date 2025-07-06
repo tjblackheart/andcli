@@ -10,6 +10,7 @@ andcli can handle input from the following providers:
 * [Aegis](https://getaegis.app)
 * [2fas](https://2fas.com)
 * [Stratum / Authenticator Pro](https://stratumauth.com)
+* [Keepass](https://www.keepassdx.com/)
 
 At the moment only TOTP entries are supported.
 
@@ -59,7 +60,7 @@ Options:
   -f, --file string            Path to the encrypted vault (deprecated: Pass the filename directly)
   -h, --help                   Show this help
       --passwd-stdin           Read the vault password from stdin. If set, skips the password input.
-  -t, --type string            Vault type (andotp, aegis, twofas, stratum)
+  -t, --type string            Vault type (andotp, aegis, twofas, stratum, keepass)
   -v, --version                Prints version info and exits
 ```
 
@@ -76,6 +77,7 @@ You can use the demo registration server implementation at [tools/srv](tools/srv
 * [GoTP](https://github.com/xlzd/gotp)
 * [go-andotp](https://github.com/grijul/go-andotp)
 * [vhs](https://github.com/charmbracelet/vhs)
+* [gokeepasslib](https://github.com/tobischo/gokeepasslib)
 
 ## License
 
