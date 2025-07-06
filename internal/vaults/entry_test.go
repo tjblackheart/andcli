@@ -171,3 +171,83 @@ func TestEntry_GenerateTOTP(t *testing.T) {
 		})
 	}
 }
+
+func TestEntry_SanitizeAndValidate(t *testing.T) {
+	tests := []struct {
+		name       string // description of this test case
+		have, want *Entry
+		fails      bool
+	}{
+		{"fails: missing secret", &Entry{Secret: ""}, nil, true},
+		{"fails: wrong type", &Entry{Secret: "123", Type: "HOTP"}, nil, true},
+		{
+			"defaults: period",
+			&Entry{
+				Secret:    "123",
+				Type:      "TOTP",
+				Period:    0,
+				Algorithm: "SHA1",
+				Digits:    6,
+			},
+			&Entry{
+				Secret:    "123",
+				Type:      "TOTP",
+				Period:    30,
+				Algorithm: "SHA1",
+				Digits:    6,
+			},
+			false,
+		},
+		{
+			"defaults: algorithm",
+			&Entry{
+				Secret:    "123",
+				Type:      "TOTP",
+				Period:    30,
+				Algorithm: "",
+				Digits:    6,
+			},
+			&Entry{
+				Secret:    "123",
+				Type:      "TOTP",
+				Period:    30,
+				Algorithm: "SHA1",
+				Digits:    6,
+			},
+			false,
+		},
+		{
+			"defaults: digits",
+			&Entry{
+				Secret:    "123",
+				Type:      "TOTP",
+				Period:    30,
+				Algorithm: "SHA1",
+				Digits:    0,
+			},
+			&Entry{
+				Secret:    "123",
+				Type:      "TOTP",
+				Period:    30,
+				Algorithm: "SHA1",
+				Digits:    6,
+			},
+			false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.have.SanitizeAndValidate()
+			if tt.fails {
+				if err == nil {
+					t.Fatalf("SanitizeAndValidate(): %s: want err, got nil", tt.name)
+				}
+				return
+			}
+
+			if !reflect.DeepEqual(tt.have, tt.want) {
+				t.Fatalf("SanitizeAndValidate(): %s: want %#v, got %#v", tt.name, tt.want, tt.have)
+			}
+		})
+	}
+}
