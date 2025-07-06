@@ -18,7 +18,7 @@ At the moment only TOTP entries are supported.
 
 ## Installation
 
-Download a [prebuild release](https://github.com/tjblackheart/andcli/releases) and place it somewhere in your $PATH. If you have Go installed you can install directly: `go install -ldflags='-s -w' github.com/tjblackheart/andcli/v2/cmd/andcli@latest`.
+Download a [prebuild release](https://github.com/tjblackheart/andcli/releases) and place it somewhere in your $PATH. If you have Go installed you can install directly: `go install github.com/tjblackheart/andcli/v2/cmd/andcli@latest`.
 
 ## Usage
 
