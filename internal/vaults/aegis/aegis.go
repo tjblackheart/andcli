@@ -8,13 +8,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 
 	"github.com/tjblackheart/andcli/v2/internal/vaults"
 	"golang.org/x/crypto/scrypt"
 )
+
+const t = vaults.TYPE_AEGIS
 
 type (
 	vault struct {
@@ -57,7 +58,6 @@ type (
 
 func Open(filename string, pass []byte) (vaults.Vault, error) {
 
-	var t = vaults.TYPE_AEGIS
 	var v vault
 
 	b, err := os.ReadFile(filename)
@@ -91,42 +91,19 @@ func (v vault) Entries() []vaults.Entry {
 	entries := make([]vaults.Entry, 0)
 
 	for _, e := range v.db.Entries {
-
-		e.Type = strings.ToUpper(e.Type)
-		if e.Type != "TOTP" {
-			log.Printf("Ignoring entry %q: %s", e.Issuer, e.Type)
-			continue
-		}
-
-		if e.Info.Secret == "" {
-			log.Printf("Ignoring entry %q: missing secret", e.Issuer)
-			continue
-		}
-
-		if e.Info.Period == 0 {
-			log.Printf("Missing period for entry %q: using default (30)", e.Issuer)
-			e.Info.Period = 30
-		}
-
-		if e.Info.Algo == "" {
-			log.Printf("Missing algorithm for entry %q: using default (SHA1)", e.Issuer)
-			e.Info.Algo = "SHA1"
-		}
-
-		if e.Info.Digits == 0 {
-			log.Printf("Missing digits for entry %q: using default (6)", e.Issuer)
-			e.Info.Digits = 6
-		}
-
-		entries = append(entries, vaults.Entry{
+		entry := vaults.Entry{
 			Secret:    e.Info.Secret,
 			Issuer:    e.Issuer,
 			Label:     e.Name,
 			Digits:    e.Info.Digits,
-			Type:      e.Type,
+			Type:      strings.ToUpper(e.Type),
 			Algorithm: e.Info.Algo,
 			Period:    e.Info.Period,
-		})
+		}
+
+		if err := entry.SanitizeAndValidate(); err == nil {
+			entries = append(entries, entry)
+		}
 	}
 
 	return entries

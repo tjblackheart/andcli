@@ -3,13 +3,14 @@ package andotp
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 
 	"github.com/grijul/go-andotp/andotp"
 	"github.com/tjblackheart/andcli/v2/internal/vaults"
 )
+
+const t = vaults.TYPE_ANDOTP
 
 type (
 	vault struct {
@@ -32,8 +33,6 @@ type (
 )
 
 func Open(filename string, pass []byte) (vaults.Vault, error) {
-
-	var t = vaults.TYPE_ANDOTP
 
 	b, err := os.ReadFile(filename)
 	if err != nil {
@@ -59,43 +58,20 @@ func (v vault) Entries() []vaults.Entry {
 	entries := make([]vaults.Entry, 0)
 
 	for _, e := range v.entries {
-
-		e.Type = strings.ToUpper(e.Type)
-		if e.Type != "TOTP" {
-			log.Printf("Ignoring entry %q: %s", e.Issuer, e.Type)
-			continue
-		}
-
-		if e.Secret == "" {
-			log.Printf("Ignoring entry %q: missing secret", e.Issuer)
-			continue
-		}
-
-		if e.Period == 0 {
-			log.Printf("Missing period for entry %q: using default (30)", e.Issuer)
-			e.Period = 30
-		}
-
-		if e.Algorithm == "" {
-			log.Printf("Missing algorithm for entry %q: using default (SHA1)", e.Issuer)
-			e.Algorithm = "SHA1"
-		}
-
-		if e.Digits == 0 {
-			log.Printf("Missing digits for entry %q: using default (6)", e.Issuer)
-			e.Digits = 6
-		}
-
-		entries = append(entries, vaults.Entry{
+		entry := vaults.Entry{
 			Secret:    e.Secret,
 			Issuer:    e.Issuer,
 			Label:     e.Label,
-			Type:      e.Type,
+			Type:      strings.ToUpper(e.Type),
 			Algorithm: e.Algorithm,
 			Tags:      e.Tags,
 			Digits:    e.Digits,
 			Period:    e.Period,
-		})
+		}
+
+		if err := entry.SanitizeAndValidate(); err == nil {
+			entries = append(entries, entry)
+		}
 	}
 
 	return entries

@@ -7,7 +7,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 
@@ -16,6 +15,7 @@ import (
 )
 
 const (
+	t                 = vaults.TYPE_TWOFAS
 	numFields     int = 3
 	authTagLength int = 16
 )
@@ -64,7 +64,6 @@ type (
 
 func Open(filename string, pass []byte) (vaults.Vault, error) {
 
-	var t = vaults.TYPE_TWOFAS
 	var v vault
 
 	b, err := os.ReadFile(filename)
@@ -98,47 +97,24 @@ func (v vault) Entries() []vaults.Entry {
 	entries := make([]vaults.Entry, 0)
 
 	for _, e := range v.db {
-		e.Otp.TokenType = strings.ToUpper(e.Otp.TokenType)
-		if e.Otp.TokenType != "TOTP" {
-			log.Printf("Ignoring entry %q: %s", e.Otp.Issuer, e.Otp.TokenType)
-			continue
-		}
-
-		if e.Secret == "" {
-			log.Printf("Ignoring entry %q: missing secret", e.Otp.Issuer)
-			continue
-		}
-
-		if e.Otp.Period == 0 {
-			log.Printf("Missing period for entry %q: using default (30)", e.Otp.Issuer)
-			e.Otp.Period = 30
-		}
-
-		if e.Otp.Algorithm == "" {
-			log.Printf("Missing algorithm for entry %q: using default (SHA1)", e.Otp.Issuer)
-			e.Otp.Algorithm = "SHA1"
-		}
-
-		if e.Otp.Digits == 0 {
-			log.Printf("Missing digits for entry %q: using default (6)", e.Otp.Issuer)
-			e.Otp.Digits = 6
-		}
-
 		label := e.Otp.Label
-
 		if label == "" {
 			label = e.Otp.Account
 		}
 
-		entries = append(entries, vaults.Entry{
+		entry := vaults.Entry{
 			Secret:    e.Secret,
 			Issuer:    e.Otp.Issuer,
 			Label:     label,
 			Digits:    e.Otp.Digits,
-			Type:      e.Otp.TokenType,
+			Type:      strings.ToUpper(e.Otp.TokenType),
 			Algorithm: e.Otp.Algorithm,
 			Period:    e.Otp.Period,
-		})
+		}
+
+		if err := entry.SanitizeAndValidate(); err == nil {
+			entries = append(entries, entry)
+		}
 	}
 
 	return entries
