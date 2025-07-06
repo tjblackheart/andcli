@@ -10,6 +10,7 @@ const (
 	TYPE_AEGIS   string = "aegis"
 	TYPE_TWOFAS  string = "twofas"
 	TYPE_STRATUM string = "stratum"
+	TYPE_KEEPASS string = "keepass"
 )
 
 // Returns a list containing the implemented types.
@@ -19,5 +20,6 @@ func Types() []string {
 		TYPE_AEGIS,
 		TYPE_TWOFAS,
 		TYPE_STRATUM,
+		TYPE_KEEPASS,
 	}
 }
