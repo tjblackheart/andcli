@@ -76,7 +76,7 @@ func (cb *Clipboard) initUser(s string) *Clipboard {
 	if parts[0] != "" {
 		cb.cmd = parts[0]
 		if len(parts) > 1 {
-			cb.args = strings.Split(parts[1], " ")
+			cb.args = strings.Fields(parts[1])
 		}
 	}
 
