@@ -17,6 +17,7 @@ import (
 	"github.com/tjblackheart/andcli/v2/internal/vaults/aegis"
 	"github.com/tjblackheart/andcli/v2/internal/vaults/andotp"
 	"github.com/tjblackheart/andcli/v2/internal/vaults/keepass"
+	"github.com/tjblackheart/andcli/v2/internal/vaults/protonpass"
 	"github.com/tjblackheart/andcli/v2/internal/vaults/stratum"
 	"github.com/tjblackheart/andcli/v2/internal/vaults/twofas"
 )
@@ -70,6 +71,8 @@ func open(cfg *config.Config) (vaults.Vault, error) {
 		return stratum.Open(cfg.File, b)
 	case vaults.TYPE_KEEPASS:
 		return keepass.Open(cfg.File, b)
+	case vaults.TYPE_PROTON:
+		return protonpass.Open(cfg.File, b)
 	}
 
 	return nil, fmt.Errorf("vault type %q: not implemented", cfg.Type)
