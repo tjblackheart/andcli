@@ -6,12 +6,12 @@ andcli lets you work with 2FA tokens directly in your shell, using encrypted bac
 
 andcli can handle input from the following providers (if they provide more than 2FA support, only the OTP related entries will be consumed):
 
-* [andotp](https://github.com/andOTP/andOTP)
-* [Aegis](https://getaegis.app)
-* [2fas](https://2fas.com)
-* [Stratum / Authenticator Pro](https://stratumauth.com)
-* [Keepass](https://www.keepassdx.com/) or anything else that exports *.kdbx v2
-* [ProtonPass](https://proton.me/pass)
+- [andotp](https://github.com/andOTP/andOTP)
+- [Aegis](https://getaegis.app)
+- [2fas](https://2fas.com)
+- [Stratum / Authenticator Pro](https://stratumauth.com)
+- [Keepass](https://www.keepassdx.com/) or anything else that exports \*.kdbx v2
+- [ProtonPass](https://proton.me/pass)
 
 At the moment only TOTP entries are supported.
 
@@ -61,7 +61,7 @@ Options:
   -f, --file string            Path to the encrypted vault (deprecated: Pass the filename directly)
   -h, --help                   Show this help
       --passwd-stdin           Read the vault password from stdin. If set, skips the password input.
-  -t, --type string            Vault type (andotp, aegis, twofas, stratum, keepass)
+  -t, --type string            Vault type (andotp, aegis, twofas, stratum, keepass, proton)
   -v, --version                Prints version info and exits
 ```
 
@@ -73,12 +73,12 @@ You can use the demo registration server implementation at [tools/srv](tools/srv
 
 ## Thanks
 
-* [Bubbletea](https://github.com/charmbracelet/bubbletea)
-* [lipgloss](https://github.com/charmbracelet/lipgloss)
-* [GoTP](https://github.com/xlzd/gotp)
-* [go-andotp](https://github.com/grijul/go-andotp)
-* [vhs](https://github.com/charmbracelet/vhs)
-* [gokeepasslib](https://github.com/tobischo/gokeepasslib)
+- [Bubbletea](https://github.com/charmbracelet/bubbletea)
+- [lipgloss](https://github.com/charmbracelet/lipgloss)
+- [GoTP](https://github.com/xlzd/gotp)
+- [go-andotp](https://github.com/grijul/go-andotp)
+- [vhs](https://github.com/charmbracelet/vhs)
+- [gokeepasslib](https://github.com/tobischo/gokeepasslib)
 
 ## License
 
