@@ -11,6 +11,7 @@ const (
 	TYPE_TWOFAS  string = "twofas"
 	TYPE_STRATUM string = "stratum"
 	TYPE_KEEPASS string = "keepass"
+	TYPE_PROTON  string = "proton"
 )
 
 // Returns a list containing the implemented types.
@@ -21,5 +22,6 @@ func Types() []string {
 		TYPE_TWOFAS,
 		TYPE_STRATUM,
 		TYPE_KEEPASS,
+		TYPE_PROTON,
 	}
 }
