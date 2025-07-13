@@ -41,19 +41,18 @@ func Open(filename string, pass []byte) (vaults.Vault, error) {
 		return nil, fmt.Errorf("%s: %s", t, err)
 	}
 
-	pgp := crypto.PGP()
-	d, err := pgp.Decryption().Password(pass).New()
+	hnd, err := crypto.PGP().Decryption().Password(pass).New()
 	if err != nil {
 		return nil, fmt.Errorf("%s: %s", t, err)
 	}
 
-	res, err := d.Decrypt(b, crypto.Armor)
+	result, err := hnd.Decrypt(b, crypto.Armor)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %s", t, err)
 	}
 
 	var e envelope
-	if err := json.Unmarshal(res.Bytes(), &e); err != nil {
+	if err := json.Unmarshal(result.Bytes(), &e); err != nil {
 		return nil, fmt.Errorf("%s: %s", t, err)
 	}
 
