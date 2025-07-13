@@ -41,7 +41,6 @@ func TestOpen(t *testing.T) {
 					t.Fatalf("Open() have %v, %s", entries[i].Label, want)
 				}
 			}
-
 		})
 	}
 }

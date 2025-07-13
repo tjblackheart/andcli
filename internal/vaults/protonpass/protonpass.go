@@ -64,12 +64,13 @@ func (e envelope) Entries() []vaults.Entry {
 
 	for _, v := range e.Vaults {
 		for _, i := range v.Items {
-			if strings.ToLower(i.Data.Type) != "login" || i.Data.Content.TOTPUri == "" {
+			d := i.Data
+			if strings.ToLower(d.Type) != "login" || d.Content.TOTPUri == "" {
 				continue
 			}
 
-			issuer := i.Data.Metadata.Name
-			uri, err := url.Parse(i.Data.Content.TOTPUri)
+			issuer := d.Metadata.Name
+			uri, err := url.Parse(d.Content.TOTPUri)
 			if err != nil {
 				log.Printf("%q: %s", issuer, err)
 				continue
@@ -81,7 +82,7 @@ func (e envelope) Entries() []vaults.Entry {
 			entry := vaults.Entry{
 				Secret:    uri.Query().Get("secret"),
 				Issuer:    issuer,
-				Label:     i.Data.Content.Username,
+				Label:     d.Content.Username,
 				Digits:    digits,
 				Type:      strings.ToUpper(uri.Host),
 				Algorithm: uri.Query().Get("algorithm"),
