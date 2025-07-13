@@ -4,13 +4,14 @@
 
 andcli lets you work with 2FA tokens directly in your shell, using encrypted backups exported out of your favourite 2FA apps. All the data is held in memory only and will never leave your machine.
 
-andcli can handle input from the following providers:
+andcli can handle input from the following providers (if they provide more than 2FA support, only the OTP related entries will be consumed):
 
 * [andotp](https://github.com/andOTP/andOTP)
 * [Aegis](https://getaegis.app)
 * [2fas](https://2fas.com)
 * [Stratum / Authenticator Pro](https://stratumauth.com)
-* [Keepass](https://www.keepassdx.com/) or anything else that handles *.kdbx
+* [Keepass](https://www.keepassdx.com/) or anything else that exports *.kdbx v2
+* [ProtonPass](https://proton.me/pass)
 
 At the moment only TOTP entries are supported.
 
