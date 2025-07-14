@@ -9,6 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+
     - uses: extractions/setup-just@v3
 
     - uses: actions/setup-go@v5
@@ -17,66 +18,69 @@ jobs:
         check-latest: true
         cache: true
 
+    - name: Get tag
+      id: tag
+      uses: dawidd6/action-get-tag@v1
+
     - name: Download modules
       run: go mod download
-
     - name: Test
       run: make test
 
     - name: Build linux_amd64
       env:
-        CI_TAG: ${{ github.ref_name }}
+        CI_TAG: ${{steps.tag.outputs.tag}}
         GOOS: linux
         GOARCH: amd64
-        RELEASE: ${{ github.ref_name }}_linux_amd64
+        RELEASE: ${{steps.tag.outputs.tag}}_linux_amd64
       run: just ci
 
     - name: Build linux_aarch64
       env:
-        CI_TAG: ${{ github.ref_name }}
+        CI_TAG: ${{steps.tag.outputs.tag}}
         GOOS: linux
         GOARCH: arm64
-        RELEASE: ${{ github.ref_name }}_linux_aarch64
+        RELEASE: ${{steps.tag.outputs.tag}}_linux_aarch64
       run: just ci
 
     - name: Build darwin_amd64
       env:
-        CI_TAG: ${{ github.ref_name }}
+        CI_TAG: ${{steps.tag.outputs.tag}}
         GOOS: darwin
         GOARCH: amd64
-        RELEASE: ${{ github.ref_name }}_darwin_amd64
+        RELEASE: ${{steps.tag.outputs.tag}}_darwin_amd64
       run: make ci
 
     - name: Build darwin_arm64
       env:
-        CI_TAG: ${{ github.ref_name }}
+        CI_TAG: ${{steps.tag.outputs.tag}}
         GOOS: darwin
         GOARCH: arm64
-        RELEASE: ${{ github.ref_name }}_darwin_arm64
+        RELEASE: ${{steps.tag.outputs.tag}}_darwin_arm64
       run: make ci
 
     - name: Build windows
       env:
-        CI_TAG: ${{ github.ref_name }}
+        CI_TAG: ${{steps.tag.outputs.tag}}
         GOOS: windows
         GOARCH: amd64
-        RELEASE: ${{ github.ref_name }}_win_amd64.exe
+        RELEASE: ${{steps.tag.outputs.tag}}_win_amd64.exe
       run: make ci
 
     - name: Build windows
       env:
-        CI_TAG: ${{ github.ref_name }}
+        CI_TAG: ${{steps.tag.outputs.tag}}
         GOOS: windows
         GOARCH: arm64
-        RELEASE: ${{ github.ref_name }}_win_arm64.exe
+        RELEASE: ${{steps.tag.outputs.tag}}_win_arm64.exe
       run: make ci
 
     - name: Build android
       env:
-        CI_TAG: ${{ github.ref_name }}
+        CI_TAG: ${{steps.tag.outputs.tag}}
         GOOS: android
         GOARCH: arm64
-        RELEASE: ${{ github.ref_name }}_android_arm64
+        RELEASE: ${{steps.tag.outputs.tag}}_android_arm64
       run: make ci
 
     - name: Release
