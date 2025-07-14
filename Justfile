@@ -1,6 +1,8 @@
 #!/usr/bin/env just
-tag     := env('CI_TAG', `git describe --tags --abbrev=0`)
-release := env('RELEASE', "`go env GOOS`_`go env GOARCH`")
+tag     := env('TAG', `git describe --tags --abbrev=0`)
+goos 	:= env('GOOS', `go env GOOS`)
+goarch 	:= env('GOARCH', `go env GOARCH`)
+ext 	:= env('EXT', '')
 commit  := `git rev-parse --short HEAD`
 now     := datetime('%F %T%z')
 ldflags := ("
@@ -13,10 +15,11 @@ ldflags := ("
 default: clean build
 
 build:
-    go build -ldflags="{{ldflags}}" -trimpath -o builds/andcli ./cmd/andcli/...
-
-ci:
-    go build -ldflags="{{ldflags}}" -trimpath -o builds/andcli_{{release}} ./cmd/andcli/...
+	go build \
+		-ldflags="{{ldflags}}" \
+		-trimpath \
+		-o builds/andcli_{{tag}}_{{goos}}_{{goarch}}{{ext}} \
+		./cmd/andcli/...
 
 compress: build
 	upx builds/andcli*
@@ -25,8 +28,7 @@ clean:
 	rm -f builds/*
 
 docs:
-	export ANDCLI_HIDE_ABSPATH=1
-	vhs < doc/demo.tape
+	export ANDCLI_HIDE_ABSPATH=1; vhs < doc/demo.tape
 
 test:
 	go test -coverprofile .coverage ./...

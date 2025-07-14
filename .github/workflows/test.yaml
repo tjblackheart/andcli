@@ -16,10 +16,11 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v4
+    - uses: extractions/setup-just@v3
     - uses: actions/setup-go@v5
       with:
-        go-version: "1.23"
+        go-version: "1.24"
         check-latest: true
         cache: true
     - name: test
-      run: make test
+      run: just test
