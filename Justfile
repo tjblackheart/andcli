@@ -1,23 +1,22 @@
 #!/usr/bin/env just
-
-# to override vars at runtime: just --set tag v1.0.0
-tag     := `git describe --tags --abbrev=0`
+tag     := env('CI_TAG', `git describe --tags --abbrev=0`)
+release := env('RELEASE', "`go env GOOS`_`go env GOARCH`")
 commit  := `git rev-parse --short HEAD`
 now     := datetime('%F %T%z')
 ldflags := ("
 	-s -w
-    -X 'github.com/tjblackheart/andcli/v2/internal/buildinfo.AppVersion="+tag+"'
-    -X 'github.com/tjblackheart/andcli/v2/internal/buildinfo.Commit="+commit+"'
-    -X 'github.com/tjblackheart/andcli/v2/internal/buildinfo.BuildDate="+now+"'
+	-X 'github.com/tjblackheart/andcli/v2/internal/buildinfo.AppVersion="+tag+"'
+	-X 'github.com/tjblackheart/andcli/v2/internal/buildinfo.Commit="+commit+"'
+	-X 'github.com/tjblackheart/andcli/v2/internal/buildinfo.BuildDate="+now+"'
 ")
 
-all: clean build
+default: clean build
 
 build:
     go build -ldflags="{{ldflags}}" -trimpath -o builds/andcli ./cmd/andcli/...
 
 ci:
-    go build -ldflags="{{ldflags}}" -trimpath -o builds/andcli_`echo $RELEASE` ./cmd/andcli/...
+    go build -ldflags="{{ldflags}}" -trimpath -o builds/andcli_{{release}} ./cmd/andcli/...
 
 compress: build
 	upx builds/andcli*
