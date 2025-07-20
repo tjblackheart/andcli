@@ -9,21 +9,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - run: git fetch --prune --unshallow --tags
+      with:
+        fetch-depth: 0
+        fetch-tags: true
     - uses: extractions/setup-just@v3
     - uses: actions/setup-go@v5
       with:
-        go-version: "1.24"
+        go-version-file: go.mod
         check-latest: true
         cache: true
-    - name: Get tag
+    - run: go mod download
+    - uses: dawidd6/action-get-tag@v1
       id: tag
-      uses: dawidd6/action-get-tag@v1
-    - name: Download modules
-      run: go mod download
 
-    - name: Test
-      run: just test
+    - run: just test
 
     - name: linux_amd64
       env:
@@ -32,7 +31,7 @@ jobs:
         GOARCH: amd64
       run: just build
 
-    - name: linux_aarch64
+    - name: linux_arm64
       env:
         TAG: ${{steps.tag.outputs.tag}}
         GOOS: linux
@@ -53,7 +52,7 @@ jobs:
         GOARCH: arm64
       run: just build
 
-    - name: windows
+    - name: windows_amd64
       env:
         TAG: ${{steps.tag.outputs.tag}}
         GOOS: windows
@@ -61,7 +60,7 @@ jobs:
         EXT: .exe
       run: just build
 
-    - name: windows
+    - name: windows_arm64
       env:
         TAG: ${{steps.tag.outputs.tag}}
         GOOS: windows

@@ -18,7 +18,7 @@ const t = vaults.TYPE_PROTON
 type (
 	envelope struct{ Vaults map[string]vault }
 
-	// protonvault only implements the essentials for reading TOTP info.
+	// protonvault only implements the essentials for reading OTP data.
 	vault struct {
 		Name, Description string
 		Items             []struct {

@@ -1,8 +1,9 @@
 #!/usr/bin/env just
-tag     := env('TAG', `git describe --tags $(git rev-list --tags --max-count=1)`)
-goos 	:= env('GOOS', `go env GOOS`)
-goarch 	:= env('GOARCH', `go env GOARCH`)
-ext 	:= env('EXT', '')
+
+tag     := env('TAG', `git describe --tags --abbrev=0`)
+goos    := env('GOOS', `go env GOOS`)
+goarch  := env('GOARCH', `go env GOARCH`)
+ext     := env('EXT', '')
 commit  := `git rev-parse --short HEAD`
 now     := datetime('%F %T%z')
 ldflags := ("

@@ -35,7 +35,7 @@ type (
 		}
 		DB string
 		//
-		db db `json:"-"`
+		db db
 	}
 
 	db struct {
@@ -154,11 +154,11 @@ func (v vault) masterKeyFromPass(password []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	var cipher []byte
-	cipher = append(cipher, key...)
-	cipher = append(cipher, keyTag...)
+	var b []byte
+	b = append(b, key...)
+	b = append(b, keyTag...)
 
-	masterKey, err := gcm.Open(nil, keyNonce, cipher, nil)
+	masterKey, err := gcm.Open(nil, keyNonce, b, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -193,11 +193,11 @@ func (v vault) decryptDB(key []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	var cipher []byte
-	cipher = append(cipher, db...)
-	cipher = append(cipher, tag...)
+	var b []byte
+	b = append(b, db...)
+	b = append(b, tag...)
 
-	plain, err := gcm.Open(nil, nonce, cipher, nil)
+	plain, err := gcm.Open(nil, nonce, b, nil)
 	if err != nil {
 		return nil, err
 	}
