@@ -9,7 +9,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - run: git fetch --prune --unshallow --tags
+      with:
+        fetch-tags: true
     - uses: extractions/setup-just@v3
     - uses: actions/setup-go@v5
       with:
@@ -19,6 +20,7 @@ jobs:
     - run: go mod download
     - uses: dawidd6/action-get-tag@v1
       id: tag
+
     - run: just test
 
     - name: linux_amd64

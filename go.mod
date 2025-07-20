@@ -1,6 +1,6 @@
 module github.com/tjblackheart/andcli/v2
 
-go 1.23.4
+go 1.24
 
 require (
 	github.com/ProtonMail/gopenpgp/v3 v3.3.0
@@ -9,7 +9,7 @@ require (
 	github.com/charmbracelet/lipgloss v1.1.0
 	github.com/goccy/go-yaml v1.18.0
 	github.com/grijul/go-andotp v1.0.23
-	github.com/spf13/pflag v1.0.6
+	github.com/spf13/pflag v1.0.7
 	github.com/tobischo/gokeepasslib/v3 v3.6.1
 	github.com/xlzd/gotp v0.1.0
 	golang.org/x/crypto v0.40.0

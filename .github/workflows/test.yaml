@@ -3,7 +3,6 @@ name: Test
 on:
   push:
     branches: [ main ]
-    tags: ["v*"]
   pull_request:
     branches: [ main ]
 
@@ -12,7 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - run: git fetch --prune --unshallow --tags
     - uses: extractions/setup-just@v3
     - uses: actions/setup-go@v5
       with:
