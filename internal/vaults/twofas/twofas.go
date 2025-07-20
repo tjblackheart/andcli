@@ -29,7 +29,7 @@ type (
 		AppOrigin         string
 		ServicesEncrypted string
 		//
-		db []entry `json:"-"`
+		db []entry
 	}
 
 	entry struct {

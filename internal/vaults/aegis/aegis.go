@@ -35,7 +35,7 @@ type (
 		}
 		DB string
 		//
-		db db `json:"-"`
+		db db
 	}
 
 	db struct {
