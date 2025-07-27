@@ -1,6 +1,6 @@
 # andcli
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/tjblackheart/andcli)](https://goreportcard.com/report/github.com/tjblackheart/andcli) ![Build](https://github.com/tjblackheart/andcli/actions/workflows/build.yaml/badge.svg)
+[![Go Report Card](https://goreportcard.com/badge/github.com/tjblackheart/andcli)](https://goreportcard.com/report/github.com/tjblackheart/andcli) ![Build](https://github.com/tjblackheart/andcli/actions/workflows/build.yaml/badge.svg) ![AI free project](https://img.shields.io/badge/AI-is_a_lie-cc0000?logo=githubcopilot&logoColor=white&link=https%3A%2F%2Fdeplet.ing%2Fthe-copilot-delusion)
 
 andcli lets you work with 2FA tokens directly in your shell, using encrypted backups exported out of your favourite 2FA apps. All the data is held in memory only and will never leave your machine.
 
