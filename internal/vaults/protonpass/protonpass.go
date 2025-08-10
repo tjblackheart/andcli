@@ -1,8 +1,12 @@
 package protonpass
 
 import (
+	"archive/zip"
+	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"log"
 	"net/url"
 	"os"
@@ -36,7 +40,7 @@ type (
 
 func Open(filename string, pass []byte) (vaults.Vault, error) {
 
-	b, err := os.ReadFile(filename)
+	b, err := read(filename)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %s", t, err)
 	}
@@ -96,4 +100,44 @@ func (e envelope) Entries() []vaults.Entry {
 	}
 
 	return entries
+}
+
+// opens, reads and returns file content, handles zip if necessary.
+func read(filename string) ([]byte, error) {
+
+	sig := []byte{0x50, 0x4b, 0x03, 0x04}
+
+	f, err := os.Open(filename)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	head := make([]byte, 4)
+	if _, err := f.ReadAt(head, 0); err != nil {
+		return nil, err
+	}
+
+	// not a zip file
+	if !bytes.Equal(head, sig) {
+		return os.ReadFile(filename)
+	}
+
+	r, err := zip.OpenReader(filename)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(r.File) == 0 {
+		return nil, errors.New("archive has no content")
+	}
+
+	// read only the first entry.
+	rc, err := r.File[0].Open()
+	if err != nil {
+		return nil, err
+	}
+	defer rc.Close()
+
+	return io.ReadAll(rc)
 }
