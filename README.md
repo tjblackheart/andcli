@@ -11,7 +11,7 @@ andcli can handle input from the following providers (if they provide more than 
 - [2fas](https://2fas.com)
 - [Stratum / Authenticator Pro](https://stratumauth.com)
 - [Keepass](https://www.keepassdx.com/) or anything else that exports \*.kdbx v2
-- [ProtonPass](https://proton.me/pass)
+- [ProtonPass](https://proton.me/pass) in \*.pgp and \*.zip format
 
 At the moment only TOTP entries are supported.
 

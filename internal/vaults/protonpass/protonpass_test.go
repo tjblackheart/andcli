@@ -16,7 +16,9 @@ func TestOpen(t *testing.T) {
 		password string
 		fails    bool
 	}{
-		{"decrypts", "testdata/protonpass-test.pgp", "andcli-test", false},
+		{"decrypts text", "testdata/protonpass-test.pgp", "andcli-test", false},
+		{"decrypts zip", "testdata/protonpass-test.pgp.zip", "andcli-test", false},
+		{"decrypts hidden zip", "testdata/protonpass-test.pgp.data", "andcli-test", false},
 		{"fails: wrong password", "testdata/protonpass-test.pgp", "", true},
 	}
 
