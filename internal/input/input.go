@@ -18,5 +18,7 @@ func AskHidden(question string, defaults ...[]byte) ([]byte, error) {
 	}
 
 	fmt.Printf("%s", question)
-	return term.ReadPassword(fd)
+	password, err := term.ReadPassword(fd)
+	fmt.Println()
+	return password, err
 }
