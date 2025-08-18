@@ -8,8 +8,8 @@ import (
 // build vars
 var (
 	AppName    = "andcli"
-	BuildDate  = "now"
-	AppVersion = "(devel)"
+	BuildDate  = ""
+	AppVersion = ""
 	Commit     = ""
 	GoVersion  = ""
 )
@@ -18,14 +18,25 @@ var (
 func Long() string {
 	info, ok := debug.ReadBuildInfo()
 	if !ok {
-		return fmt.Sprintf(
-			"%s (%s): error reading debug information",
-			AppName, AppVersion,
-		)
+		return fmt.Sprintf("%s: error reading debug information", AppName)
 	}
 
 	if GoVersion == "" {
 		GoVersion = info.GoVersion
+	}
+
+	if AppVersion == "" {
+		AppVersion = info.Main.Version
+	}
+
+	for _, kv := range info.Settings {
+		if kv.Key == "vcs.revision" && Commit == "" {
+			Commit = kv.Value[:6]
+		}
+
+		if kv.Key == "vcs.time" && BuildDate == "" {
+			BuildDate = kv.Value
+		}
 	}
 
 	return fmt.Sprintf(
