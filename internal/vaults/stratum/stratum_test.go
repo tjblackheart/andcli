@@ -82,3 +82,25 @@ func TestEntries(t *testing.T) {
 		})
 	}
 }
+
+func Test_entry_typeToString(t *testing.T) {
+	tests := []struct {
+		name string
+		e    entry
+		want string
+	}{
+		{"hotp", entry{Type: 1}, "HOTP"},
+		{"totp", entry{Type: 2}, "TOTP"},
+		{"mobile", entry{Type: 3}, "MOBILE"},
+		{"steam", entry{Type: 4}, "STEAM"},
+		{"yandex", entry{Type: 5}, "YANDEX"},
+		{"unknown", entry{Type: 0}, "UNKNOWN"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.e.typeToString(); got != tt.want {
+				t.Errorf("entry.typeToString() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
