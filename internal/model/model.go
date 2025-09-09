@@ -33,30 +33,28 @@ type (
 )
 
 var (
-	style *defaultStyle
-	state *appState
-	cb    *clipboard.Clipboard
+	style   = newDefaultStyle()
+	state   = new(appState)
+	cb      = new(clipboard.Clipboard)
+	copyOK  = ns().Foreground(green).Render("✓")
+	copyErr = ns().Foreground(red).Render("✕")
 )
 
 func New(entries []vaults.Entry, cfg *config.Config) Model {
+	state.showToken = cfg.Options.ShowTokens
+	state.showUsernames = cfg.Options.ShowUsernames
+
 	items := make([]list.Item, 0)
 	for _, e := range entries {
 		items = append(items, e)
 	}
 
 	cb = clipboard.New(cfg.ClipboardCmd)
-	state = &appState{
-		showToken:     cfg.Options.ShowTokens,
-		showUsernames: cfg.Options.ShowUsernames,
-	}
-	style = newDefaultStyle()
 	title := fmt.Sprintf("%s: %s", buildinfo.AppName, filepath.Base(cfg.File))
-
 	keys := initKeys()
-	d := &itemDelegate{style}
-	list := initList(items, d, keys, title)
+	dlg := &itemDelegate{style}
 
-	return Model{list: list}
+	return Model{list: initList(items, dlg, keys, title)}
 }
 
 func (m Model) Init() tea.Cmd {
@@ -78,16 +76,16 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			state.showToken = !state.showToken
 		case "u":
 			state.showUsernames = !state.showUsernames
-		case "c":
+		case "c", "y":
 			if !cb.IsInitialized() {
-				break
+				msg := fmt.Sprintf("%s No clipboard command available", copyErr)
+				return m, m.list.NewStatusMessage(msg)
 			}
 
-			msg := "Token copied to clipboard"
+			msg := fmt.Sprintf("%s Token copied to clipboard", copyOK)
 			if err := cb.Set([]byte(state.currentOTP)); err != nil {
-				msg = fmt.Sprintf("%s: %s", cb.String(), err)
+				msg = fmt.Sprintf("%s %s: %s", copyErr, cb.String(), err)
 			}
-
 			return m, m.list.NewStatusMessage(msg)
 		}
 
@@ -115,16 +113,11 @@ func tick() tea.Cmd {
 }
 
 func initKeys() []key.Binding {
-	keys := []key.Binding{
-		key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "show/hide token")),
-		key.NewBinding(key.WithKeys("u"), key.WithHelp("u", "show/hide usernames")),
+	return []key.Binding{
+		key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "toggle token")),
+		key.NewBinding(key.WithKeys("u"), key.WithHelp("u", "toggle usernames")),
+		key.NewBinding(key.WithKeys("c", "y"), key.WithHelp("c/y", "yank to clipboard")),
 	}
-
-	if cb != nil && cb.IsInitialized() {
-		keys = append(keys, key.NewBinding(key.WithKeys("c"), key.WithHelp("c", "copy")))
-	}
-
-	return keys
 }
 
 func initList(i []list.Item, d *itemDelegate, k []key.Binding, title string) list.Model {

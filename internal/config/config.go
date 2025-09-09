@@ -33,18 +33,16 @@ type (
 // plus given flags into a current app config. Missing dirs apart
 // from the default system config directory will be created in the process.
 func Create() (*Config, error) {
-
-	userDir, err := os.UserConfigDir()
+	dir, err := os.UserConfigDir()
 	if err != nil {
-		return nil, fmt.Errorf("can not read directory: %s", err)
+		return nil, fmt.Errorf("unable to read user directory: %s", err)
 	}
-
-	return create(userDir)
+	return create(dir)
 }
 
 func create(dir string) (*Config, error) {
-	path, err := createDirectories(filepath.Join(dir, buildinfo.AppName))
-	if err != nil {
+	path := filepath.Join(dir, buildinfo.AppName)
+	if err := os.MkdirAll(path, os.ModePerm); err != nil {
 		return nil, err
 	}
 
@@ -150,15 +148,4 @@ func (c *Config) validate() error {
 	}
 
 	return nil
-}
-
-func createDirectories(path string) (string, error) {
-
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		if err := os.MkdirAll(path, os.ModePerm); err != nil {
-			return "", err
-		}
-	}
-
-	return path, nil
 }

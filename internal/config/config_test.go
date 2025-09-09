@@ -11,36 +11,6 @@ import (
 	"github.com/tjblackheart/andcli/v2/internal/buildinfo"
 )
 
-func Test_createDirectories(t *testing.T) {
-	wantDir := filepath.Join(os.TempDir(), "andcli_test", "config", buildinfo.AppName)
-
-	tests := []struct {
-		name  string
-		dir   string
-		fails bool
-	}{
-		{"creates directories", wantDir, false},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := createDirectories(tt.dir)
-			if (err != nil) != tt.fails {
-				t.Errorf("createDirectories() error = %v, wantErr %v", err, tt.fails)
-				return
-			}
-
-			if _, err := os.Stat(tt.dir); err != nil {
-				t.Errorf("createDirectories() = %v, want %v", got, tt.dir)
-			}
-
-			if err := os.RemoveAll(tt.dir); err != nil {
-				t.Error(err)
-			}
-		})
-	}
-}
-
 func TestConfig_mergeExisting(t *testing.T) {
 	path := filepath.Join(os.TempDir(), "andcli_test_config.yaml")
 

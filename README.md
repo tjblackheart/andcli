@@ -34,13 +34,13 @@ Since v2.1.3 it is possible to pipe the password from stdin and skip the input q
 ## Keys
 
 ```text
-↑/k up
-↓/j down
-/ filter
-enter show/hide token
-u show/hide usernames
-c copy
-q quit
+↑/k   up
+↓/j   down
+/     filter
+enter toggle token visibility
+u     toggle usernames visibility
+c/y   yank token to system clipboard
+q     quit
 ```
 
 ## Clipboard config
