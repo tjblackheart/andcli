@@ -23,10 +23,13 @@ var ns = lipgloss.NewStyle
 
 func newDefaultStyle() *defaultStyle {
 	return &defaultStyle{
-		title: ns().Background(base).Padding(0, 1),
-
-		listItem: ns().PaddingLeft(2).Faint(true),
-
+		title:        ns().Background(base).Padding(0, 1),
+		listItem:     ns().PaddingLeft(2).Faint(true),
+		username:     ns().Background(grey),
+		filterPrompt: ns().Foreground(base),
+		filterCursor: ns().Background(base),
+		token:        ns().Bold(true).Padding(0, 1, 0, 1),
+		until:        ns().Bold(true),
 		activeItem: ns().
 			Padding(0, 1).
 			Bold(true).
@@ -34,15 +37,5 @@ func newDefaultStyle() *defaultStyle {
 			Border(lipgloss.ThickBorder(), false, false, false, true).
 			BorderForeground(base).
 			Faint(false),
-
-		username: ns().Background(grey),
-
-		filterPrompt: ns().Foreground(base),
-
-		filterCursor: ns().Background(base),
-
-		token: ns().Bold(true).Padding(0, 1, 0, 1),
-
-		until: ns().Bold(true),
 	}
 }
