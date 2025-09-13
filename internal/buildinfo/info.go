@@ -3,6 +3,7 @@ package buildinfo
 import (
 	"fmt"
 	"runtime/debug"
+	"strings"
 )
 
 // build vars
@@ -11,22 +12,13 @@ var (
 	BuildDate  = ""
 	AppVersion = ""
 	Commit     = ""
-	GoVersion  = ""
 )
 
 // Returns a formatted build info string
 func Long() string {
 	info, ok := debug.ReadBuildInfo()
 	if !ok {
-		return fmt.Sprintf("%s: error reading debug information", AppName)
-	}
-
-	if GoVersion == "" {
-		GoVersion = info.GoVersion
-	}
-
-	if AppVersion == "" {
-		AppVersion = info.Main.Version
+		return fmt.Sprintf("%s: error reading build information", AppName)
 	}
 
 	for _, kv := range info.Settings {
@@ -39,10 +31,22 @@ func Long() string {
 		}
 	}
 
-	return fmt.Sprintf(
-		"%s %s (%s) built %s, %s",
-		AppName, AppVersion, Commit, BuildDate, GoVersion,
-	)
+	parts := []string{AppName, " ", AppVersion}
+	if AppVersion == "" {
+		parts[2] = info.Main.Version
+	}
+
+	if Commit != "" {
+		parts = append(parts, " ", fmt.Sprintf("(%s)", Commit))
+	}
+
+	if BuildDate != "" {
+		parts = append(parts, " ", fmt.Sprintf("built at %s", BuildDate))
+	}
+
+	parts = append(parts, ", ", info.GoVersion)
+
+	return strings.Join(parts, "")
 }
 
 func Short() string {
