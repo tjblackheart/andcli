@@ -35,7 +35,6 @@ func newDefaultStyle() *defaultStyle {
 			Bold(true).
 			Background(grey).
 			Border(lipgloss.ThickBorder(), false, false, false, true).
-			BorderForeground(base).
 			Faint(false),
 	}
 }
