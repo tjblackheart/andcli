@@ -44,7 +44,7 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, idx int, i list.Item) {
 		formatted = fmt.Sprintf("%s %s", state.currentOTP[:3], state.currentOTP[3:])
 	}
 
-	item := d.style.activeItem.Render(entry.Title())
+	item := d.style.activeItem.BorderForeground(bgColor).Render(entry.Title())
 	if state.showUsernames {
 		user := style.username.Render(fmt.Sprintf("(%s) ", entry.Description()))
 		item = fmt.Sprintf("%s%s", item, user)
