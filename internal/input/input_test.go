@@ -20,7 +20,7 @@ func TestAskHidden(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := AskHidden("?", tt.want)
+			got, err := Hidden("?", tt.want)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("AskHidden() error = %v, wantErr %v", err, tt.wantErr)
 				return
