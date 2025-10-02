@@ -1,8 +1,6 @@
 package main
 
 import (
-	"bufio"
-	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -55,7 +53,7 @@ func open(cfg *config.Config) (vaults.Vault, error) {
 
 	log.Printf("Opening %s ...", name)
 
-	b, err := getPass(cfg)
+	b, err := readPassword(cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -78,27 +76,11 @@ func open(cfg *config.Config) (vaults.Vault, error) {
 	return nil, fmt.Errorf("vault type %q: not implemented", cfg.Type)
 }
 
-func getPass(cfg *config.Config) ([]byte, error) {
-
+func readPassword(cfg *config.Config) ([]byte, error) {
 	if !cfg.PasswdStdin() {
-		return input.AskHidden("Password: ")
+		return input.Hidden("Password: ")
 	}
 
-	log.Printf("Reading pass from stdin ...")
-
-	stat, err := os.Stdin.Stat()
-	if err != nil {
-		return nil, err
-	}
-
-	if (stat.Mode() & os.ModeCharDevice) != 0 {
-		return nil, errors.New("stdin: no input provided")
-	}
-
-	s := bufio.NewScanner(bufio.NewReader(os.Stdin))
-	if s.Scan(); s.Err() != nil {
-		return nil, s.Err()
-	}
-
-	return s.Bytes(), nil
+	log.Printf("Reading password from stdin ...")
+	return input.Stdin()
 }
