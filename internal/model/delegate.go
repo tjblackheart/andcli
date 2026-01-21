@@ -12,13 +12,13 @@ import (
 
 type itemDelegate struct{ style *defaultStyle }
 
-func (d itemDelegate) Height() int                             { return 1 }
-func (d itemDelegate) Spacing() int                            { return 0 }
-func (d itemDelegate) Update(_ tea.Msg, _ *list.Model) tea.Cmd { return nil }
+func (d itemDelegate) Height() int                         { return 1 }
+func (d itemDelegate) Spacing() int                        { return 0 }
+func (d itemDelegate) Update(tea.Msg, *list.Model) tea.Cmd { return nil }
 
-func (d itemDelegate) Render(w io.Writer, m list.Model, idx int, i list.Item) {
+func (d itemDelegate) Render(w io.Writer, m list.Model, idx int, li list.Item) {
 
-	entry, _ := i.(vaults.Entry)
+	entry, _ := li.(vaults.Entry)
 	text := d.style.listItem.Render(entry.Title())
 
 	if idx != m.Index() {
