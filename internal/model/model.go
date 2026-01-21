@@ -36,8 +36,8 @@ var (
 	style   = newDefaultStyle()
 	state   = new(appState)
 	cb      = new(clipboard.Clipboard)
-	copyOK  = ns().Foreground(green).Render("✓")
-	copyErr = ns().Foreground(red).Render("✕")
+	copyOK  = ns().Foreground(green).Render(`✓`)
+	copyErr = ns().Foreground(red).Render(`✕`)
 )
 
 func New(entries []vaults.Entry, cfg *config.Config) Model {

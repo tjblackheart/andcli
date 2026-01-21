@@ -19,14 +19,20 @@ type (
 )
 
 var utils = map[string][]sysUtil{
-	"windows": {{cmd: "clip.exe"}},
-	"darwin":  {{cmd: "pbcopy"}},
+	"windows": {
+		{cmd: "clip.exe"},
+	},
+	"darwin": {
+		{cmd: "pbcopy"},
+	},
 	"linux": {
 		{cmd: "xclip", args: []string{"-selection", "clipboard"}},
 		{cmd: "xsel", args: []string{"-b"}},
 		{cmd: "wl-copy"},
 	},
-	"android": {{cmd: "termux-clipboard-set"}},
+	"android": {
+		{cmd: "termux-clipboard-set"},
+	},
 }
 
 // New inits a new Clipboard instance with a given comand string.
