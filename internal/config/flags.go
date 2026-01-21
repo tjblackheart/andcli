@@ -15,7 +15,7 @@ import (
 var (
 	availableVaults = strings.Join(vaults.Types(), ", ")
 
-	set     = flag.NewFlagSet("default", flag.ContinueOnError)
+	set     = flag.NewFlagSet("default", flag.ExitOnError)
 	vfile   = set.StringP("file", "f", "", "Path to the encrypted vault (deprecated: Pass the filename directly)")
 	vtype   = set.StringP("type", "t", "", fmt.Sprintf("Vault type (%s)", availableVaults))
 	cmd     = set.StringP("clipboard-cmd", "c", "", "A custom clipboard command, including args (xclip, wl-copy, pbcopy etc.)")
