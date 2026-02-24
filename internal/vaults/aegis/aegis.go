@@ -15,10 +15,12 @@ import (
 	"golang.org/x/crypto/scrypt"
 )
 
-const t = vaults.TYPE_AEGIS
+const vaultType = vaults.AEGIS
+
+var _ vaults.Vault = &aegis{}
 
 type (
-	vault struct {
+	aegis struct {
 		Version int
 		Header  struct {
 			Slots []struct {
@@ -57,37 +59,35 @@ type (
 )
 
 func Open(filename string, pass []byte) (vaults.Vault, error) {
-
-	var v vault
+	var v aegis
 
 	b, err := os.ReadFile(filename)
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", t, err)
+		return nil, fmt.Errorf("%s: %w", vaultType, err)
 	}
 
 	if err := json.Unmarshal(b, &v); err != nil {
-		return nil, fmt.Errorf("%s: %w", t, err)
+		return nil, fmt.Errorf("%s: %w", vaultType, err)
 	}
 
 	key, err := v.masterKeyFromPass(pass)
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", t, err)
+		return nil, fmt.Errorf("%s: %w", vaultType, err)
 	}
 
 	b, err = v.decryptDB(key)
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", t, err)
+		return nil, fmt.Errorf("%s: %w", vaultType, err)
 	}
 
 	if err := json.Unmarshal(b, &v.db); err != nil {
-		return nil, fmt.Errorf("%s: %w", t, err)
+		return nil, fmt.Errorf("%s: %w", vaultType, err)
 	}
 
 	return v, nil
 }
 
-func (v vault) Entries() []vaults.Entry {
-
+func (v aegis) Entries() []vaults.Entry {
 	entries := make([]vaults.Entry, 0)
 
 	for _, e := range v.db.Entries {
@@ -109,7 +109,7 @@ func (v vault) Entries() []vaults.Entry {
 	return entries
 }
 
-func (v vault) masterKeyFromPass(password []byte) ([]byte, error) {
+func (v aegis) masterKeyFromPass(password []byte) ([]byte, error) {
 	var salt, keyNonce, keyTag, key, derivedKey []byte
 	var err error
 
@@ -166,8 +166,7 @@ func (v vault) masterKeyFromPass(password []byte) ([]byte, error) {
 	return masterKey, nil
 }
 
-func (v vault) decryptDB(key []byte) ([]byte, error) {
-
+func (v aegis) decryptDB(key []byte) ([]byte, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		return nil, err

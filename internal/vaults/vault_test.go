@@ -1,31 +1,33 @@
-package vaults
+package vaults_test
 
 import (
 	"reflect"
 	"testing"
+
+	"github.com/tjblackheart/andcli/v2/internal/vaults"
 )
 
 func TestTypes(t *testing.T) {
 	tests := []struct {
 		name string
-		want []string
+		want []vaults.Type
 	}{
 		{
 			"returns defined types",
-			[]string{
-				TYPE_ANDOTP,
-				TYPE_AEGIS,
-				TYPE_TWOFAS,
-				TYPE_STRATUM,
-				TYPE_KEEPASS,
-				TYPE_PROTON,
+			[]vaults.Type{
+				vaults.ANDOTP,
+				vaults.AEGIS,
+				vaults.TWOFAS,
+				vaults.STRATUM,
+				vaults.KEEPASS,
+				vaults.PROTON,
 			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := Types(); !reflect.DeepEqual(got, tt.want) {
+			if got := vaults.Types(); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Types() = %v, want %v", got, tt.want)
 			}
 		})

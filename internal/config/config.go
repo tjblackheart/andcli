@@ -10,14 +10,15 @@ import (
 
 	"github.com/goccy/go-yaml"
 	"github.com/tjblackheart/andcli/v2/internal/buildinfo"
+	"github.com/tjblackheart/andcli/v2/internal/vaults"
 )
 
 type (
 	Config struct {
-		File         string `yaml:"file"`
-		Type         string `yaml:"type"`
-		ClipboardCmd string `yaml:"clipboard_cmd"`
-		Options      *Opts  `yaml:"options"`
+		File         string      `yaml:"file"`
+		Type         vaults.Type `yaml:"type"`
+		ClipboardCmd string      `yaml:"clipboard_cmd"`
+		Options      *Opts       `yaml:"options"`
 		//
 		path              string
 		passwordFromStdin bool
@@ -70,81 +71,80 @@ func create(dir string) (*Config, error) {
 }
 
 // Writes the current configuration to a yaml file.
-func (c Config) Persist() error {
-	b, err := yaml.Marshal(c)
+func (cfg Config) Persist() error {
+	b, err := yaml.Marshal(cfg)
 	if err != nil {
 		return err
 	}
 
-	return os.WriteFile(c.path, b, 0600)
+	return os.WriteFile(cfg.path, b, 0o600)
 }
 
 // Returns true if the flag option "passwd-stdin" was set.
-func (c Config) PasswdStdin() bool {
-	return c.passwordFromStdin
+func (cfg Config) PasswdStdin() bool {
+	return cfg.passwordFromStdin
 }
 
 // Reads an possibly existing config file and merges the content
 // into the current config.
-func (c *Config) mergeExisting() error {
-	if _, err := os.Stat(c.path); os.IsNotExist(err) {
+func (cfg *Config) mergeExisting() error {
+	if _, err := os.Stat(cfg.path); os.IsNotExist(err) {
 		return nil
 	}
 
-	b, err := os.ReadFile(c.path)
+	b, err := os.ReadFile(cfg.path)
 	if err != nil {
 		return err
 	}
 
-	var existing = new(Config)
+	existing := new(Config)
 	if err := yaml.Unmarshal(b, existing); err != nil {
 		return err
 	}
 
-	c.File = existing.File
-	c.Type = existing.Type
-	c.ClipboardCmd = existing.ClipboardCmd
+	cfg.File = existing.File
+	cfg.Type = existing.Type
+	cfg.ClipboardCmd = existing.ClipboardCmd
 
 	if existing.Options != nil {
-		c.Options = existing.Options
+		cfg.Options = existing.Options
 	}
 
 	return nil
 }
 
 // Validates the current configuration.
-func (c *Config) validate() error {
-
-	if c.File == "" {
+func (cfg *Config) validate() error {
+	if cfg.File == "" {
 		return errors.New("no vault file specified")
 	}
 
-	if c.Type == "" {
+	if cfg.Type == "" {
 		return errors.New("no vault type specified")
 	}
 
 	var err error
-	if c.File, err = filepath.Abs(c.File); err != nil {
-		return fmt.Errorf("%s: %s", c.File, err)
+	if cfg.File, err = filepath.Abs(cfg.File); err != nil {
+		return fmt.Errorf("%s: %s", cfg.File, err)
 	}
 
-	fi, err := os.Stat(c.File)
+	fi, err := os.Stat(cfg.File)
 	if err != nil {
-		return fmt.Errorf("%s: %s", c.File, err)
+		return fmt.Errorf("%s: %s", cfg.File, err)
 	}
 
 	if fi.IsDir() {
-		return fmt.Errorf("%s: is a directory, not a vault file", c.File)
+		return fmt.Errorf("%s: is a directory, not a vault file", cfg.File)
 	}
 
 	// if set, check if the basic clipboard cmd is available in system PATH.
 	// the option parsing is done at a later time.
-	if parts := strings.SplitN(c.ClipboardCmd, " ", 2); parts[0] != "" {
+	if parts := strings.SplitN(cfg.ClipboardCmd, " ", 2); parts[0] != "" {
 		path, err := exec.LookPath(parts[0])
 		if err != nil {
 			return fmt.Errorf("%s: %s", parts[0], err)
 		}
-		c.ClipboardCmd = strings.ReplaceAll(c.ClipboardCmd, parts[0], path)
+		cfg.ClipboardCmd = strings.ReplaceAll(cfg.ClipboardCmd, parts[0], path)
 	}
 
 	return nil

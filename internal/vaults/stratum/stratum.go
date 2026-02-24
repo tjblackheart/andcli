@@ -13,10 +13,9 @@ import (
 	"golang.org/x/crypto/argon2"
 )
 
-const t = vaults.TYPE_STRATUM
+const vaultType = vaults.STRATUM
 
-// force interface impl
-var _ vaults.Vault = &vault{}
+var _ vaults.Vault = &stratum{}
 
 const (
 	KEY_LENGTH = 32
@@ -38,7 +37,7 @@ const (
 )
 
 type (
-	vault struct {
+	stratum struct {
 		AuthenticatorCategories []any // ignored as of now
 		Authenticators          []entry
 	}
@@ -65,35 +64,34 @@ func Open(filename string, pass []byte) (vaults.Vault, error) {
 		return nil, err
 	}
 
-	v := &vault{Authenticators: make([]entry, 0)}
+	v := &stratum{Authenticators: make([]entry, 0)}
 
 	switch string(b[:len(HEADER)]) {
 	case HEADER:
 		b, err := v.decrypt(b, pass)
 		if err != nil {
-			return nil, fmt.Errorf("%s: %w", t, err)
+			return nil, fmt.Errorf("%s: %w", vaultType, err)
 		}
 
 		if err := json.Unmarshal(b, &v); err != nil {
-			return nil, fmt.Errorf("%s: %w", t, err)
+			return nil, fmt.Errorf("%s: %w", vaultType, err)
 		}
 
 	case LEGACY_HEADER:
 		b, err := v.decryptLegacy(b, pass)
 		if err != nil {
-			return nil, fmt.Errorf("%s: %w", t, err)
+			return nil, fmt.Errorf("%s: %w", vaultType, err)
 		}
 
 		if err := json.Unmarshal(b, &v); err != nil {
-			return nil, fmt.Errorf("%s: %w", t, err)
+			return nil, fmt.Errorf("%s: %w", vaultType, err)
 		}
 	}
 
 	return v, nil
 }
 
-func (v vault) Entries() []vaults.Entry {
-
+func (v stratum) Entries() []vaults.Entry {
 	// https://github.com/stratumauth/app/blob/master/doc/BACKUP_FORMAT.md
 	// Algorithm (applies to HOTP and TOTP): 0 = SHA-1, 1 = SHA-256, 2 = SHA-512
 	// Type: 1 = HOTP, 2 = TOTP, 3 = Mobile-Otp, 4 = Steam, 5 = Yandex
@@ -127,8 +125,7 @@ func (v vault) Entries() []vaults.Entry {
 	return list
 }
 
-func (v vault) decrypt(b, pass []byte) ([]byte, error) {
-
+func (v stratum) decrypt(b, pass []byte) ([]byte, error) {
 	salt := b[len(HEADER) : len(HEADER)+SALT_LENGTH]
 	nonce := b[len(HEADER)+SALT_LENGTH : len(HEADER)+SALT_LENGTH+IV_LENGTH]
 	payload := b[len(HEADER)+SALT_LENGTH+IV_LENGTH:]
@@ -147,7 +144,7 @@ func (v vault) decrypt(b, pass []byte) ([]byte, error) {
 	return gcm.Open(nil, nonce, payload, nil)
 }
 
-func (v vault) decryptLegacy(_, _ []byte) ([]byte, error) {
+func (v stratum) decryptLegacy(_, _ []byte) ([]byte, error) {
 	return nil, errors.New("decryption of stratum legacy vaults is not implemented")
 }
 

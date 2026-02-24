@@ -17,13 +17,15 @@ import (
 	"github.com/tjblackheart/andcli/v2/internal/vaults"
 )
 
-const t = vaults.TYPE_PROTON
+const vaultType = vaults.PROTON
+
+var _ vaults.Vault = &envelope{}
 
 type (
-	envelope struct{ Vaults map[string]vault }
+	envelope struct{ Vaults map[string]proton }
 
 	// protonvault only implements the essentials for reading OTP data.
-	vault struct {
+	proton struct {
 		Name, Description string
 		Items             []struct {
 			Data struct {
@@ -39,32 +41,31 @@ type (
 )
 
 func Open(filename string, pass []byte) (vaults.Vault, error) {
-
 	b, err := read(filename)
 	if err != nil {
-		return nil, fmt.Errorf("%s: %s", t, err)
+		return nil, fmt.Errorf("%s: %s", vaultType, err)
 	}
 
 	hnd, err := crypto.PGP().Decryption().Password(pass).New()
 	if err != nil {
-		return nil, fmt.Errorf("%s: %s", t, err)
+		return nil, fmt.Errorf("%s: %s", vaultType, err)
 	}
 
 	result, err := hnd.Decrypt(b, crypto.Armor)
 	if err != nil {
-		return nil, fmt.Errorf("%s: %s", t, err)
+		return nil, fmt.Errorf("%s: %s", vaultType, err)
 	}
 
 	var e envelope
 	if err := json.Unmarshal(result.Bytes(), &e); err != nil {
-		return nil, fmt.Errorf("%s: %s", t, err)
+		return nil, fmt.Errorf("%s: %s", vaultType, err)
 	}
 
 	return e, nil
 }
 
 func (e envelope) Entries() []vaults.Entry {
-	var entries = make([]vaults.Entry, 0)
+	entries := make([]vaults.Entry, 0)
 
 	for _, v := range e.Vaults {
 		for _, i := range v.Items {
@@ -104,7 +105,6 @@ func (e envelope) Entries() []vaults.Entry {
 
 // opens, reads and returns file content, handles zip if necessary.
 func read(filename string) ([]byte, error) {
-
 	sig := []byte{0x50, 0x4b, 0x03, 0x04}
 
 	f, err := os.Open(filename)

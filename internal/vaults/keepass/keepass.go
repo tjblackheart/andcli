@@ -9,37 +9,36 @@ import (
 	"strings"
 
 	"github.com/tjblackheart/andcli/v2/internal/vaults"
-	keepass "github.com/tobischo/gokeepasslib/v3"
+	"github.com/tobischo/gokeepasslib/v3"
 )
 
-const t = vaults.TYPE_KEEPASS
+const vaultType = vaults.KEEPASS
 
-type vault struct {
-	entries []keepass.Entry
-}
+var _ vaults.Vault = &keepass{}
+
+type keepass struct{ entries []gokeepasslib.Entry }
 
 func Open(filename string, pass []byte) (vaults.Vault, error) {
-
-	var v = vault{entries: make([]keepass.Entry, 0)}
+	v := keepass{entries: make([]gokeepasslib.Entry, 0)}
 
 	file, err := os.Open(filename)
 	if err != nil {
-		return nil, fmt.Errorf("%s: %s", t, err)
+		return nil, fmt.Errorf("%s: %s", vaultType, err)
 	}
 
-	db := keepass.NewDatabase()
-	db.Credentials = keepass.NewPasswordCredentials(string(pass))
+	db := gokeepasslib.NewDatabase()
+	db.Credentials = gokeepasslib.NewPasswordCredentials(string(pass))
 
-	if err := keepass.NewDecoder(file).Decode(db); err != nil {
-		return nil, fmt.Errorf("%s: %s", t, err)
+	if err := gokeepasslib.NewDecoder(file).Decode(db); err != nil {
+		return nil, fmt.Errorf("%s: %s", vaultType, err)
 	}
 
 	if err := db.UnlockProtectedEntries(); err != nil {
-		return nil, fmt.Errorf("%s: %s", t, err)
+		return nil, fmt.Errorf("%s: %s", vaultType, err)
 	}
 
 	if len(db.Content.Root.Groups) == 0 {
-		return nil, fmt.Errorf("%s: no content", t)
+		return nil, fmt.Errorf("%s: no content", vaultType)
 	}
 
 	v.entries = append(v.entries, parseGroups(db.Content.Root.Groups)...)
@@ -47,8 +46,7 @@ func Open(filename string, pass []byte) (vaults.Vault, error) {
 	return v, nil
 }
 
-func (v vault) Entries() []vaults.Entry {
-
+func (v keepass) Entries() []vaults.Entry {
 	entries := make([]vaults.Entry, 0)
 	for _, e := range v.entries {
 		issuer := e.GetTitle()
@@ -85,8 +83,8 @@ func (v vault) Entries() []vaults.Entry {
 	return entries
 }
 
-func parseGroups(groups []keepass.Group) []keepass.Entry {
-	entries := make([]keepass.Entry, 0)
+func parseGroups(groups []gokeepasslib.Group) []gokeepasslib.Entry {
+	entries := make([]gokeepasslib.Entry, 0)
 	for _, group := range groups {
 		entries = append(entries, group.Entries...)
 		entries = append(entries, parseGroups(group.Groups)...)

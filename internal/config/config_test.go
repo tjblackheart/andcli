@@ -9,6 +9,7 @@ import (
 
 	"github.com/goccy/go-yaml"
 	"github.com/tjblackheart/andcli/v2/internal/buildinfo"
+	"github.com/tjblackheart/andcli/v2/internal/vaults"
 )
 
 func TestConfig_mergeExisting(t *testing.T) {
@@ -49,10 +50,11 @@ func TestConfig_mergeExisting(t *testing.T) {
 		},
 		{
 			"handles custom options",
-			&Config{Options: &Opts{
-				ShowUsernames: true,
-				ShowTokens:    true,
-			},
+			&Config{
+				Options: &Opts{
+					ShowUsernames: true,
+					ShowTokens:    true,
+				},
 				path: path,
 			},
 			&Config{
@@ -77,7 +79,7 @@ func TestConfig_mergeExisting(t *testing.T) {
 					t.Fatal(err)
 				}
 
-				if err := os.WriteFile(tt.want.path, b, 0644); err != nil {
+				if err := os.WriteFile(tt.want.path, b, 0o644); err != nil {
 					t.Fatal(err)
 				}
 			} else {
@@ -102,7 +104,7 @@ func TestConfig_validate(t *testing.T) {
 	path := filepath.Join(os.TempDir(), "andcli_test.json")
 	defer os.Remove(path)
 
-	os.WriteFile(path, nil, 0644)
+	os.WriteFile(path, nil, 0o644)
 
 	tests := []struct {
 		name     string
@@ -210,7 +212,7 @@ func Test_create(t *testing.T) {
 	// default config
 	want := &Config{
 		File:         abs,
-		Type:         *vtype,
+		Type:         vaults.Type(*vtype),
 		ClipboardCmd: "",
 		Options: &Opts{
 			ShowUsernames: true,

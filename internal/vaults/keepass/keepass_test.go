@@ -45,7 +45,6 @@ func TestOpen(t *testing.T) {
 					t.Fatalf("Open() have %v, %s", entries[i].Label, want)
 				}
 			}
-
 		})
 	}
 }
@@ -93,7 +92,7 @@ func TestEntries(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			entries := (&vault{tt.input}).Entries()
+			entries := (&keepass{tt.input}).Entries()
 			if !reflect.DeepEqual(entries, tt.want) {
 				t.Fatalf("Entries(): want %#v\nhave %#v", tt.want, entries)
 			}
@@ -102,7 +101,6 @@ func TestEntries(t *testing.T) {
 }
 
 func Test_parseGroups(t *testing.T) {
-
 	tests := []struct {
 		name   string
 		groups []gokeepasslib.Group
