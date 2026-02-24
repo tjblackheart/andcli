@@ -66,7 +66,7 @@ func TestEntries(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			entries := (&vault{db: tt.input}).Entries()
+			entries := (&twofas{db: tt.input}).Entries()
 			if !reflect.DeepEqual(entries, tt.want) {
 				t.Fatalf("Entries(): want %#v\nhave %#v", tt.want, entries)
 			}

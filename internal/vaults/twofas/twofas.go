@@ -15,13 +15,15 @@ import (
 )
 
 const (
-	t                 = vaults.TYPE_TWOFAS
+	vaultType         = vaults.TWOFAS
 	numFields     int = 3
 	authTagLength int = 16
 )
 
+var _ vaults.Vault = &twofas{}
+
 type (
-	vault struct {
+	twofas struct {
 		UpdatedAt         int
 		SchemaVersion     int
 		AppVersionCode    int
@@ -63,37 +65,35 @@ type (
 )
 
 func Open(filename string, pass []byte) (vaults.Vault, error) {
-
-	var v vault
+	var v twofas
 
 	b, err := os.ReadFile(filename)
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", t, err)
+		return nil, fmt.Errorf("%s: %w", vaultType, err)
 	}
 
 	if err := json.Unmarshal(b, &v); err != nil {
-		return nil, fmt.Errorf("%s: %w", t, err)
+		return nil, fmt.Errorf("%s: %w", vaultType, err)
 	}
 
 	key, err := v.masterKeyFromPass(pass)
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", t, err)
+		return nil, fmt.Errorf("%s: %w", vaultType, err)
 	}
 
 	plain, err := v.decryptDB(key)
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", t, err)
+		return nil, fmt.Errorf("%s: %w", vaultType, err)
 	}
 
 	if err := json.Unmarshal(plain, &v.db); err != nil {
-		return nil, fmt.Errorf("%s: %w", t, err)
+		return nil, fmt.Errorf("%s: %w", vaultType, err)
 	}
 
 	return v, nil
 }
 
-func (v vault) Entries() []vaults.Entry {
-
+func (v twofas) Entries() []vaults.Entry {
 	entries := make([]vaults.Entry, 0)
 
 	for _, e := range v.db {
@@ -120,8 +120,7 @@ func (v vault) Entries() []vaults.Entry {
 	return entries
 }
 
-func (v vault) masterKeyFromPass(password []byte) ([]byte, error) {
-
+func (v twofas) masterKeyFromPass(password []byte) ([]byte, error) {
 	servicesEncrypted := strings.SplitN(v.ServicesEncrypted, ":", numFields+1)
 	if len(servicesEncrypted) != numFields {
 		return nil, fmt.Errorf("invalid vault file: number of fields is not %d", numFields)
@@ -148,7 +147,7 @@ func (v vault) masterKeyFromPass(password []byte) ([]byte, error) {
 	return pbkdf2.Key(password, salt, 10000, 32, sha256.New), nil
 }
 
-func (v vault) decryptDB(key []byte) ([]byte, error) {
+func (v twofas) decryptDB(key []byte) ([]byte, error) {
 	servicesEncrypted := strings.SplitN(v.ServicesEncrypted, ":", numFields+1)
 	if len(servicesEncrypted) != numFields {
 		return nil, fmt.Errorf("invalid vault file: number of fields is not %d", numFields)

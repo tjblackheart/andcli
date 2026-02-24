@@ -6,16 +6,16 @@ import (
 	"os"
 	"strings"
 
-	"github.com/grijul/go-andotp/andotp"
+	gao "github.com/grijul/go-andotp/andotp"
 	"github.com/tjblackheart/andcli/v2/internal/vaults"
 )
 
-const t = vaults.TYPE_ANDOTP
+const vaultType = vaults.ANDOTP
+
+var _ vaults.Vault = &andotp{}
 
 type (
-	vault struct {
-		entries []entry
-	}
+	andotp struct{ entries []entry }
 
 	entry struct {
 		Secret    string
@@ -33,28 +33,25 @@ type (
 )
 
 func Open(filename string, pass []byte) (vaults.Vault, error) {
-
 	b, err := os.ReadFile(filename)
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", t, err)
+		return nil, fmt.Errorf("%s: %w", vaultType, err)
 	}
 
-	b, err = andotp.Decrypt(b, string(pass))
+	b, err = gao.Decrypt(b, string(pass))
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", t, err)
+		return nil, fmt.Errorf("%s: %w", vaultType, err)
 	}
 
 	entries := make([]entry, 0)
 	if err := json.Unmarshal(b, &entries); err != nil {
-		return nil, fmt.Errorf("%s: %w", t, err)
+		return nil, fmt.Errorf("%s: %w", vaultType, err)
 	}
 
-	return &vault{entries}, nil
-
+	return &andotp{entries}, nil
 }
 
-func (v vault) Entries() []vaults.Entry {
-
+func (v andotp) Entries() []vaults.Entry {
 	entries := make([]vaults.Entry, 0)
 
 	for _, e := range v.entries {

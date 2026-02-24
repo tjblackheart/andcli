@@ -11,7 +11,7 @@ import (
 	"github.com/xlzd/gotp"
 )
 
-// an Entry represents a generic vault entry.
+// Entry represents a generic vault entry.
 type Entry struct {
 	Secret    string
 	Issuer    string
@@ -23,8 +23,10 @@ type Entry struct {
 	Period    int
 }
 
-var ErrMissingSecret = errors.New("missing secret value")
-var ErrInvalidType = errors.New("entry is not a TOTP")
+var (
+	ErrMissingSecret = errors.New("missing secret value")
+	ErrInvalidType   = errors.New("entry is not a TOTP")
+)
 
 // Returns a generated OTP and expiration time for the current entry.
 func (e Entry) GenerateTOTP() (string, int64) {

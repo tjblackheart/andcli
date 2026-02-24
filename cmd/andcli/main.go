@@ -65,17 +65,17 @@ func open(cfg *config.Config) (vaults.Vault, error) {
 	}()
 
 	switch cfg.Type {
-	case vaults.TYPE_ANDOTP:
+	case vaults.ANDOTP:
 		return andotp.Open(cfg.File, pw)
-	case vaults.TYPE_AEGIS:
+	case vaults.AEGIS:
 		return aegis.Open(cfg.File, pw)
-	case vaults.TYPE_TWOFAS:
+	case vaults.TWOFAS:
 		return twofas.Open(cfg.File, pw)
-	case vaults.TYPE_STRATUM:
+	case vaults.STRATUM:
 		return stratum.Open(cfg.File, pw)
-	case vaults.TYPE_KEEPASS:
+	case vaults.KEEPASS:
 		return keepass.Open(cfg.File, pw)
-	case vaults.TYPE_PROTON:
+	case vaults.PROTON:
 		return protonpass.Open(cfg.File, pw)
 	}
 
