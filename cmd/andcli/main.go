@@ -53,31 +53,37 @@ func open(cfg *config.Config) (vaults.Vault, error) {
 
 	log.Printf("Opening %s ...", name)
 
-	b, err := readPassword(cfg)
+	pw, err := password(cfg.PasswdStdin())
 	if err != nil {
 		return nil, err
 	}
 
+	defer func() {
+		for i := range pw {
+			pw[i] = 0
+		}
+	}()
+
 	switch cfg.Type {
 	case vaults.ANDOTP:
-		return andotp.Open(cfg.File, b)
+		return andotp.Open(cfg.File, pw)
 	case vaults.AEGIS:
-		return aegis.Open(cfg.File, b)
+		return aegis.Open(cfg.File, pw)
 	case vaults.TWOFAS:
-		return twofas.Open(cfg.File, b)
+		return twofas.Open(cfg.File, pw)
 	case vaults.STRATUM:
-		return stratum.Open(cfg.File, b)
+		return stratum.Open(cfg.File, pw)
 	case vaults.KEEPASS:
-		return keepass.Open(cfg.File, b)
+		return keepass.Open(cfg.File, pw)
 	case vaults.PROTON:
-		return protonpass.Open(cfg.File, b)
+		return protonpass.Open(cfg.File, pw)
 	}
 
 	return nil, fmt.Errorf("vault type %q: not implemented", cfg.Type)
 }
 
-func readPassword(cfg *config.Config) ([]byte, error) {
-	if !cfg.PasswdStdin() {
+func password(piped bool) ([]byte, error) {
+	if !piped {
 		return input.Hidden("Password: ")
 	}
 
