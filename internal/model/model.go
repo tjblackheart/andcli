@@ -55,7 +55,7 @@ func New(entries []vaults.Entry, cfg *config.Config) Model {
 	dlg := &itemDelegate{style, state}
 
 	return Model{
-		list:  initList(items, dlg, keys, title, style),
+		list:  initList(items, dlg, keys, title),
 		state: state,
 		cb:    clipboard.New(cfg.ClipboardCmd),
 	}
@@ -126,17 +126,18 @@ func initKeys() []key.Binding {
 	}
 }
 
-func initList(i []list.Item, d *itemDelegate, k []key.Binding, title string, style *appStyle) list.Model {
-	l := list.New(i, d, 0, 0)
+func initList(items []list.Item, delegate *itemDelegate, bindings []key.Binding, title string) list.Model {
+	l := list.New(items, delegate, 0, 0)
+	s := delegate.style
 
 	l.FilterInput.Prompt = "Search for: "
-	l.Styles.Filter.Focused.Prompt = style.filterPrompt
-	l.Styles.Filter.Focused.Text = style.filterCursor
-	l.Styles.Title = style.title
+	l.Styles.Filter.Focused.Prompt = s.filterPrompt
+	l.Styles.Filter.Focused.Text = s.filterCursor
+	l.Styles.Title = s.title
 	l.InfiniteScrolling = true
 	l.Title = title
-	l.AdditionalShortHelpKeys = func() []key.Binding { return k }
-	l.AdditionalFullHelpKeys = func() []key.Binding { return k }
+	l.AdditionalShortHelpKeys = func() []key.Binding { return bindings }
+	l.AdditionalFullHelpKeys = func() []key.Binding { return bindings }
 
 	return l
 }
