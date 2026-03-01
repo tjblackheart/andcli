@@ -3,7 +3,6 @@ package config
 import (
 	"log"
 	"regexp"
-	"strconv"
 	"strings"
 )
 
@@ -27,12 +26,12 @@ var DefaultTheme = Theme{
 	White:  "#FFFFFF",
 }
 
-var hexRx = regexp.MustCompile(`^#?([a-f0-9]{6}|[a-f0-9]{3})$`)
+var hexRx = regexp.MustCompile(`^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$`)
 
 func (t *Theme) validate() {
 	invalid := []string{}
 
-	if _, err := strconv.ParseUint(t.Base, 16, 32); err != nil {
+	if !hexRx.MatchString(t.Base) {
 		t.Base = DefaultTheme.Base
 		invalid = append(invalid, "base")
 	}
