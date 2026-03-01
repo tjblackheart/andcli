@@ -6,6 +6,7 @@ import (
 )
 
 type appStyle struct {
+	lipgloss.Style
 	title, listItem, activeItem lipgloss.Style
 	username, filterCursor      lipgloss.Style
 	filterPrompt, token, until  lipgloss.Style
@@ -22,21 +23,27 @@ var (
 )
 
 func newStyle() *appStyle {
-	return &appStyle{
-		title:        lipgloss.NewStyle().Background(base).Padding(0, 1),
-		listItem:     lipgloss.NewStyle().PaddingLeft(2).Faint(true),
-		username:     lipgloss.NewStyle().Background(grey),
-		filterPrompt: lipgloss.NewStyle().Foreground(base),
-		filterCursor: lipgloss.NewStyle().Background(base),
-		token:        lipgloss.NewStyle().Bold(true).Padding(0, 1, 0, 1),
-		until:        lipgloss.NewStyle().Bold(true),
-		activeItem: lipgloss.NewStyle().
+	ls := lipgloss.NewStyle()
+
+	as := &appStyle{
+		title:        ls.Background(base).Padding(0, 1),
+		listItem:     ls.PaddingLeft(2).Faint(true),
+		username:     ls.Background(grey),
+		filterPrompt: ls.Foreground(base),
+		filterCursor: ls.Background(base),
+		token:        ls.Bold(true).Padding(0, 1, 0, 1),
+		until:        ls.Bold(true),
+		activeItem: ls.
 			Padding(0, 1).
 			Bold(true).
 			Background(grey).
 			Border(lipgloss.ThickBorder(), false, false, false, true).
 			Faint(false),
+
+		Style: ls,
 	}
+
+	return as
 }
 
 func newThemedStyle(theme *config.Theme) *appStyle {

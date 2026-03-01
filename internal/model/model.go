@@ -20,6 +20,7 @@ type (
 	Model struct {
 		list  list.Model
 		state *appState
+		style *appStyle
 		cb    *clipboard.Clipboard
 	}
 
@@ -38,8 +39,6 @@ var (
 )
 
 func New(entries []vaults.Entry, cfg *config.Config) Model {
-	style := newThemedStyle(cfg.Theme)
-
 	state := &appState{
 		showToken:     cfg.Options.ShowTokens,
 		showUsernames: cfg.Options.ShowUsernames,
@@ -50,6 +49,7 @@ func New(entries []vaults.Entry, cfg *config.Config) Model {
 		items = append(items, e)
 	}
 
+	style := newThemedStyle(cfg.Theme)
 	title := fmt.Sprintf("%s: %s", buildinfo.AppName, filepath.Base(cfg.File))
 	keys := initKeys()
 	dlg := &itemDelegate{style, state}
@@ -57,6 +57,7 @@ func New(entries []vaults.Entry, cfg *config.Config) Model {
 	return Model{
 		list:  initList(items, dlg, keys, title),
 		state: state,
+		style: style,
 		cb:    clipboard.New(cfg.ClipboardCmd),
 	}
 }
@@ -89,6 +90,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if err := m.cb.Set([]byte(m.state.currentOTP)); err != nil {
 				msg = fmt.Sprintf("%s %s: %s", copyErr, m.cb.String(), err)
 			}
+
 			return m, m.list.NewStatusMessage(msg)
 		}
 
@@ -96,7 +98,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, tick()
 
 	case tea.WindowSizeMsg:
-		h, v := lipgloss.NewStyle().GetFrameSize()
+		h, v := m.style.GetFrameSize()
 		m.list.SetSize(msg.Width-h, msg.Height-v)
 	}
 
@@ -106,7 +108,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) View() tea.View {
-	view := tea.NewView(lipgloss.NewStyle().Render(m.list.View()))
+	view := tea.NewView(m.style.Render(m.list.View()))
 	view.AltScreen = true
 	view.WindowTitle = m.list.Title
 	return view
