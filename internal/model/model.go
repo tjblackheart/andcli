@@ -5,10 +5,10 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/charmbracelet/bubbles/key"
-	"github.com/charmbracelet/bubbles/list"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
+	"charm.land/bubbles/v2/key"
+	"charm.land/bubbles/v2/list"
+	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 
 	"github.com/tjblackheart/andcli/v2/internal/buildinfo"
 	"github.com/tjblackheart/andcli/v2/internal/clipboard"
@@ -19,7 +19,8 @@ import (
 type (
 	Model struct {
 		list  list.Model
-		style lipgloss.Style
+		state *appState
+		cb    *clipboard.Clipboard
 	}
 
 	appState struct {
@@ -32,35 +33,36 @@ type (
 )
 
 var (
-	style   = new(appStyle)
-	state   = new(appState)
-	cb      = new(clipboard.Clipboard)
 	copyOK  = lipgloss.NewStyle().Foreground(green).Render(`✓`)
 	copyErr = lipgloss.NewStyle().Foreground(red).Render(`✕`)
 )
 
 func New(entries []vaults.Entry, cfg *config.Config) Model {
-	style = newThemedStyle(cfg.Theme)
+	style := newThemedStyle(cfg.Theme)
 
-	state.showToken = cfg.Options.ShowTokens
-	state.showUsernames = cfg.Options.ShowUsernames
+	state := &appState{
+		showToken:     cfg.Options.ShowTokens,
+		showUsernames: cfg.Options.ShowUsernames,
+	}
 
 	items := make([]list.Item, 0)
 	for _, e := range entries {
 		items = append(items, e)
 	}
 
-	cb = clipboard.New(cfg.ClipboardCmd)
 	title := fmt.Sprintf("%s: %s", buildinfo.AppName, filepath.Base(cfg.File))
 	keys := initKeys()
-	dlg := &itemDelegate{style}
+	dlg := &itemDelegate{style, state}
 
-	return Model{list: initList(items, dlg, keys, title)}
+	return Model{
+		list:  initList(items, dlg, keys, title, style),
+		state: state,
+		cb:    clipboard.New(cfg.ClipboardCmd),
+	}
 }
 
 func (m Model) Init() tea.Cmd {
 	return tea.Batch(
-		tea.SetWindowTitle(m.list.Title),
 		tick(),
 	)
 }
@@ -74,18 +76,18 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		switch msg.String() {
 		case "enter":
-			state.showToken = !state.showToken
+			m.state.showToken = !m.state.showToken
 		case "u":
-			state.showUsernames = !state.showUsernames
+			m.state.showUsernames = !m.state.showUsernames
 		case "c", "y":
-			if !cb.IsInitialized() {
+			if !m.cb.IsInitialized() {
 				msg := fmt.Sprintf("%s No clipboard command available", copyErr)
 				return m, m.list.NewStatusMessage(msg)
 			}
 
 			msg := fmt.Sprintf("%s Token copied to clipboard", copyOK)
-			if err := cb.Set([]byte(state.currentOTP)); err != nil {
-				msg = fmt.Sprintf("%s %s: %s", copyErr, cb.String(), err)
+			if err := m.cb.Set([]byte(m.state.currentOTP)); err != nil {
+				msg = fmt.Sprintf("%s %s: %s", copyErr, m.cb.String(), err)
 			}
 			return m, m.list.NewStatusMessage(msg)
 		}
@@ -94,7 +96,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, tick()
 
 	case tea.WindowSizeMsg:
-		h, v := m.style.GetFrameSize()
+		h, v := lipgloss.NewStyle().GetFrameSize()
 		m.list.SetSize(msg.Width-h, msg.Height-v)
 	}
 
@@ -103,8 +105,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m Model) View() string {
-	return m.style.Render(m.list.View())
+func (m Model) View() tea.View {
+	view := tea.NewView(lipgloss.NewStyle().Render(m.list.View()))
+	view.AltScreen = true
+	view.WindowTitle = m.list.Title
+	return view
 }
 
 func tick() tea.Cmd {
@@ -121,15 +126,14 @@ func initKeys() []key.Binding {
 	}
 }
 
-func initList(i []list.Item, d *itemDelegate, k []key.Binding, title string) list.Model {
+func initList(i []list.Item, d *itemDelegate, k []key.Binding, title string, style *appStyle) list.Model {
 	l := list.New(i, d, 0, 0)
 
 	l.FilterInput.Prompt = "Search for: "
-	l.FilterInput.PromptStyle = style.filterPrompt
-	l.FilterInput.Cursor.Style = style.filterCursor
+	l.Styles.Filter.Focused.Prompt = style.filterPrompt
+	l.Styles.Filter.Focused.Text = style.filterCursor
 	l.Styles.Title = style.title
 	l.InfiniteScrolling = true
-	l.StatusMessageLifetime = 3 * time.Second
 	l.Title = title
 	l.AdditionalShortHelpKeys = func() []key.Binding { return k }
 	l.AdditionalFullHelpKeys = func() []key.Binding { return k }
