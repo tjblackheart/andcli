@@ -19,6 +19,7 @@ type (
 		Type         vaults.Type `yaml:"type"`
 		ClipboardCmd string      `yaml:"clipboard_cmd"`
 		Options      *Opts       `yaml:"options"`
+		Theme        *Theme      `yaml:"theme"`
 		//
 		path              string
 		passwordFromStdin bool
@@ -53,6 +54,7 @@ func create(dir string) (*Config, error) {
 			ShowUsernames: true,
 			ShowTokens:    false,
 		},
+		Theme: &DefaultTheme,
 	}
 
 	if err := cfg.mergeExisting(); err != nil {
@@ -108,6 +110,11 @@ func (cfg *Config) mergeExisting() error {
 
 	if existing.Options != nil {
 		cfg.Options = existing.Options
+	}
+
+	if existing.Theme != nil {
+		cfg.Theme = existing.Theme
+		cfg.Theme.validate()
 	}
 
 	return nil

@@ -218,7 +218,8 @@ func Test_create(t *testing.T) {
 			ShowUsernames: true,
 			ShowTokens:    false,
 		},
-		path: filepath.Join(cfgDir, buildinfo.AppName, "config.yaml"),
+		Theme: &DefaultTheme,
+		path:  filepath.Join(cfgDir, buildinfo.AppName, "config.yaml"),
 	}
 
 	if !reflect.DeepEqual(cfg, want) {

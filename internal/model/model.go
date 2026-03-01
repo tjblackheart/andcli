@@ -17,7 +17,6 @@ import (
 )
 
 type (
-	// tea.Model implementation
 	Model struct {
 		list  list.Model
 		style lipgloss.Style
@@ -33,14 +32,16 @@ type (
 )
 
 var (
-	style   = newDefaultStyle()
+	style   = new(appStyle)
 	state   = new(appState)
 	cb      = new(clipboard.Clipboard)
-	copyOK  = ns().Foreground(green).Render(`✓`)
-	copyErr = ns().Foreground(red).Render(`✕`)
+	copyOK  = lipgloss.NewStyle().Foreground(green).Render(`✓`)
+	copyErr = lipgloss.NewStyle().Foreground(red).Render(`✕`)
 )
 
 func New(entries []vaults.Entry, cfg *config.Config) Model {
+	style = newThemedStyle(cfg.Theme)
+
 	state.showToken = cfg.Options.ShowTokens
 	state.showUsernames = cfg.Options.ShowUsernames
 
