@@ -51,6 +51,10 @@ By default andcli will choose the first system clipboard tool found. For Linux, 
 
 The configuration will get persisted in the default user home config directory. For Linux, this is `$HOME/.config/andcli`. For MacOS, it's `$HOME/Library/Application Support/andcli` and for Windows it should be in `C:\Users\$USER\AppData\Roaming\andcli`.
 
+## Theming
+
+It's possible to adapt the application colors to your preferred color scheme. To do that, update the values in the config file found under `theme`. Each color has to be a valid hexadecimal string (i.e. `#cc0000`). If there are errors parsing your custom colors on application startup, default values will be used instead.
+
 ## Options
 
 ```text
