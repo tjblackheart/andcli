@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	tea "github.com/charmbracelet/bubbletea"
+	tea "charm.land/bubbletea/v2"
 
 	"github.com/tjblackheart/andcli/v2/internal/config"
 	"github.com/tjblackheart/andcli/v2/internal/input"
@@ -33,10 +33,8 @@ func main() {
 		log.Fatalf("andcli: %s", err)
 	}
 
-	m := model.New(vault.Entries(), cfg)
-	p := tea.NewProgram(m, tea.WithAltScreen())
-
-	if _, err := p.Run(); err != nil {
+	program := tea.NewProgram(model.New(vault.Entries(), cfg))
+	if _, err := program.Run(); err != nil {
 		log.Fatalf("andcli: %s", err)
 	}
 

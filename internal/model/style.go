@@ -1,7 +1,7 @@
 package model
 
 import (
-	"github.com/charmbracelet/lipgloss"
+	"charm.land/lipgloss/v2"
 	"github.com/tjblackheart/andcli/v2/internal/config"
 )
 
