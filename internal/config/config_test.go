@@ -236,6 +236,7 @@ func TestConfig_Flags(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer os.Remove(tmpFile.Name())
+	absPath, _ := filepath.Abs(tmpFile.Name())
 
 	tests := []struct {
 		name  string
@@ -261,11 +262,56 @@ func TestConfig_Flags(t *testing.T) {
 			},
 		},
 		{
-			"reads passwd-stdin",
+			"sets passwd-stdin",
 			[]string{"andcli", "--passwd-stdin", "-t", "aegis", tmpFile.Name()},
 			func(c *Config) {
 				if !c.PasswdStdin() {
 					t.Error("PasswdStdin() = false, want true")
+				}
+			},
+		},
+		{
+			"sets file",
+			[]string{"andcli", "-f", tmpFile.Name(), "-t", "aegis"},
+			func(c *Config) {
+				if c.File != absPath {
+					t.Errorf("File = %q, want %q", c.File, absPath)
+				}
+			},
+		},
+		{
+			"sets type",
+			[]string{"andcli", "-t", "2fas", tmpFile.Name()},
+			func(c *Config) {
+				if c.Type != "2fas" {
+					t.Errorf("Type = %q, want %q", c.Type, "2fas")
+				}
+			},
+		},
+		{
+			"sets clipboard-cmd",
+			[]string{"andcli", "-c", "pbcopy", "-t", "aegis", tmpFile.Name()},
+			func(c *Config) {
+				if c.ClipboardCmd != "pbcopy" {
+					t.Errorf("ClipboardCmd = %q, want %q", c.ClipboardCmd, "pbcopy")
+				}
+			},
+		},
+		{
+			"file from arg",
+			[]string{"andcli", "-t", "aegis", tmpFile.Name()},
+			func(c *Config) {
+				if c.File != absPath {
+					t.Errorf("File = %q, want %q", c.File, absPath)
+				}
+			},
+		},
+		{
+			"arg overrides flag",
+			[]string{"andcli", "-f", "other.vault", "-t", "aegis", tmpFile.Name()},
+			func(c *Config) {
+				if c.File != absPath {
+					t.Errorf("File = %q, want %q", c.File, absPath)
 				}
 			},
 		},
