@@ -244,7 +244,7 @@ func TestConfig_Flags(t *testing.T) {
 		check func(*Config)
 	}{
 		{
-			"trims querystring",
+			"trims query",
 			[]string{"andcli", "-q", "  myquery \n", "-t", "aegis", tmpFile.Name()},
 			func(c *Config) {
 				if c.Query() != "myquery" {
@@ -262,7 +262,25 @@ func TestConfig_Flags(t *testing.T) {
 			},
 		},
 		{
-			"sets passwd-stdin",
+			"reads query from -q",
+			[]string{"andcli", "-q", "query", "-t", "aegis", tmpFile.Name()},
+			func(c *Config) {
+				if c.Query() != "query" {
+					t.Errorf("Query() = %q, want %q", c.Query(), "query")
+				}
+			},
+		},
+		{
+			"reads query from --query",
+			[]string{"andcli", "--query", "query", "-t", "aegis", tmpFile.Name()},
+			func(c *Config) {
+				if c.Query() != "query" {
+					t.Errorf("Query() = %q, want %q", c.Query(), "query")
+				}
+			},
+		},
+		{
+			"reads --passwd-stdin",
 			[]string{"andcli", "--passwd-stdin", "-t", "aegis", tmpFile.Name()},
 			func(c *Config) {
 				if !c.PasswdStdin() {
@@ -289,7 +307,7 @@ func TestConfig_Flags(t *testing.T) {
 			},
 		},
 		{
-			"sets clipboard-cmd",
+			"sets clipboardCmd",
 			[]string{"andcli", "-c", "pbcopy", "-t", "aegis", tmpFile.Name()},
 			func(c *Config) {
 				if c.ClipboardCmd != "pbcopy" {
@@ -298,7 +316,7 @@ func TestConfig_Flags(t *testing.T) {
 			},
 		},
 		{
-			"file from arg",
+			"sets file from arg[0]",
 			[]string{"andcli", "-t", "aegis", tmpFile.Name()},
 			func(c *Config) {
 				if c.File != absPath {
@@ -307,7 +325,7 @@ func TestConfig_Flags(t *testing.T) {
 			},
 		},
 		{
-			"arg overrides flag",
+			"arg[0] overrides file flag",
 			[]string{"andcli", "-f", "other.vault", "-t", "aegis", tmpFile.Name()},
 			func(c *Config) {
 				if c.File != absPath {
