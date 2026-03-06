@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"time"
 
 	tea "charm.land/bubbletea/v2"
 
@@ -33,8 +34,22 @@ func main() {
 		log.Fatalf("andcli: %s", err)
 	}
 
-	program := tea.NewProgram(model.New(vault.Entries(), cfg))
-	if _, err := program.Run(); err != nil {
+	entries := vault.Entries()
+	if cfg.Query() != "" {
+		entry, err := vaults.Find(cfg.Query(), entries)
+		if err != nil {
+			log.Fatalf("andcli: %s", err)
+		}
+
+		token, exp := entry.GenerateTOTP()
+		until := max(exp-time.Now().Unix(), 0)
+
+		fmt.Printf("%s %s %ds\n", entry.Issuer, token, until)
+		os.Exit(0)
+	}
+
+	m := model.New(entries, cfg)
+	if _, err := tea.NewProgram(m).Run(); err != nil {
 		log.Fatalf("andcli: %s", err)
 	}
 
