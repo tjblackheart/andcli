@@ -251,3 +251,42 @@ func TestEntry_SanitizeAndValidate(t *testing.T) {
 		})
 	}
 }
+
+func TestFind(t *testing.T) {
+	entries := []Entry{
+		{Issuer: "Google", Label: "user@gmail.com"},
+		{Issuer: "GitHub", Label: "user@github.com"},
+		{Issuer: "gitlab.com", Label: "user@gitlab.com"},
+		{Issuer: "Some White Space", Label: "username"},
+		{Issuer: "**Special ~ Chars**", Label: "username"},
+	}
+
+	tests := []struct {
+		query   string
+		want    *Entry
+		wantErr bool
+	}{
+		{"Google", &entries[0], false},
+		{"goog", &entries[0], false},
+		{"GITHUB", &entries[1], false},
+		{"git", nil, true},
+		{"nomatch", nil, true},
+		{"", nil, true},
+		{"white space", &entries[3], false},
+		{"~", &entries[4], false},
+		{"[something]", nil, true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.query, func(t *testing.T) {
+			got, err := Find(tt.query, entries)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Find() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Find() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

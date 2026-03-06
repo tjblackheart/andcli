@@ -125,8 +125,9 @@ func (e *Entry) SanitizeAndValidate() error {
 	return nil
 }
 
+// Find fuzzy filters a list of entries for s.
 func Find(s string, entries []Entry) (*Entry, error) {
-	stack := []string{}
+	stack := make([]string, 0, len(entries))
 	for _, e := range entries {
 		stack = append(stack, e.FilterValue())
 	}
@@ -138,6 +139,10 @@ func Find(s string, entries []Entry) (*Entry, error) {
 	case 1:
 		return &entries[matches[0].Index], nil
 	default:
-		return nil, fmt.Errorf("ambiguous results: please narrow down the query string")
+		hits := []string{}
+		for _, m := range matches {
+			hits = append(hits, m.Str)
+		}
+		return nil, fmt.Errorf("multiple matches for %q: %s", s, strings.Join(hits, ", "))
 	}
 }
