@@ -55,6 +55,10 @@ The configuration will get persisted in the default user home config directory. 
 
 It's possible to adapt the application colors to your preferred color scheme. To do that, update the values in the config file found under `theme`. Each color has to be a valid hexadecimal string (i.e. `#cc0000`). If there are errors parsing your custom colors on application startup, default values will be used instead.
 
+## Querying
+
+It's possible to use andcli without the TUI and query a vault directly: `andcli --query 'something'`. The result will be either a string separated by " " as in `<Issuer> <Token> <ValidSecs>` or, in the case of multiple/no matches, an error.
+
 ## Options
 
 ```text
@@ -65,6 +69,7 @@ Options:
   -f, --file string            Path to the encrypted vault (deprecated: Pass the filename directly)
   -h, --help                   Show this help
       --passwd-stdin           Read the vault password from stdin. If set, skips the password input.
+  -q, --query string           Query the vault directly and skip TUI functionality
   -t, --type string            Vault type (andotp, aegis, twofas, stratum, keepass, proton)
   -v, --version                Prints version info and exits
 ```
