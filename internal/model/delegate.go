@@ -28,9 +28,8 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, idx int, li list.Item) {
 		return
 	}
 
-	token, exp := entry.GenerateTOTP()
-	until := exp - time.Now().Unix()
-	d.state.currentOTP = token
+	otp := d.state.currentOTP
+	until := max(otp.exp-time.Now().Unix(), 0)
 
 	bgColor, fgColor := green, white
 	if until <= 10 && until > 5 {
@@ -43,7 +42,7 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, idx int, li list.Item) {
 
 	formatted := "*** ***"
 	if d.state.showToken {
-		formatted = fmt.Sprintf("%s %s", d.state.currentOTP[:3], d.state.currentOTP[3:])
+		formatted = fmt.Sprintf("%s %s", otp.token[:3], otp.token[3:])
 	}
 
 	item := d.style.activeItem.BorderForeground(bgColor).Render(entry.Title())

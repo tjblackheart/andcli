@@ -27,7 +27,12 @@ type (
 	appState struct {
 		showToken     bool
 		showUsernames bool
-		currentOTP    string
+		currentOTP    *otp
+	}
+
+	otp struct {
+		token string
+		exp   int64
 	}
 
 	tickMsg struct{}
@@ -42,6 +47,7 @@ func New(entries []vaults.Entry, cfg *config.Config) Model {
 	state := &appState{
 		showToken:     cfg.Options.ShowTokens,
 		showUsernames: cfg.Options.ShowUsernames,
+		currentOTP:    &otp{},
 	}
 
 	items := make([]list.Item, 0)
@@ -51,15 +57,18 @@ func New(entries []vaults.Entry, cfg *config.Config) Model {
 
 	style := newThemedStyle(cfg.Theme)
 	title := fmt.Sprintf("%s: %s", buildinfo.AppName, filepath.Base(cfg.File))
-	keys := initKeys()
 	dlg := &itemDelegate{style, state}
 
-	return Model{
-		list:  initList(items, dlg, keys, title),
+	m := Model{
+		list:  initList(items, dlg, title),
 		state: state,
 		style: style,
 		cb:    clipboard.New(cfg.ClipboardCmd),
 	}
+
+	m.updateToken()
+
+	return m
 }
 
 func (m Model) Init() tea.Cmd {
@@ -87,7 +96,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			msg := fmt.Sprintf("%s Token copied to clipboard", copyOK)
-			if err := m.cb.Set([]byte(m.state.currentOTP)); err != nil {
+			if err := m.cb.Set([]byte(m.state.currentOTP.token)); err != nil {
 				msg = fmt.Sprintf("%s %s: %s", copyErr, m.cb.String(), err)
 			}
 
@@ -95,6 +104,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 	case tickMsg:
+		m.updateToken()
 		return m, tick()
 
 	case tea.WindowSizeMsg:
@@ -104,6 +114,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	var cmd tea.Cmd
 	m.list, cmd = m.list.Update(msg)
+
 	return m, cmd
 }
 
@@ -114,32 +125,46 @@ func (m Model) View() tea.View {
 	return view
 }
 
+func (m *Model) updateToken() {
+	item := m.list.SelectedItem()
+	if item == nil {
+		return
+	}
+
+	entry, ok := item.(vaults.Entry)
+	if !ok {
+		return
+	}
+
+	token, exp := entry.GenerateTOTP()
+	m.state.currentOTP.token = token
+	m.state.currentOTP.exp = exp
+}
+
 func tick() tea.Cmd {
 	return tea.Tick(time.Second, func(time.Time) tea.Msg {
 		return tickMsg{}
 	})
 }
 
-func initKeys() []key.Binding {
-	return []key.Binding{
+func initList(items []list.Item, delegate *itemDelegate, title string) list.Model {
+	lst := list.New(items, delegate, 0, 0)
+	style := delegate.style
+
+	keys := []key.Binding{
 		key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "toggle token")),
 		key.NewBinding(key.WithKeys("u"), key.WithHelp("u", "toggle usernames")),
 		key.NewBinding(key.WithKeys("c", "y"), key.WithHelp("c/y", "yank to clipboard")),
 	}
-}
 
-func initList(items []list.Item, delegate *itemDelegate, bindings []key.Binding, title string) list.Model {
-	l := list.New(items, delegate, 0, 0)
-	s := delegate.style
+	lst.FilterInput.Prompt = "Search for: "
+	lst.Styles.Filter.Focused.Prompt = style.filterPrompt
+	lst.Styles.Filter.Focused.Text = style.filterCursor
+	lst.Styles.Title = style.title
+	lst.InfiniteScrolling = true
+	lst.Title = title
+	lst.AdditionalShortHelpKeys = func() []key.Binding { return keys }
+	lst.AdditionalFullHelpKeys = func() []key.Binding { return keys }
 
-	l.FilterInput.Prompt = "Search for: "
-	l.Styles.Filter.Focused.Prompt = s.filterPrompt
-	l.Styles.Filter.Focused.Text = s.filterCursor
-	l.Styles.Title = s.title
-	l.InfiniteScrolling = true
-	l.Title = title
-	l.AdditionalShortHelpKeys = func() []key.Binding { return bindings }
-	l.AdditionalFullHelpKeys = func() []key.Binding { return bindings }
-
-	return l
+	return lst
 }
