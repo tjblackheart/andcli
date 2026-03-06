@@ -226,3 +226,126 @@ func Test_create(t *testing.T) {
 		t.Errorf("want: %#v, have: %#v", want, cfg)
 	}
 }
+
+func TestConfig_Flags(t *testing.T) {
+	args := os.Args
+	defer func() { os.Args = args }()
+
+	tmpFile, err := os.CreateTemp("", "dummy.vault")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Remove(tmpFile.Name())
+	absPath, _ := filepath.Abs(tmpFile.Name())
+
+	tests := []struct {
+		name  string
+		args  []string
+		check func(*Config)
+	}{
+		{
+			"trims query",
+			[]string{"andcli", "-q", "  myquery \n", "-t", "aegis", tmpFile.Name()},
+			func(c *Config) {
+				if c.Query() != "myquery" {
+					t.Errorf("Query() = %q, want %q", c.Query(), "myquery")
+				}
+			},
+		},
+		{
+			"sanitizes utf8",
+			[]string{"andcli", "-q", " \xab  myquery \xff", "-t", "2fas", tmpFile.Name()},
+			func(c *Config) {
+				if c.Query() != "myquery" {
+					t.Errorf("Query() = %q, want %q", c.Query(), "myquery")
+				}
+			},
+		},
+		{
+			"reads query from -q",
+			[]string{"andcli", "-q", "query", "-t", "aegis", tmpFile.Name()},
+			func(c *Config) {
+				if c.Query() != "query" {
+					t.Errorf("Query() = %q, want %q", c.Query(), "query")
+				}
+			},
+		},
+		{
+			"reads query from --query",
+			[]string{"andcli", "--query", "query", "-t", "aegis", tmpFile.Name()},
+			func(c *Config) {
+				if c.Query() != "query" {
+					t.Errorf("Query() = %q, want %q", c.Query(), "query")
+				}
+			},
+		},
+		{
+			"reads --passwd-stdin",
+			[]string{"andcli", "--passwd-stdin", "-t", "aegis", tmpFile.Name()},
+			func(c *Config) {
+				if !c.PasswdStdin() {
+					t.Error("PasswdStdin() = false, want true")
+				}
+			},
+		},
+		{
+			"sets file",
+			[]string{"andcli", "-f", tmpFile.Name(), "-t", "aegis"},
+			func(c *Config) {
+				if c.File != absPath {
+					t.Errorf("File = %q, want %q", c.File, absPath)
+				}
+			},
+		},
+		{
+			"sets type",
+			[]string{"andcli", "-t", "2fas", tmpFile.Name()},
+			func(c *Config) {
+				if c.Type != "2fas" {
+					t.Errorf("Type = %q, want %q", c.Type, "2fas")
+				}
+			},
+		},
+		{
+			"sets clipboardCmd",
+			[]string{"andcli", "-c", "pbcopy", "-t", "aegis", tmpFile.Name()},
+			func(c *Config) {
+				if c.ClipboardCmd != "pbcopy" {
+					t.Errorf("ClipboardCmd = %q, want %q", c.ClipboardCmd, "pbcopy")
+				}
+			},
+		},
+		{
+			"sets file from arg[0]",
+			[]string{"andcli", "-t", "aegis", tmpFile.Name()},
+			func(c *Config) {
+				if c.File != absPath {
+					t.Errorf("File = %q, want %q", c.File, absPath)
+				}
+			},
+		},
+		{
+			"arg[0] overrides file flag",
+			[]string{"andcli", "-f", "other.vault", "-t", "aegis", tmpFile.Name()},
+			func(c *Config) {
+				if c.File != absPath {
+					t.Errorf("File = %q, want %q", c.File, absPath)
+				}
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			os.Args = tt.args
+			cfg := &Config{
+				Options: &Opts{},
+				Theme:   &DefaultTheme,
+			}
+			if err := cfg.parseFlags(); err != nil {
+				t.Fatalf("parseFlags() failed: %v", err)
+			}
+			tt.check(cfg)
+		})
+	}
+}

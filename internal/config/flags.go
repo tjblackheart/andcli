@@ -17,6 +17,7 @@ var (
 	vtype   = set.StringP("type", "t", "", fmt.Sprintf("Vault type (%s)", vaults.StrTypes()))
 	cmd     = set.StringP("clipboard-cmd", "c", "", "A custom clipboard command, including args (xclip, wl-copy, pbcopy etc.)")
 	pwstdin = set.Bool("passwd-stdin", false, "Read the vault password from stdin. If set, skips the password input.")
+	query   = set.StringP("query", "q", "", "Query the vault directly and skip TUI functionality")
 	version = set.BoolP("version", "v", false, "Prints version info and exits")
 	help    = set.BoolP("help", "h", false, "Show this help")
 )
@@ -59,6 +60,10 @@ func (cfg *Config) parseFlags() error {
 
 	if *pwstdin {
 		cfg.passwordFromStdin = true
+	}
+
+	if *query != "" {
+		cfg.query = *query
 	}
 
 	if set.Arg(0) != "" {

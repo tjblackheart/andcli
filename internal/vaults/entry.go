@@ -5,9 +5,11 @@ import (
 	"crypto/sha256"
 	"crypto/sha512"
 	"errors"
+	"fmt"
 	"log"
 	"strings"
 
+	"github.com/sahilm/fuzzy"
 	"github.com/xlzd/gotp"
 )
 
@@ -121,4 +123,26 @@ func (e *Entry) SanitizeAndValidate() error {
 	}
 
 	return nil
+}
+
+// Find fuzzy filters a list of entries for s.
+func Find(s string, entries []Entry) (*Entry, error) {
+	stack := make([]string, 0, len(entries))
+	for _, e := range entries {
+		stack = append(stack, e.FilterValue())
+	}
+
+	matches := fuzzy.Find(s, stack)
+	switch len(matches) {
+	case 0:
+		return nil, fmt.Errorf("no results for %q", s)
+	case 1:
+		return &entries[matches[0].Index], nil
+	default:
+		hits := []string{}
+		for _, m := range matches {
+			hits = append(hits, m.Str)
+		}
+		return nil, fmt.Errorf("multiple matches for %q: %s", s, strings.Join(hits, ", "))
+	}
 }

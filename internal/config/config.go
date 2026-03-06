@@ -23,6 +23,7 @@ type (
 		//
 		path              string
 		passwordFromStdin bool
+		query             string
 	}
 
 	Opts struct {
@@ -85,6 +86,11 @@ func (cfg Config) Persist() error {
 // Returns true if the flag option "passwd-stdin" was set.
 func (cfg Config) PasswdStdin() bool {
 	return cfg.passwordFromStdin
+}
+
+// Returns the sanitized value from the "query" flag.
+func (cfg Config) Query() string {
+	return strings.Trim(strings.ToValidUTF8(cfg.query, ""), " \r\n\t")
 }
 
 // Reads an possibly existing config file and merges the content
