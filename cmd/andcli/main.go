@@ -9,6 +9,7 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
+	"github.com/tjblackheart/andcli/v2/internal/buildinfo"
 	"github.com/tjblackheart/andcli/v2/internal/config"
 	"github.com/tjblackheart/andcli/v2/internal/input"
 	"github.com/tjblackheart/andcli/v2/internal/model"
@@ -23,22 +24,23 @@ import (
 
 func main() {
 	log.SetFlags(0)
+	log.SetPrefix(buildinfo.AppName)
 
 	cfg, err := config.Create()
 	if err != nil {
-		log.Fatalf("andcli: %s", err)
+		log.Fatalln(err)
 	}
 
 	vault, err := open(cfg)
 	if err != nil {
-		log.Fatalf("andcli: %s", err)
+		log.Fatalln(err)
 	}
 
 	entries := vault.Entries()
 	if cfg.Query() != "" {
 		entry, err := vaults.Find(cfg.Query(), entries)
 		if err != nil {
-			log.Fatalf("andcli: %s", err)
+			log.Fatalln(err)
 		}
 
 		token, exp := entry.GenerateTOTP()
@@ -50,11 +52,11 @@ func main() {
 
 	m := model.New(entries, cfg)
 	if _, err := tea.NewProgram(m).Run(); err != nil {
-		log.Fatalf("andcli: %s", err)
+		log.Fatalln(err)
 	}
 
 	if err := cfg.Persist(); err != nil {
-		log.Fatalf("andcli: %s", err)
+		log.Fatalln(err)
 	}
 }
 

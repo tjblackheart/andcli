@@ -4,6 +4,8 @@ import (
 	"log"
 	"regexp"
 	"strings"
+
+	"github.com/tjblackheart/andcli/v2/internal/buildinfo"
 )
 
 type Theme struct {
@@ -68,6 +70,9 @@ func (t *Theme) validate() {
 
 	if len(invalid) > 0 {
 		msg := "Theme errors where found and substituted by fallbacks"
-		log.Printf("andcli: config: %s. Invalid fields: %s\n", msg, strings.Join(invalid, ", "))
+		log.Printf(
+			"%s: %s. Invalid fields: %s\n",
+			buildinfo.AppName, msg, strings.Join(invalid, ", "),
+		)
 	}
 }

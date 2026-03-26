@@ -8,10 +8,11 @@ import (
 
 // build vars
 var (
-	AppName    = "andcli"
-	BuildDate  = ""
-	AppVersion = ""
-	Commit     = ""
+	AppName     = "andcli"
+	BuildDate   = ""
+	AppVersion  = ""
+	Commit      = ""
+	Description = "A 2FA TUI for your shell"
 )
 
 // Returns a formatted build info string

@@ -172,7 +172,7 @@ func TestConfig_Persist(t *testing.T) {
 	fname := filepath.Join(os.TempDir(), "andcli_test_config.yaml")
 	defer os.RemoveAll(fname)
 
-	cfg := &Config{File: "test.json", Type: "aegis", ClipboardCmd: "/usr/bin/test", path: fname}
+	cfg := &Config{File: "test.json", Type: "aegis", ClipboardCmd: "/usr/bin/test", path: fname, dirty: true}
 	if err := cfg.Persist(); err != nil {
 		t.Errorf("Config.Persist() error = %v, expected none", err)
 		return
@@ -192,9 +192,88 @@ func TestConfig_Persist(t *testing.T) {
 		t.Fatal(err)
 	}
 	cfg2.path = fname
+	cfg2.dirty = true
 
 	if !reflect.DeepEqual(cfg, cfg2) {
 		t.Errorf("Config.Persist() cfg2 = %v, want %v", cfg2, cfg)
+	}
+}
+
+func TestConfig_Persist_preservesComments(t *testing.T) {
+	fname := filepath.Join(os.TempDir(), "andcli_test_config_comments.yaml")
+	defer os.RemoveAll(fname)
+
+	original := `# This is a comment at the top
+file: /path/to/vault.json # inline comment
+type: aegis
+# Comment before options
+options:
+  show_usernames: true # another inline
+  show_tokens: false
+clipboard_cmd: ""
+# Comment before theme
+theme:
+  base: "#39A02E"
+  green: "#39A02E"
+  yellow: "#DB9F1F"
+  red: "#f10000"
+  grey: "#424242"
+  black: "#000000"
+  white: "#FFFFFF"
+`
+
+	if err := os.WriteFile(fname, []byte(original), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	cfg := &Config{
+		File:         "/new/vault.json",
+		Type:         vaults.Type("2fas"),
+		ClipboardCmd: "pbcopy",
+		Options: &Opts{
+			ShowUsernames: true,
+			ShowTokens:    true,
+		},
+		Theme: &Theme{
+			Base:   "#111111",
+			Green:  "#222222",
+			Yellow: "#333333",
+			Red:    "#444444",
+			Grey:   "#555555",
+			Black:  "#666666",
+			White:  "#777777",
+		},
+		path:  fname,
+		dirty: true,
+	}
+
+	if err := cfg.Persist(); err != nil {
+		t.Fatalf("Config.Persist() error = %v", err)
+	}
+
+	b, err := os.ReadFile(fname)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !strings.Contains(string(b), "# This is a comment at the top") {
+		t.Error("top comment was not preserved")
+	}
+	if !strings.Contains(string(b), "# inline comment") {
+		t.Error("inline comment was not preserved")
+	}
+	if !strings.Contains(string(b), "# Comment before options") {
+		t.Error("comment before options was not preserved")
+	}
+	if !strings.Contains(string(b), "# Comment before theme") {
+		t.Error("comment before theme was not preserved")
+	}
+
+	if strings.Contains(string(b), "/path/to/vault.json") {
+		t.Error("file path was not updated")
+	}
+	if strings.Contains(string(b), "aegis") {
+		t.Error("type was not updated")
 	}
 }
 
@@ -220,6 +299,7 @@ func Test_create(t *testing.T) {
 		},
 		Theme: &DefaultTheme,
 		path:  filepath.Join(cfgDir, buildinfo.AppName, "config.yaml"),
+		dirty: true,
 	}
 
 	if !reflect.DeepEqual(cfg, want) {
