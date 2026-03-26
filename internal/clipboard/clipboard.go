@@ -47,7 +47,6 @@ func New(s string) *Clipboard {
 
 // Set writes b to the selected clipboard.
 func (cb Clipboard) Set(b []byte) error {
-
 	cmd := exec.Command(cb.cmd, cb.args...)
 
 	pipe, err := cmd.StdinPipe()
@@ -91,16 +90,15 @@ func (cb *Clipboard) initUser(s string) *Clipboard {
 
 // Inits the clipboard with the first occurence found of the defined system tools.
 func (cb *Clipboard) initSystem() *Clipboard {
-
-	utils, ok := utils[runtime.GOOS]
+	list, ok := utils[runtime.GOOS]
 	if !ok {
 		return cb
 	}
 
-	for _, v := range utils {
-		if path, err := exec.LookPath(v.cmd); err == nil {
+	for _, item := range list {
+		if path, err := exec.LookPath(item.cmd); err == nil {
 			cb.cmd = path
-			cb.args = v.args
+			cb.args = item.args
 			break
 		}
 	}
