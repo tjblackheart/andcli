@@ -24,6 +24,7 @@ type (
 		path              string
 		passwordFromStdin bool
 		query             string
+		dirty             bool
 	}
 
 	Opts struct {
@@ -73,14 +74,43 @@ func create(dir string) (*Config, error) {
 	return cfg, nil
 }
 
-// Writes the current configuration to a yaml file.
 func (cfg Config) Persist() error {
-	b, err := yaml.Marshal(cfg)
+	if !cfg.dirty {
+		return nil
+	}
+
+	af, err := parse(cfg.path)
 	if err != nil {
+		if os.IsNotExist(err) {
+			b, err := yaml.Marshal(cfg)
+			if err != nil {
+				return err
+			}
+			return os.WriteFile(cfg.path, b, 0o600)
+		}
 		return err
 	}
 
-	return os.WriteFile(cfg.path, b, 0o600)
+	patch := map[string]any{
+		"$.file":                   cfg.File,
+		"$.type":                   string(cfg.Type),
+		"$.clipboard_cmd":          cfg.ClipboardCmd,
+		"$.options.show_usernames": cfg.Options.ShowUsernames,
+		"$.options.show_tokens":    cfg.Options.ShowTokens,
+		"$.theme.base":             cfg.Theme.Base,
+		"$.theme.green":            cfg.Theme.Green,
+		"$.theme.yellow":           cfg.Theme.Yellow,
+		"$.theme.red":              cfg.Theme.Red,
+		"$.theme.grey":             cfg.Theme.Grey,
+		"$.theme.black":            cfg.Theme.Black,
+		"$.theme.white":            cfg.Theme.White,
+	}
+
+	if err := apply(af, patch); err != nil {
+		return err
+	}
+
+	return os.WriteFile(cfg.path, []byte(af.String()), 0o600)
 }
 
 // Returns true if the flag option "passwd-stdin" was set.

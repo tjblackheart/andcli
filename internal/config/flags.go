@@ -27,7 +27,7 @@ func (cfg *Config) parseFlags() error {
 	set.Usage = func() { usage(true) }
 
 	if err := set.Parse(os.Args[1:]); err != nil {
-		log.Printf("andcli: %s", err)
+		log.Printf("%s: %s", buildinfo.AppName, err)
 		usage(false)
 		os.Exit(1)
 	}
@@ -48,14 +48,17 @@ func (cfg *Config) parseFlags() error {
 			return err
 		}
 		cfg.File = abs
+		cfg.dirty = true
 	}
 
 	if *vtype != "" {
 		cfg.Type = vaults.Type(*vtype)
+		cfg.dirty = true
 	}
 
 	if *cmd != "" {
 		cfg.ClipboardCmd = *cmd
+		cfg.dirty = true
 	}
 
 	if *pwstdin {
@@ -72,6 +75,7 @@ func (cfg *Config) parseFlags() error {
 			return err
 		}
 		cfg.File = abs
+		cfg.dirty = true
 	}
 
 	return nil
@@ -80,7 +84,7 @@ func (cfg *Config) parseFlags() error {
 // prints custom formatted usage information
 func usage(includeDescription bool) {
 	if includeDescription {
-		fmt.Println("andcli - A 2FA TUI for your shell")
+		fmt.Printf("%s - %s\n", buildinfo.AppName, buildinfo.Description)
 	}
 
 	msg := `
