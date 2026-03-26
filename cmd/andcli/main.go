@@ -24,7 +24,7 @@ import (
 
 func main() {
 	log.SetFlags(0)
-	log.SetPrefix(buildinfo.AppName)
+	log.SetPrefix(fmt.Sprintf("%s: ", buildinfo.AppName))
 
 	cfg, err := config.Create()
 	if err != nil {
