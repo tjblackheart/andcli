@@ -127,6 +127,7 @@ func read(filename string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer r.Close()
 
 	if len(r.File) == 0 {
 		return nil, errors.New("archive has no content")

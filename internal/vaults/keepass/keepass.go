@@ -20,16 +20,16 @@ type keepass struct{ entries []gokeepasslib.Entry }
 
 func Open(filename string, pass []byte) (vaults.Vault, error) {
 	v := keepass{entries: make([]gokeepasslib.Entry, 0)}
-
-	file, err := os.Open(filename)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %s", vaultType, err)
-	}
-
 	db := gokeepasslib.NewDatabase()
 	db.Credentials = gokeepasslib.NewPasswordCredentials(string(pass))
 
-	if err := gokeepasslib.NewDecoder(file).Decode(db); err != nil {
+	f, err := os.Open(filename)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %s", vaultType, err)
+	}
+	defer f.Close()
+
+	if err := gokeepasslib.NewDecoder(f).Decode(db); err != nil {
 		return nil, fmt.Errorf("%s: %s", vaultType, err)
 	}
 
