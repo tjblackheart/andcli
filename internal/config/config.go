@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/goccy/go-yaml"
 	"github.com/tjblackheart/andcli/v2/internal/buildinfo"
@@ -25,6 +26,7 @@ type (
 		passwordFromStdin bool
 		query             string
 		dirty             bool
+		timeout           int
 	}
 
 	Opts struct {
@@ -121,6 +123,10 @@ func (cfg Config) PasswdStdin() bool {
 // Returns the sanitized value from the "query" flag.
 func (cfg Config) Query() string {
 	return strings.Trim(strings.ToValidUTF8(cfg.query, ""), " \r\n\t")
+}
+
+func (cfg Config) Timeout() time.Duration {
+	return time.Duration(cfg.timeout * int(time.Second))
 }
 
 // Reads an possibly existing config file and merges the content
