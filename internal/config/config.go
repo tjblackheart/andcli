@@ -125,6 +125,7 @@ func (cfg Config) Query() string {
 	return strings.Trim(strings.ToValidUTF8(cfg.query, ""), " \r\n\t")
 }
 
+// Returns the timeout value as time.Duration.
 func (cfg Config) Timeout() time.Duration {
 	return time.Duration(cfg.timeout * int(time.Second))
 }
