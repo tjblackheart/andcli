@@ -70,6 +70,7 @@ Options:
   -h, --help                   Show this help
       --passwd-stdin           Read the vault password from stdin. If set, skips the password input.
   -q, --query string           Query the vault directly and skip TUI functionality
+      --timeout int            Timeout for decrypting the vault file, in seconds (default 5)
   -t, --type string            Vault type (andotp, aegis, twofas, stratum, keepass, proton)
   -v, --version                Prints version info and exits
 ```

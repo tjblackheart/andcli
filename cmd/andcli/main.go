@@ -65,7 +65,6 @@ func open(cfg *config.Config) (vaults.Vault, error) {
 	if os.Getenv("ANDCLI_HIDE_ABSPATH") != "" {
 		name = filepath.Base(cfg.File)
 	}
-
 	log.Printf("Opening %s ...", name)
 
 	pw, err := password(cfg.PasswdStdin())
@@ -79,22 +78,36 @@ func open(cfg *config.Config) (vaults.Vault, error) {
 		}
 	}()
 
-	switch cfg.Type {
-	case vaults.ANDOTP:
-		return andotp.Open(cfg.File, pw)
-	case vaults.AEGIS:
-		return aegis.Open(cfg.File, pw)
-	case vaults.TWOFAS:
-		return twofas.Open(cfg.File, pw)
-	case vaults.STRATUM:
-		return stratum.Open(cfg.File, pw)
-	case vaults.KEEPASS:
-		return keepass.Open(cfg.File, pw)
-	case vaults.PROTON:
-		return protonpass.Open(cfg.File, pw)
+	done := make(chan struct{})
+
+	var vault vaults.Vault
+	go func() {
+		switch cfg.Type {
+		case vaults.ANDOTP:
+			vault, err = andotp.Open(cfg.File, pw)
+		case vaults.AEGIS:
+			vault, err = aegis.Open(cfg.File, pw)
+		case vaults.TWOFAS:
+			vault, err = twofas.Open(cfg.File, pw)
+		case vaults.STRATUM:
+			vault, err = stratum.Open(cfg.File, pw)
+		case vaults.KEEPASS:
+			vault, err = keepass.Open(cfg.File, pw)
+		case vaults.PROTON:
+			vault, err = protonpass.Open(cfg.File, pw)
+		default:
+			vault, err = nil, fmt.Errorf("vault type %q: not implemented", cfg.Type)
+		}
+		done <- struct{}{}
+	}()
+
+	select {
+	case <-done:
+	case <-time.After(cfg.Timeout()):
+		return nil, fmt.Errorf("decrypt: operation timed out. wrong type?")
 	}
 
-	return nil, fmt.Errorf("vault type %q: not implemented", cfg.Type)
+	return vault, err
 }
 
 func password(piped bool) ([]byte, error) {

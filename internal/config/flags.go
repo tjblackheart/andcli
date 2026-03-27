@@ -19,6 +19,7 @@ var (
 	pwstdin = set.Bool("passwd-stdin", false, "Read the vault password from stdin. If set, skips the password input.")
 	query   = set.StringP("query", "q", "", "Query the vault directly and skip TUI functionality")
 	version = set.BoolP("version", "v", false, "Prints version info and exits")
+	timeout = set.Int("timeout", 5, "Timeout for decrypting the vault file, in seconds")
 	help    = set.BoolP("help", "h", false, "Show this help")
 )
 
@@ -76,6 +77,11 @@ func (cfg *Config) parseFlags() error {
 		}
 		cfg.File = abs
 		cfg.dirty = true
+	}
+
+	cfg.timeout = *timeout
+	if cfg.timeout <= 0 {
+		cfg.timeout = 5
 	}
 
 	return nil
