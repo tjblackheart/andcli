@@ -62,7 +62,7 @@ func main() {
 
 func open(cfg *config.Config) (vaults.Vault, error) {
 	name := cfg.File
-	if os.Getenv("ANDCLI_HIDE_ABSPATH") != "" {
+	if _, ok := os.LookupEnv("ANDCLI_HIDE_ABSPATH"); ok {
 		name = filepath.Base(cfg.File)
 	}
 	log.Printf("Opening %s ...", name)
