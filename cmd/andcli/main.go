@@ -103,7 +103,7 @@ func open(cfg *config.Config) (vaults.Vault, error) {
 
 	select {
 	case <-done:
-	case <-time.After(cfg.Timeout()):
+	case <-time.After(cfg.DecryptionTimeoutD()):
 		return nil, fmt.Errorf("decrypt: operation timed out. wrong type?")
 	}
 

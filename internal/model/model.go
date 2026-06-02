@@ -18,10 +18,12 @@ import (
 
 type (
 	Model struct {
-		list  list.Model
-		state *appState
-		style *appStyle
-		cb    *clipboard.Clipboard
+		list           list.Model
+		state          *appState
+		style          *appStyle
+		cb             *clipboard.Clipboard
+		lastActivity   time.Time
+		sessionTimeout time.Duration
 	}
 
 	appState struct {
@@ -60,10 +62,12 @@ func New(entries []vaults.Entry, cfg *config.Config) Model {
 	dlg := &itemDelegate{style, state}
 
 	m := Model{
-		list:  initList(items, dlg, title),
-		state: state,
-		style: style,
-		cb:    clipboard.New(cfg.ClipboardCmd),
+		list:           initList(items, dlg, title),
+		state:          state,
+		style:          style,
+		cb:             clipboard.New(cfg.ClipboardCmd),
+		sessionTimeout: cfg.SessionTimeoutD(),
+		lastActivity:   time.Now(),
 	}
 
 	m.updateToken()
@@ -80,6 +84,9 @@ func (m Model) Init() tea.Cmd {
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
+		// resets on each keypress
+		m.lastActivity = time.Now()
+
 		if m.list.FilterState() == list.Filtering {
 			break
 		}
@@ -104,6 +111,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 	case tickMsg:
+		if m.sessionTimeout > 0 && time.Since(m.lastActivity) > m.sessionTimeout {
+			return m, tea.Quit
+		}
+
 		m.updateToken()
 		return m, tick()
 

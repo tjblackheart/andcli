@@ -16,11 +16,12 @@ import (
 
 type (
 	Config struct {
-		File         string      `yaml:"file"`
-		Type         vaults.Type `yaml:"type"`
-		ClipboardCmd string      `yaml:"clipboard_cmd"`
-		Options      *Opts       `yaml:"options"`
-		Theme        *Theme      `yaml:"theme"`
+		File           string      `yaml:"file"`
+		Type           vaults.Type `yaml:"type"`
+		ClipboardCmd   string      `yaml:"clipboard_cmd"`
+		Options        *Opts       `yaml:"options"`
+		Theme          *Theme      `yaml:"theme"`
+		SessionTimeout int         `yaml:"session_timeout"`
 		//
 		path              string
 		passwordFromStdin bool
@@ -58,7 +59,8 @@ func create(dir string) (*Config, error) {
 			ShowUsernames: true,
 			ShowTokens:    false,
 		},
-		Theme: &DefaultTheme,
+		Theme:          &DefaultTheme,
+		SessionTimeout: 300,
 	}
 
 	if err := cfg.mergeExisting(); err != nil {
@@ -97,6 +99,7 @@ func (cfg Config) Persist() error {
 		"$.file":                   cfg.File,
 		"$.type":                   string(cfg.Type),
 		"$.clipboard_cmd":          cfg.ClipboardCmd,
+		"$.session_timeout":        cfg.SessionTimeout,
 		"$.options.show_usernames": cfg.Options.ShowUsernames,
 		"$.options.show_tokens":    cfg.Options.ShowTokens,
 		"$.theme.base":             cfg.Theme.Base,
@@ -108,8 +111,13 @@ func (cfg Config) Persist() error {
 		"$.theme.white":            cfg.Theme.White,
 	}
 
+	// fallback: write full file if a key is missing (old version)
 	if err := apply(af, patch); err != nil {
-		return err
+		b, err := yaml.Marshal(cfg)
+		if err != nil {
+			return err
+		}
+		return os.WriteFile(cfg.path, b, 0o600)
 	}
 
 	return os.WriteFile(cfg.path, []byte(af.String()), 0o600)
@@ -126,8 +134,13 @@ func (cfg Config) Query() string {
 }
 
 // Returns the timeout value as time.Duration.
-func (cfg Config) Timeout() time.Duration {
+func (cfg Config) DecryptionTimeoutD() time.Duration {
 	return time.Duration(cfg.timeout * int(time.Second))
+}
+
+// Returns the session timeout value as time.Duration.
+func (cfg Config) SessionTimeoutD() time.Duration {
+	return time.Duration(cfg.SessionTimeout * int(time.Second))
 }
 
 // Reads an possibly existing config file and merges the content
@@ -150,6 +163,7 @@ func (cfg *Config) mergeExisting() error {
 	cfg.File = existing.File
 	cfg.Type = existing.Type
 	cfg.ClipboardCmd = existing.ClipboardCmd
+	cfg.SessionTimeout = existing.SessionTimeout
 
 	if existing.Options != nil {
 		cfg.Options = existing.Options
