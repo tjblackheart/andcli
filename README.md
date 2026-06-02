@@ -59,6 +59,10 @@ It's possible to adapt the application colors to your preferred color scheme. To
 
 It's possible to use andcli without the TUI and query a vault directly: `andcli --query 'something'`. The result will be either a string separated by " " as in `<Issuer> <Token> <ValidSecs>` or, in the case of multiple/no matches, an error.
 
+## Session timeout
+
+andcli will auto-quit after an adjustable time to not leave juicy info exposed in the open. The default session timeout is set to 300s (5 minutes) and can be adjusted via the `--session-timeout` flag or set directly as `session_timeout` in the config file. It can be disabled by setting this value to 0.
+
 ## Options
 
 ```text
@@ -70,6 +74,7 @@ Options:
   -h, --help                   Show this help
       --passwd-stdin           Read the vault password from stdin. If set, skips the password input.
   -q, --query string           Query the vault directly and skip TUI functionality
+      --session-timeout int    Auto-close after N seconds of inactivity (0=disabled) (default 300)
       --timeout int            Timeout for decrypting the vault file, in seconds (default 5)
   -t, --type string            Vault type (andotp, aegis, twofas, stratum, keepass, proton)
   -v, --version                Prints version info and exits

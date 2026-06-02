@@ -12,15 +12,16 @@ import (
 )
 
 var (
-	set     = flag.NewFlagSet("default", flag.ExitOnError)
-	vfile   = set.StringP("file", "f", "", "Path to the encrypted vault (deprecated: Pass the filename directly)")
-	vtype   = set.StringP("type", "t", "", fmt.Sprintf("Vault type (%s)", vaults.StrTypes()))
-	cmd     = set.StringP("clipboard-cmd", "c", "", "A custom clipboard command, including args (xclip, wl-copy, pbcopy etc.)")
-	pwstdin = set.Bool("passwd-stdin", false, "Read the vault password from stdin. If set, skips the password input.")
-	query   = set.StringP("query", "q", "", "Query the vault directly and skip TUI functionality")
-	version = set.BoolP("version", "v", false, "Prints version info and exits")
-	timeout = set.Int("timeout", 5, "Timeout for decrypting the vault file, in seconds")
-	help    = set.BoolP("help", "h", false, "Show this help")
+	set               = flag.NewFlagSet("default", flag.ExitOnError)
+	vfile             = set.StringP("file", "f", "", "Path to the encrypted vault (deprecated: Pass the filename directly)")
+	vtype             = set.StringP("type", "t", "", fmt.Sprintf("Vault type (%s)", vaults.StrTypes()))
+	cmd               = set.StringP("clipboard-cmd", "c", "", "A custom clipboard command, including args (xclip, wl-copy, pbcopy etc.)")
+	pwstdin           = set.Bool("passwd-stdin", false, "Read the vault password from stdin. If set, skips the password input.")
+	query             = set.StringP("query", "q", "", "Query the vault directly and skip TUI functionality")
+	version           = set.BoolP("version", "v", false, "Prints version info and exits")
+	decryptionTimeout = set.Int("timeout", 5, "Timeout for decrypting the vault file, in seconds")
+	sessionTimeout    = set.Int("session-timeout", 300, "Auto-close after N seconds of inactivity (0=disabled)")
+	help              = set.BoolP("help", "h", false, "Show this help")
 )
 
 // Parses given flags into the existing config.
@@ -79,9 +80,14 @@ func (cfg *Config) parseFlags() error {
 		cfg.dirty = true
 	}
 
-	cfg.timeout = *timeout
+	cfg.timeout = *decryptionTimeout
 	if cfg.timeout <= 0 {
 		cfg.timeout = 5
+	}
+
+	if set.Changed("session-timeout") {
+		cfg.SessionTimeout = max(*sessionTimeout, 0)
+		cfg.dirty = true
 	}
 
 	return nil

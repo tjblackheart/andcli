@@ -49,6 +49,12 @@ func TestConfig_mergeExisting(t *testing.T) {
 			false,
 		},
 		{
+			"merges session timeout",
+			&Config{File: "", Type: "", ClipboardCmd: "", SessionTimeout: 0, path: path},
+			&Config{File: "/tmp/test.json", Type: "aegis", ClipboardCmd: "", SessionTimeout: 600, path: path},
+			false,
+		},
+		{
 			"handles custom options",
 			&Config{
 				Options: &Opts{
@@ -172,7 +178,7 @@ func TestConfig_Persist(t *testing.T) {
 	fname := filepath.Join(os.TempDir(), "andcli_test_config.yaml")
 	defer os.RemoveAll(fname)
 
-	cfg := &Config{File: "test.json", Type: "aegis", ClipboardCmd: "/usr/bin/test", path: fname, dirty: true}
+	cfg := &Config{File: "test.json", Type: "aegis", ClipboardCmd: "/usr/bin/test", SessionTimeout: 300, path: fname, dirty: true}
 	if err := cfg.Persist(); err != nil {
 		t.Errorf("Config.Persist() error = %v, expected none", err)
 		return
@@ -206,6 +212,7 @@ func TestConfig_Persist_preservesComments(t *testing.T) {
 	original := `# This is a comment at the top
 file: /path/to/vault.json # inline comment
 type: aegis
+session_timeout: 300
 # Comment before options
 options:
   show_usernames: true # another inline
@@ -227,9 +234,10 @@ theme:
 	}
 
 	cfg := &Config{
-		File:         "/new/vault.json",
-		Type:         vaults.Type("2fas"),
-		ClipboardCmd: "pbcopy",
+		File:           "/new/vault.json",
+		Type:           vaults.Type("2fas"),
+		ClipboardCmd:   "pbcopy",
+		SessionTimeout: 300,
 		Options: &Opts{
 			ShowUsernames: true,
 			ShowTokens:    true,
@@ -275,6 +283,9 @@ theme:
 	if strings.Contains(string(b), "aegis") {
 		t.Error("type was not updated")
 	}
+	if !strings.Contains(string(b), "session_timeout: 300") {
+		t.Error("session timeout was not persisted")
+	}
 }
 
 func Test_create(t *testing.T) {
@@ -290,9 +301,10 @@ func Test_create(t *testing.T) {
 
 	// default config
 	want := &Config{
-		File:         abs,
-		Type:         vaults.Type(*vtype),
-		ClipboardCmd: "",
+		File:           abs,
+		Type:           vaults.Type(*vtype),
+		SessionTimeout: 300,
+		ClipboardCmd:   "",
 		Options: &Opts{
 			ShowUsernames: true,
 			ShowTokens:    false,
@@ -411,6 +423,24 @@ func TestConfig_Flags(t *testing.T) {
 			func(c *Config) {
 				if c.File != absPath {
 					t.Errorf("File = %q, want %q", c.File, absPath)
+				}
+			},
+		},
+		{
+			"sets session timeout",
+			[]string{"andcli", "--session-timeout", "600", "-t", "aegis", tmpFile.Name()},
+			func(c *Config) {
+				if c.SessionTimeout != 600 {
+					t.Errorf("SessionTimeout = %d, want %d", c.SessionTimeout, 600)
+				}
+			},
+		},
+		{
+			"session timeout disabled on 0",
+			[]string{"andcli", "--session-timeout", "0", "-t", "aegis", tmpFile.Name()},
+			func(c *Config) {
+				if c.SessionTimeout != 0 {
+					t.Errorf("SessionTimeout = %d, want %d", c.SessionTimeout, 0)
 				}
 			},
 		},

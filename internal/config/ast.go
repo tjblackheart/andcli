@@ -34,7 +34,7 @@ func replace(af *ast.File, pathStr string, value any) error {
 
 	node, err := path.FilterFile(af)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	var newNode ast.Node
