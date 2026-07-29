@@ -24,21 +24,22 @@ func TestOpen(t *testing.T) {
 		{"decrypts zip", "testdata/protonpass-test.pgp.zip", "andcli-test", false, nil},
 		{"decrypts hidden zip", "testdata/protonpass-test.pgp.data", "andcli-test", false, nil},
 		{"fails: wrong password", "testdata/protonpass-test.pgp", "", true, nil},
-		{"fails: plaintext vault", "testdata/protonpass-test-plain.zip", "", true, vaults.ErrIsPlain},
+		{"fails: plaintext vault #1", "testdata/protonpass-test-plain.zip", "", true, vaults.ErrIsPlain},
+		{"fails: plaintext vault #2", "testdata/protonpass-test-plain.csv", "", true, vaults.ErrIsPlain},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			v, err := Open(tt.filename, []byte(tt.password))
-		if tt.fails {
-			if err == nil {
-				t.Fatal("Open() expected error, got none")
+			if tt.fails {
+				if err == nil {
+					t.Fatal("Open() expected error, got none")
+				}
+				if tt.wantErr != nil && !errors.Is(err, tt.wantErr) {
+					t.Fatalf("Open() error = %v, want %v", err, tt.wantErr)
+				}
+				return
 			}
-			if tt.wantErr != nil && !errors.Is(err, tt.wantErr) {
-				t.Fatalf("Open() error = %v, want %v", err, tt.wantErr)
-			}
-			return
-		}
 
 			entries := v.Entries()
 			if len(entries) != 3 {
