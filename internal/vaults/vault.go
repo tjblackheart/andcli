@@ -1,14 +1,22 @@
 package vaults
 
-import "strings"
+import (
+	"errors"
+	"strings"
+)
 
 // Vault is the basic skeleton of a vault implementation.
-type Vault interface{ Entries() []Entry }
+type Vault interface {
+	Entries() []Entry
+	IsPlain([]byte) bool
+}
 
 // Type is an implemented vault type name.
 type Type string
 
 func (t Type) String() string { return string(t) }
+
+var ErrIsPlain error = errors.New("unencrypted vaults are not supported")
 
 const (
 	ANDOTP  Type = "andotp"

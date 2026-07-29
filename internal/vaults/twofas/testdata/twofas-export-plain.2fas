@@ -1,0 +1,32 @@
+{
+  "services": [
+    {
+      "name": "otp.provider.dev",
+      "secret": "abc123",
+      "updatedAt": 1785299771447,
+      "otp": {
+        "link": "otpauth://totp/otp.provider.dev:tester?algorithm=SHA1&digits=6&issuer=otp.provider.dev&period=30&secret=abc123",
+        "label": "tester",
+        "account": "tester",
+        "issuer": "otp.provider.dev",
+        "digits": 6,
+        "period": 30,
+        "algorithm": "SHA1",
+        "tokenType": "TOTP",
+        "source": "Link"
+      },
+      "order": { "position": 0 },
+      "icon": {
+        "selected": "Label",
+        "label": { "text": "OT", "backgroundColor": "Orange" },
+        "iconCollection": { "id": "a5b3fb65-4ec5-43e6-8ec1-49e24ca9e7ad" }
+      }
+    }
+  ],
+  "groups": [],
+  "updatedAt": 1785304029062,
+  "schemaVersion": 4,
+  "appVersionCode": 5000034,
+  "appVersionName": "5.5.3",
+  "appOrigin": "android"
+}

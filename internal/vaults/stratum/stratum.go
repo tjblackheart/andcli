@@ -65,6 +65,9 @@ func Open(filename string, pass []byte) (vaults.Vault, error) {
 	}
 
 	v := &stratum{Authenticators: make([]entry, 0)}
+	if v.IsPlain(b) {
+		return nil, vaults.ErrIsPlain
+	}
 
 	switch string(b[:len(HEADER)]) {
 	case HEADER:
@@ -123,6 +126,10 @@ func (v stratum) Entries() []vaults.Entry {
 	}
 
 	return list
+}
+
+func (v stratum) IsPlain(b []byte) bool {
+	return len(b) >= 7 && string(b[:7]) == "otpauth"
 }
 
 func (v stratum) decrypt(b, pass []byte) ([]byte, error) {

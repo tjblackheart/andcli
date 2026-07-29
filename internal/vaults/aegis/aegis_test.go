@@ -1,6 +1,7 @@
 package aegis
 
 import (
+	"errors"
 	"reflect"
 	"testing"
 
@@ -13,21 +14,26 @@ func TestOpen(t *testing.T) {
 		filename string
 		password string
 		fails    bool
+		wantErr  error
 	}{
-		{"decrypts", "testdata/aegis-export-test.json", "andcli-test", false},
-		{"fails: wrong password", "testdata/aegis-export-test.json", "invalid", true},
-		{"fails: invalid file", "testdata/aegis-invalid-file.json", "invalid", true},
+		{"decrypts", "testdata/aegis-export-test.json", "andcli-test", false, nil},
+		{"fails: wrong password", "testdata/aegis-export-test.json", "invalid", true, nil},
+		{"fails: invalid file", "testdata/aegis-invalid-file.json", "invalid", true, nil},
+		{"fails: plaintext vault", "testdata/aegis-export-test-plain.json", "", true, vaults.ErrIsPlain},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			v, err := Open(tt.filename, []byte(tt.password))
-			if tt.fails {
-				if err == nil {
-					t.Fatal("Open() expected error, got none")
-				}
-				return
+		if tt.fails {
+			if err == nil {
+				t.Fatal("Open() expected error, got none")
 			}
+			if tt.wantErr != nil && !errors.Is(err, tt.wantErr) {
+				t.Fatalf("Open() error = %v, want %v", err, tt.wantErr)
+			}
+			return
+		}
 
 			entries := v.Entries()
 			if len(entries) != 1 {
