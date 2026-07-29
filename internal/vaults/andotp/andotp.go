@@ -38,17 +38,22 @@ func Open(filename string, pass []byte) (vaults.Vault, error) {
 		return nil, fmt.Errorf("%s: %w", vaultType, err)
 	}
 
+	v := &andotp{entries: make([]entry, 0)}
+
+	if v.IsPlain(b) {
+		return nil, vaults.ErrIsPlain
+	}
+
 	b, err = gao.Decrypt(b, string(pass))
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", vaultType, err)
 	}
 
-	entries := make([]entry, 0)
-	if err := json.Unmarshal(b, &entries); err != nil {
+	if err := json.Unmarshal(b, &v.entries); err != nil {
 		return nil, fmt.Errorf("%s: %w", vaultType, err)
 	}
 
-	return &andotp{entries}, nil
+	return v, nil
 }
 
 func (v andotp) Entries() []vaults.Entry {
@@ -72,4 +77,8 @@ func (v andotp) Entries() []vaults.Entry {
 	}
 
 	return entries
+}
+
+func (v andotp) IsPlain(b []byte) bool {
+	return b[0] == '['
 }

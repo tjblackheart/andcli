@@ -83,6 +83,10 @@ func (v keepass) Entries() []vaults.Entry {
 	return entries
 }
 
+func (v keepass) IsPlain(b []byte) bool {
+	return false // not sure if you even can export an unecrypted kdbx.
+}
+
 func parseGroups(groups []gokeepasslib.Group) []gokeepasslib.Entry {
 	entries := make([]gokeepasslib.Entry, 0)
 	for _, group := range groups {

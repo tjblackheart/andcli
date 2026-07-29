@@ -72,6 +72,10 @@ func Open(filename string, pass []byte) (vaults.Vault, error) {
 		return nil, fmt.Errorf("%s: %w", vaultType, err)
 	}
 
+	if v.IsPlain(b) {
+		return nil, vaults.ErrIsPlain
+	}
+
 	if err := json.Unmarshal(b, &v); err != nil {
 		return nil, fmt.Errorf("%s: %w", vaultType, err)
 	}
@@ -118,6 +122,14 @@ func (v twofas) Entries() []vaults.Entry {
 	}
 
 	return entries
+}
+
+func (v twofas) IsPlain(b []byte) bool {
+	var s struct {
+		ServicesEncrypted json.RawMessage `json:"servicesEncrypted"`
+	}
+	json.Unmarshal(b, &s)
+	return len(s.ServicesEncrypted) == 0
 }
 
 func (v twofas) masterKeyFromPass(password []byte) ([]byte, error) {

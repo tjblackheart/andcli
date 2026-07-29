@@ -9,7 +9,6 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/tjblackheart/andcli/v2/internal/buildinfo"
 	"github.com/tjblackheart/andcli/v2/internal/config"
 	"github.com/tjblackheart/andcli/v2/internal/input"
 	"github.com/tjblackheart/andcli/v2/internal/model"
@@ -24,7 +23,6 @@ import (
 
 func main() {
 	log.SetFlags(0)
-	log.SetPrefix(fmt.Sprintf("%s: ", buildinfo.AppName))
 
 	cfg, err := config.Create()
 	if err != nil {
@@ -33,7 +31,7 @@ func main() {
 
 	vault, err := open(cfg)
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatalf("Error reading file: %s\n", err)
 	}
 
 	entries := vault.Entries()

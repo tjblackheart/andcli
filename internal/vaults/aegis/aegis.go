@@ -66,6 +66,10 @@ func Open(filename string, pass []byte) (vaults.Vault, error) {
 		return nil, fmt.Errorf("%s: %w", vaultType, err)
 	}
 
+	if v.IsPlain(b) {
+		return nil, vaults.ErrIsPlain
+	}
+
 	if err := json.Unmarshal(b, &v); err != nil {
 		return nil, fmt.Errorf("%s: %w", vaultType, err)
 	}
@@ -107,6 +111,18 @@ func (v aegis) Entries() []vaults.Entry {
 	}
 
 	return entries
+}
+
+func (v aegis) IsPlain(b []byte) bool {
+	var db struct {
+		DB json.RawMessage `json:"db"`
+	}
+
+	json.Unmarshal(b, &db) // intentional skip err check
+	if len(db.DB) > 0 && db.DB[0] != '"' {
+		return true
+	}
+	return false
 }
 
 func (v aegis) masterKeyFromPass(password []byte) ([]byte, error) {

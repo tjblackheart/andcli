@@ -1,0 +1,15 @@
+[
+  {
+    "secret": "ZLM4YMN5NTRNG7KHM45PYKSVUROQZQ5CFA5OH6AQ5TMWOBENLSTA====",
+    "issuer": "otp.nwo.dev",
+    "label": "andcli-test",
+    "digits": 6,
+    "type": "TOTP",
+    "algorithm": "SHA256",
+    "thumbnail": "Default",
+    "last_used": 1667481235360,
+    "used_frequency": 0,
+    "period": 30,
+    "tags": []
+  }
+]

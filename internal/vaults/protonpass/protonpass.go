@@ -19,7 +19,10 @@ import (
 
 const vaultType = vaults.PROTON
 
-var _ vaults.Vault = &envelope{}
+var (
+	_         vaults.Vault = &envelope{}
+	zipHeader              = []byte{0x50, 0x4b, 0x03, 0x04}
+)
 
 type (
 	envelope struct{ Vaults map[string]proton }
@@ -46,6 +49,11 @@ func Open(filename string, pass []byte) (vaults.Vault, error) {
 		return nil, fmt.Errorf("%s: %s", vaultType, err)
 	}
 
+	var e envelope
+	if e.IsPlain(b) {
+		return nil, vaults.ErrIsPlain
+	}
+
 	hnd, err := crypto.PGP().Decryption().Password(pass).New()
 	if err != nil {
 		return nil, fmt.Errorf("%s: %s", vaultType, err)
@@ -56,7 +64,6 @@ func Open(filename string, pass []byte) (vaults.Vault, error) {
 		return nil, fmt.Errorf("%s: %s", vaultType, err)
 	}
 
-	var e envelope
 	if err := json.Unmarshal(result.Bytes(), &e); err != nil {
 		return nil, fmt.Errorf("%s: %s", vaultType, err)
 	}
@@ -103,10 +110,12 @@ func (e envelope) Entries() []vaults.Entry {
 	return entries
 }
 
+func (e envelope) IsPlain(b []byte) bool {
+	return b[0] == '{' || string(b[:4]) == "type"
+}
+
 // opens, reads and returns file content, handles zip if necessary.
 func read(filename string) ([]byte, error) {
-	sig := []byte{0x50, 0x4b, 0x03, 0x04}
-
 	f, err := os.Open(filename)
 	if err != nil {
 		return nil, err
@@ -119,7 +128,7 @@ func read(filename string) ([]byte, error) {
 	}
 
 	// not a zip file
-	if !bytes.Equal(head, sig) {
+	if !bytes.Equal(head, zipHeader) {
 		return os.ReadFile(filename)
 	}
 

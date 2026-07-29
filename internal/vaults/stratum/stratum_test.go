@@ -1,6 +1,7 @@
 package stratum
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"testing"
@@ -18,21 +19,26 @@ func TestOpen(t *testing.T) {
 		filename string
 		password string
 		fails    bool
+		wantErr  error
 	}{
-		{"decrypts", "testdata/backup-andcli-test.stratum", "andcli-test", false},
-		{"fails: wrong password", "testdata/backup-andcli-test.stratum", "", true},
-		{"fails: legacy", "testdata/backup-legacy-andcli-test.stratum", "", true},
+		{"decrypts", "testdata/backup-andcli-test.stratum", "andcli-test", false, nil},
+		{"fails: wrong password", "testdata/backup-andcli-test.stratum", "", true, nil},
+		{"fails: legacy", "testdata/backup-legacy-andcli-test.stratum", "", true, nil},
+		{"fails: plaintext vault", "testdata/backup-andcli-test-plain.stratum.txt", "", true, vaults.ErrIsPlain},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			v, err := Open(tt.filename, []byte(tt.password))
-			if tt.fails {
-				if err == nil {
-					t.Fatal("Open() expected error, got none")
-				}
-				return
+		if tt.fails {
+			if err == nil {
+				t.Fatal("Open() expected error, got none")
 			}
+			if tt.wantErr != nil && !errors.Is(err, tt.wantErr) {
+				t.Fatalf("Open() error = %v, want %v", err, tt.wantErr)
+			}
+			return
+		}
 
 			entries := v.Entries()
 			if len(entries) != 3 {
