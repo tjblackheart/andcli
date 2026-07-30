@@ -63,9 +63,9 @@ func TestEntries(t *testing.T) {
 				{Issuer: "iss-5"},
 			},
 			[]vaults.Entry{
-				{Issuer: "iss-1", Digits: 6, Secret: "secret", Type: "TOTP", Algorithm: "SHA1", Period: 30},
-				{Issuer: "iss-3", Digits: 6, Secret: "secret", Type: "TOTP", Algorithm: "SHA1", Period: 20},
-				{Issuer: "iss-4", Digits: 4, Secret: "secret", Type: "TOTP", Algorithm: "SHA256", Period: 30},
+				{Issuer: "iss-1", Digits: 6, Secret: "SECRET", Type: "TOTP", Algorithm: "SHA1", Period: 30},
+				{Issuer: "iss-3", Digits: 6, Secret: "SECRET", Type: "TOTP", Algorithm: "SHA1", Period: 20},
+				{Issuer: "iss-4", Digits: 4, Secret: "SECRET", Type: "TOTP", Algorithm: "SHA256", Period: 30},
 			},
 		},
 	}

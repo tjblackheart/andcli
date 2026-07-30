@@ -234,6 +234,24 @@ func TestEntry_SanitizeAndValidate(t *testing.T) {
 			},
 			false,
 		},
+		{
+			"normalizes: secret to uppercase",
+			&Entry{
+				Secret:    "abc123",
+				Type:      "TOTP",
+				Period:    30,
+				Algorithm: "SHA1",
+				Digits:    6,
+			},
+			&Entry{
+				Secret:    "ABC123",
+				Type:      "TOTP",
+				Period:    30,
+				Algorithm: "SHA1",
+				Digits:    6,
+			},
+			false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
