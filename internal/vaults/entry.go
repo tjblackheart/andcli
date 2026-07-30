@@ -102,6 +102,9 @@ func (e *Entry) SanitizeAndValidate() error {
 		return ErrMissingSecret
 	}
 
+	e.Secret = strings.ToUpper(e.Secret)
+	e.Secret = strings.ReplaceAll(e.Secret, " ", "")
+
 	if strings.ToUpper(e.Type) != "TOTP" {
 		log.Printf("%q: ignoring: %s", e.Issuer, e.Type)
 		return ErrInvalidType
