@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/base32"
 	"encoding/base64"
 	"encoding/gob"
 	"fmt"
@@ -116,7 +117,6 @@ func getLogin(w http.ResponseWriter, r *http.Request) {
 }
 
 func postLogin(w http.ResponseWriter, r *http.Request) {
-
 	u, err := store.Find(r.PostFormValue("username"))
 	if err != nil {
 		log.Println(err)
@@ -189,12 +189,24 @@ func createOTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var secret []byte
+	if u.Secret != "" {
+		var err error
+		if secret, err = base32.StdEncoding.WithPadding(base32.NoPadding).DecodeString(u.Secret); err != nil {
+			log.Println("otp:", err)
+			session.Put(r.Context(), "flash", &flash{err.Error(), "danger"})
+			http.Redirect(w, r, "/otp/new", http.StatusFound)
+			return
+		}
+	}
+
 	opts := totp.GenerateOpts{
 		Issuer:      issuer,
 		Algorithm:   otpAlg,
 		AccountName: u.Username,
 		SecretSize:  otpSecretSize,
 		Digits:      otp.DigitsSix,
+		Secret:      secret,
 	}
 
 	otp, err := totp.Generate(opts)
@@ -206,6 +218,7 @@ func createOTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	u.Secret = otp.Secret()
+
 	if err := store.Update(u); err != nil {
 		log.Println(err)
 		session.Put(r.Context(), "flash", &flash{err.Error(), "danger"})
@@ -255,7 +268,13 @@ func postOTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	opts := totp.ValidateOpts{Algorithm: otpAlg, Digits: otpLen}
+	opts := totp.ValidateOpts{
+		Algorithm: otpAlg,
+		Digits:    otpLen,
+		Period:    30,
+		Skew:      1,
+	}
+
 	if valid, err := totp.ValidateCustom(token, user.Secret, time.Now().UTC(), opts); !valid || err != nil {
 		if err != nil {
 			log.Println("otp: validate:", err)
