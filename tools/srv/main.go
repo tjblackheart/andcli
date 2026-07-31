@@ -50,8 +50,8 @@ type (
 )
 
 var (
-	//go:embed assets/templates
-	tplFS   embed.FS
+	//go:embed assets/templates assets/css
+	assets  embed.FS
 	pages   = map[string]*template.Template{}
 	store   = &db{new(sync.Mutex), make(map[string]*user)}
 	session = scs.New()
@@ -60,7 +60,7 @@ var (
 func init() {
 	for _, p := range []string{"login", "register", "2fa", "2fa-create", "user"} {
 		pages[p] = template.Must(template.ParseFS(
-			tplFS,
+			assets,
 			"assets/templates/base.gohtml",
 			"assets/templates/blocks/flash.gohtml",
 			"assets/templates/pages/"+p+".gohtml",
@@ -112,8 +112,7 @@ func mux() chi.Router {
 		r.Get("/logout", getLogout)
 	})
 
-	fs := http.FileServer(http.Dir("./assets/css"))
-	mux.Handle("/assets/*", http.StripPrefix("/assets", fs))
+	mux.Handle("/assets/*", http.FileServerFS(assets))
 
 	return mux
 }
@@ -230,7 +229,7 @@ func createOTP(w http.ResponseWriter, r *http.Request) {
 		Secret:      secret,
 	}
 
-	otp, err := totp.Generate(opts)
+	key, err := totp.Generate(opts)
 	if err != nil {
 		log.Println("otp:", err)
 		session.Put(r.Context(), "flash", &flash{err.Error(), "danger"})
@@ -238,7 +237,7 @@ func createOTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	u.Secret = otp.Secret()
+	u.Secret = key.Secret()
 
 	if err := store.Update(u); err != nil {
 		log.Println(err)
@@ -248,7 +247,7 @@ func createOTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	buf := new(bytes.Buffer)
-	qr, err := otp.Image(240, 240)
+	qr, err := key.Image(240, 240)
 	if err != nil {
 		session.Put(r.Context(), "flash", &flash{err.Error(), "danger"})
 		http.Redirect(w, r, "/", http.StatusFound)
@@ -317,6 +316,7 @@ func postOTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	session.Put(r.Context(), "otp-validated", true)
+	session.Put(r.Context(), "user", user)
 
 	http.Redirect(w, r, "/user", http.StatusFound)
 }
