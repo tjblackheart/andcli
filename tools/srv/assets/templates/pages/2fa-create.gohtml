@@ -1,16 +1,13 @@
-{% extends "base.html.twig" %}
-
-{% block body %}
+{{ define "body" }}
 <h3>Create OTP</h3>
 <hr>
 
-{% include "blocks/flash.html.twig" %}
+{{ template "flash" . }}
 
 <form method="post" action="/otp">
-    <div class="centered"> <img src="data:image/png;base64,{{ qr }}" alt="qr"> </div>
+    <div class="centered"> <img src="{{ .qr }}" alt="qr"> </div>
     <label for="">Enter Token:</label>
     <input type="number" name="token">
     <button type="submit">Submit</button>
 </form>
-
-{% endblock %}
+{{ end }}

@@ -1,0 +1,6 @@
+{{ define "body" }}
+    <h3>User area</h3>
+    {{ template "flash" . }}
+    Hello {{ .user.Username }}!
+    <a href="/user/logout">Logout</a>
+{{ end }}

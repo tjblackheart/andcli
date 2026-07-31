@@ -1,14 +1,12 @@
-{% extends "base.html.twig" %}
-
-{% block body %}
+{{ define "body" }}
 <h3 class="title">Token</h3>
 <hr>
 
-{% include "blocks/flash.html.twig" %}
+{{ template "flash" . }}
 
 <form method="post" action="/otp">
     <label for="">Enter OTP:</label>
     <input type="number" name="token">
     <button type="submit">Submit</button>
 </form>
-{% endblock %}
+{{ end }}

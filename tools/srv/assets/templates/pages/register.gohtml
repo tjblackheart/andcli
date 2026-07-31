@@ -1,10 +1,8 @@
-{% extends "base.html.twig" %}
-
-{% block body %}
+{{ define "body" }}
 <h3>Register account</h3>
 <hr>
 
-{% include "blocks/flash.html.twig" %}
+{{ template "flash" . }}
 
 <form method="post" action="/register">
     <label for="">Username</label>
@@ -16,4 +14,4 @@
     <button type="submit">Register</button>
     <div class="centered"><a href="/">Cancel</a></div>
 </form>
-{% endblock %}
+{{ end }}

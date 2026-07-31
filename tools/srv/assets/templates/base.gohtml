@@ -1,3 +1,4 @@
+{{ define "base" }}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,11 +6,11 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>2fa demo</title>
-    <link rel="stylesheet" href="/assets/pico.min.css">
+    <link rel="stylesheet" href="/assets/css/pico.min.css">
     <style>
         :root {
             --pico-spacing: 1rem;
-            --pico-form-element-spacing-vertical: 0.35rem;
+            --pico-form-element-spacing-vertical: 0.5rem;
             --pico-form-element-spacing-horizontal: 1rem;
             --pico-font-size: 1rem;
         }
@@ -20,6 +21,9 @@
     </style>
 </head>
 <body>
-    <main class="container"> {% block body %}{% endblock %} </main>
+    <main class="container">
+      {{ template "body" . }}
+    </main>
 </body>
 </html>
+{{ end }}
