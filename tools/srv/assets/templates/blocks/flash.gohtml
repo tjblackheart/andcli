@@ -1,0 +1,7 @@
+{{ define "flash" }}
+  {{ if .flash}}
+    <div class="notification is-{{ .flash.Type }}">
+      {{ .flash.Message }}
+    </div>
+  {{ end }}
+{{ end }}

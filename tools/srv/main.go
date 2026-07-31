@@ -2,10 +2,12 @@ package main
 
 import (
 	"bytes"
+	"embed"
 	"encoding/base32"
 	"encoding/base64"
 	"encoding/gob"
 	"fmt"
+	"html/template"
 	"image/png"
 	"log"
 	"net/http"
@@ -18,7 +20,6 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/pquerna/otp"
 	"github.com/pquerna/otp/totp"
-	"github.com/tyler-sommer/stick"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -40,7 +41,7 @@ type (
 
 	flash struct{ Message, Type string }
 
-	m map[string]stick.Value
+	m map[string]any
 
 	db struct {
 		*sync.Mutex
@@ -49,10 +50,30 @@ type (
 )
 
 var (
-	env     = stick.New(stick.NewFilesystemLoader("./assets/templates"))
+	//go:embed assets/templates
+	tplFS   embed.FS
+	pages   = map[string]*template.Template{}
 	store   = &db{new(sync.Mutex), make(map[string]*user)}
 	session = scs.New()
 )
+
+func init() {
+	for _, p := range []string{"login", "register", "2fa", "2fa-create", "user"} {
+		pages[p] = template.Must(template.ParseFS(
+			tplFS,
+			"assets/templates/base.gohtml",
+			"assets/templates/blocks/flash.gohtml",
+			"assets/templates/pages/"+p+".gohtml",
+		))
+	}
+}
+
+func render(w http.ResponseWriter, page string, data m) {
+	if err := pages[page].ExecuteTemplate(w, "base", data); err != nil {
+		log.Println("render:", err)
+		http.Error(w, "internal error", 500)
+	}
+}
 
 /// app
 
@@ -113,7 +134,7 @@ func getLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	flash, _ := session.Pop(r.Context(), "flash").(*flash)
-	env.Execute("pages/login.html.twig", w, m{"flash": flash})
+	render(w, "login", m{"flash": flash})
 }
 
 func postLogin(w http.ResponseWriter, r *http.Request) {
@@ -143,7 +164,7 @@ func postLogin(w http.ResponseWriter, r *http.Request) {
 
 func getRegister(w http.ResponseWriter, r *http.Request) {
 	flash, _ := session.Pop(r.Context(), "flash").(*flash)
-	env.Execute("pages/register.html.twig", w, m{"flash": flash})
+	render(w, "register", m{"flash": flash})
 }
 
 func postRegister(w http.ResponseWriter, r *http.Request) {
@@ -241,8 +262,10 @@ func createOTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	flash, _ := session.Pop(r.Context(), "flash").(*flash)
-	env.Execute("pages/2fa-create.html.twig", w, m{
-		"qr":    base64.RawStdEncoding.EncodeToString(buf.Bytes()),
+	imgBytes := base64.RawStdEncoding.EncodeToString(buf.Bytes())
+
+	render(w, "2fa-create", m{
+		"qr":    template.URL("data:image/png;base64," + imgBytes),
 		"flash": flash,
 	})
 }
@@ -254,7 +277,8 @@ func getOTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	flash, _ := session.Pop(r.Context(), "flash").(*flash)
-	env.Execute("pages/2fa.html.twig", w, m{"flash": flash})
+
+	render(w, "2fa", m{"flash": flash})
 }
 
 func postOTP(w http.ResponseWriter, r *http.Request) {
@@ -299,7 +323,7 @@ func postOTP(w http.ResponseWriter, r *http.Request) {
 
 func getUser(w http.ResponseWriter, r *http.Request) {
 	u, _ := session.Get(r.Context(), "user").(*user)
-	env.Execute("pages/user.html.twig", w, m{"user": u})
+	render(w, "user", m{"user": u})
 }
 
 func getLogout(w http.ResponseWriter, r *http.Request) {
