@@ -32,13 +32,15 @@ type (
 	}
 )
 
+func init() { vaults.Register(vaultType, Open) }
+
 func Open(filename string, pass []byte) (vaults.Vault, error) {
 	b, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", vaultType, err)
 	}
 
-	v := &andotp{entries: make([]entry, 0)}
+	v := andotp{entries: make([]entry, 0)}
 
 	if v.IsPlain(b) {
 		return nil, vaults.ErrIsPlain
@@ -53,7 +55,7 @@ func Open(filename string, pass []byte) (vaults.Vault, error) {
 		return nil, fmt.Errorf("%s: %w", vaultType, err)
 	}
 
-	return v, nil
+	return &v, nil
 }
 
 func (v andotp) Entries() []vaults.Entry {

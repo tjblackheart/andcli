@@ -54,7 +54,7 @@ func (cfg *Config) parseFlags() error {
 	}
 
 	if *vtype != "" {
-		cfg.Type = vaults.Type(*vtype)
+		cfg.Type = vaults.VaultType(*vtype)
 		cfg.dirty = true
 	}
 

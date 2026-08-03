@@ -25,10 +25,10 @@ var (
 )
 
 type (
-	envelope struct{ Vaults map[string]proton }
+	envelope struct{ Vaults map[string]protonvault }
 
 	// protonvault only implements the essentials for reading OTP data.
-	proton struct {
+	protonvault struct {
 		Name, Description string
 		Items             []struct {
 			Data struct {
@@ -43,14 +43,16 @@ type (
 	}
 )
 
+func init() { vaults.Register(vaultType, Open) }
+
 func Open(filename string, pass []byte) (vaults.Vault, error) {
 	b, err := read(filename)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %s", vaultType, err)
 	}
 
-	var e envelope
-	if e.IsPlain(b) {
+	var v envelope
+	if v.IsPlain(b) {
 		return nil, vaults.ErrIsPlain
 	}
 
@@ -64,11 +66,11 @@ func Open(filename string, pass []byte) (vaults.Vault, error) {
 		return nil, fmt.Errorf("%s: %s", vaultType, err)
 	}
 
-	if err := json.Unmarshal(result.Bytes(), &e); err != nil {
+	if err := json.Unmarshal(result.Bytes(), &v); err != nil {
 		return nil, fmt.Errorf("%s: %s", vaultType, err)
 	}
 
-	return e, nil
+	return &v, nil
 }
 
 func (e envelope) Entries() []vaults.Entry {
