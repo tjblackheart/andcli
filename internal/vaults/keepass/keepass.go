@@ -18,6 +18,8 @@ var _ vaults.Vault = &keepass{}
 
 type keepass struct{ entries []gokeepasslib.Entry }
 
+func init() { vaults.Register(vaultType, Open) }
+
 func Open(filename string, pass []byte) (vaults.Vault, error) {
 	v := keepass{entries: make([]gokeepasslib.Entry, 0)}
 	db := gokeepasslib.NewDatabase()
@@ -43,7 +45,7 @@ func Open(filename string, pass []byte) (vaults.Vault, error) {
 
 	v.entries = append(v.entries, parseGroups(db.Content.Root.Groups)...)
 
-	return v, nil
+	return &v, nil
 }
 
 func (v keepass) Entries() []vaults.Entry {

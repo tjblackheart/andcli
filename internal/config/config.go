@@ -16,12 +16,12 @@ import (
 
 type (
 	Config struct {
-		File           string      `yaml:"file"`
-		Type           vaults.Type `yaml:"type"`
-		ClipboardCmd   string      `yaml:"clipboard_cmd"`
-		Options        *Opts       `yaml:"options"`
-		Theme          *Theme      `yaml:"theme"`
-		SessionTimeout int         `yaml:"session_timeout"`
+		File           string           `yaml:"file"`
+		Type           vaults.VaultType `yaml:"type"`
+		ClipboardCmd   string           `yaml:"clipboard_cmd"`
+		Options        *Opts            `yaml:"options"`
+		Theme          *Theme           `yaml:"theme"`
+		SessionTimeout int              `yaml:"session_timeout"`
 		//
 		path              string
 		passwordFromStdin bool

@@ -25,15 +25,15 @@ func TestOpen(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			v, err := Open(tt.filename, []byte(tt.password))
-		if tt.fails {
-			if err == nil {
-				t.Fatal("Open() expected error, got none")
+			if tt.fails {
+				if err == nil {
+					t.Fatal("Open() expected error, got none")
+				}
+				if tt.wantErr != nil && !errors.Is(err, tt.wantErr) {
+					t.Fatalf("Open() error = %v, want %v", err, tt.wantErr)
+				}
+				return
 			}
-			if tt.wantErr != nil && !errors.Is(err, tt.wantErr) {
-				t.Fatalf("Open() error = %v, want %v", err, tt.wantErr)
-			}
-			return
-		}
 
 			entries := v.Entries()
 			if len(entries) != 1 {

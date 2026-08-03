@@ -235,7 +235,7 @@ theme:
 
 	cfg := &Config{
 		File:           "/new/vault.json",
-		Type:           vaults.Type("2fas"),
+		Type:           vaults.VaultType("2fas"),
 		ClipboardCmd:   "pbcopy",
 		SessionTimeout: 300,
 		Options: &Opts{
@@ -302,7 +302,7 @@ func Test_create(t *testing.T) {
 	// default config
 	want := &Config{
 		File:           abs,
-		Type:           vaults.Type(*vtype),
+		Type:           vaults.VaultType(*vtype),
 		SessionTimeout: 300,
 		ClipboardCmd:   "",
 		Options: &Opts{

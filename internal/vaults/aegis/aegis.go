@@ -58,6 +58,8 @@ type (
 	}
 )
 
+func init() { vaults.Register(vaultType, Open) }
+
 func Open(filename string, pass []byte) (vaults.Vault, error) {
 	var v aegis
 
@@ -88,7 +90,7 @@ func Open(filename string, pass []byte) (vaults.Vault, error) {
 		return nil, fmt.Errorf("%s: %w", vaultType, err)
 	}
 
-	return v, nil
+	return &v, nil
 }
 
 func (v aegis) Entries() []vaults.Entry {

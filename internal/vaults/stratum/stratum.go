@@ -58,13 +58,15 @@ type (
 	}
 )
 
+func init() { vaults.Register(vaultType, Open) }
+
 func Open(filename string, pass []byte) (vaults.Vault, error) {
 	b, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
 
-	v := &stratum{Authenticators: make([]entry, 0)}
+	v := stratum{Authenticators: make([]entry, 0)}
 	if v.IsPlain(b) {
 		return nil, vaults.ErrIsPlain
 	}
@@ -91,7 +93,7 @@ func Open(filename string, pass []byte) (vaults.Vault, error) {
 		}
 	}
 
-	return v, nil
+	return &v, nil
 }
 
 func (v stratum) Entries() []vaults.Entry {

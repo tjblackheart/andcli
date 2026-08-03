@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -13,12 +14,13 @@ import (
 	"github.com/tjblackheart/andcli/v2/internal/input"
 	"github.com/tjblackheart/andcli/v2/internal/model"
 	"github.com/tjblackheart/andcli/v2/internal/vaults"
-	"github.com/tjblackheart/andcli/v2/internal/vaults/aegis"
-	"github.com/tjblackheart/andcli/v2/internal/vaults/andotp"
-	"github.com/tjblackheart/andcli/v2/internal/vaults/keepass"
-	"github.com/tjblackheart/andcli/v2/internal/vaults/protonpass"
-	"github.com/tjblackheart/andcli/v2/internal/vaults/stratum"
-	"github.com/tjblackheart/andcli/v2/internal/vaults/twofas"
+
+	_ "github.com/tjblackheart/andcli/v2/internal/vaults/aegis"
+	_ "github.com/tjblackheart/andcli/v2/internal/vaults/andotp"
+	_ "github.com/tjblackheart/andcli/v2/internal/vaults/keepass"
+	_ "github.com/tjblackheart/andcli/v2/internal/vaults/protonpass"
+	_ "github.com/tjblackheart/andcli/v2/internal/vaults/stratum"
+	_ "github.com/tjblackheart/andcli/v2/internal/vaults/twofas"
 )
 
 func main() {
@@ -70,42 +72,10 @@ func open(cfg *config.Config) (vaults.Vault, error) {
 		return nil, err
 	}
 
-	defer func() {
-		for i := range pw {
-			pw[i] = 0
-		}
-	}()
+	ctx, cancel := context.WithTimeout(context.Background(), cfg.DecryptionTimeoutD())
+	defer cancel()
 
-	done := make(chan struct{})
-
-	var vault vaults.Vault
-	go func() {
-		switch cfg.Type {
-		case vaults.ANDOTP:
-			vault, err = andotp.Open(cfg.File, pw)
-		case vaults.AEGIS:
-			vault, err = aegis.Open(cfg.File, pw)
-		case vaults.TWOFAS:
-			vault, err = twofas.Open(cfg.File, pw)
-		case vaults.STRATUM:
-			vault, err = stratum.Open(cfg.File, pw)
-		case vaults.KEEPASS:
-			vault, err = keepass.Open(cfg.File, pw)
-		case vaults.PROTON:
-			vault, err = protonpass.Open(cfg.File, pw)
-		default:
-			vault, err = nil, fmt.Errorf("vault type %q: not implemented", cfg.Type)
-		}
-		done <- struct{}{}
-	}()
-
-	select {
-	case <-done:
-	case <-time.After(cfg.DecryptionTimeoutD()):
-		return nil, fmt.Errorf("decrypt: operation timed out. wrong type?")
-	}
-
-	return vault, err
+	return vaults.Open(ctx, cfg.File, pw, cfg.Type)
 }
 
 func password(piped bool) ([]byte, error) {

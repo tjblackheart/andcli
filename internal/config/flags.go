@@ -14,7 +14,7 @@ import (
 var (
 	set               = flag.NewFlagSet("default", flag.ExitOnError)
 	vfile             = set.StringP("file", "f", "", "Path to the encrypted vault (deprecated: Pass the filename directly)")
-	vtype             = set.StringP("type", "t", "", fmt.Sprintf("Vault type (%s)", vaults.StrTypes()))
+	vtype             = set.StringP("type", "t", "", "Vault types")
 	cmd               = set.StringP("clipboard-cmd", "c", "", "A custom clipboard command, including args (xclip, wl-copy, pbcopy etc.)")
 	pwstdin           = set.Bool("passwd-stdin", false, "Read the vault password from stdin. If set, skips the password input.")
 	query             = set.StringP("query", "q", "", "Query the vault directly and skip TUI functionality")
@@ -27,6 +27,7 @@ var (
 // Parses given flags into the existing config.
 func (cfg *Config) parseFlags() error {
 	set.Usage = func() { usage(true) }
+	set.Lookup("type").Usage = fmt.Sprintf("Vault type (%s)", vaults.StrTypes())
 
 	if err := set.Parse(os.Args[1:]); err != nil {
 		log.Printf("%s: %s", buildinfo.AppName, err)
@@ -54,7 +55,7 @@ func (cfg *Config) parseFlags() error {
 	}
 
 	if *vtype != "" {
-		cfg.Type = vaults.Type(*vtype)
+		cfg.Type = vaults.VaultType(*vtype)
 		cfg.dirty = true
 	}
 
