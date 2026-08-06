@@ -14,6 +14,8 @@ import (
 	"github.com/tjblackheart/andcli/v2/internal/vaults"
 )
 
+const cfgFileName = "config.yaml"
+
 type (
 	Config struct {
 		File           string           `yaml:"file"`
@@ -44,7 +46,7 @@ func Create() (*Config, error) {
 	if err != nil {
 		return nil, fmt.Errorf("unable to read user directory: %s", err)
 	}
-	return create(dir)
+	return create(resolve(dir))
 }
 
 func create(dir string) (*Config, error) {
@@ -54,7 +56,7 @@ func create(dir string) (*Config, error) {
 	}
 
 	cfg := &Config{
-		path: filepath.Join(path, "config.yaml"),
+		path: filepath.Join(path, cfgFileName),
 		Options: &Opts{
 			ShowUsernames: true,
 			ShowTokens:    false,
@@ -212,4 +214,14 @@ func (cfg *Config) validate() error {
 	}
 
 	return nil
+}
+
+func resolve(dir string) string {
+	path := filepath.Join(dir, buildinfo.AppName, cfgFileName)
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		if xdg := os.Getenv("XDG_CONFIG_HOME"); xdg != "" {
+			return xdg
+		}
+	}
+	return dir
 }

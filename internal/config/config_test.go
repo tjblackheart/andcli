@@ -310,13 +310,57 @@ func Test_create(t *testing.T) {
 			ShowTokens:    false,
 		},
 		Theme:   &DefaultTheme,
-		path:    filepath.Join(cfgDir, buildinfo.AppName, "config.yaml"),
+		path:    filepath.Join(cfgDir, buildinfo.AppName, cfgFileName),
 		dirty:   true,
 		timeout: 5,
 	}
 
 	if !reflect.DeepEqual(cfg, want) {
 		t.Errorf("want: %#v, have: %#v", want, cfg)
+	}
+}
+
+func Test_resolve(t *testing.T) {
+	writeCfg := func(dir string) {
+		t.Helper()
+		path := filepath.Join(dir, buildinfo.AppName, cfgFileName)
+		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(path, nil, 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	tests := []struct {
+		name   string
+		xdg    string
+		hasCfg bool
+	}{
+		{"xdg unset uses default dir", "", false},
+		{"xdg unset keeps default dir with existing config", "", true},
+		{"prefers xdg when no config exists", "/tmp/xdg-test", false},
+		{"keeps existing config over xdg", "/tmp/xdg-test", true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Setenv("XDG_CONFIG_HOME", tt.xdg)
+
+			dir := t.TempDir()
+			if tt.hasCfg {
+				writeCfg(dir)
+			}
+
+			want := dir
+			if !tt.hasCfg && tt.xdg != "" {
+				want = tt.xdg
+			}
+
+			if got := resolve(dir); got != want {
+				t.Errorf("resolve() = %q, want %q", got, want)
+			}
+		})
 	}
 }
 

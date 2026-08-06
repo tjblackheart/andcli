@@ -1,7 +1,5 @@
 # andcli
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/tjblackheart/andcli)](https://goreportcard.com/report/github.com/tjblackheart/andcli) ![Build](https://github.com/tjblackheart/andcli/actions/workflows/build.yaml/badge.svg) [![AI free project](https://img.shields.io/badge/AI-is_a_lie-cc0000?logo=githubcopilot&logoColor=white)](https://deplet.ing/the-copilot-delusion)
-
 andcli lets you work with 2FA tokens directly in your shell, using encrypted backups exported out of your favourite 2FA apps. All the data is held in memory only and will never leave your machine.
 
 andcli can handle input from the following providers (if they provide more than 2FA support, only the OTP related entries will be consumed):
@@ -49,7 +47,8 @@ By default andcli will choose the first system clipboard tool found. For Linux, 
 
 ## Config file
 
-The configuration will get persisted in the default user home config directory. For Linux, this is `$HOME/.config/andcli`. For MacOS, it's `$HOME/Library/Application Support/andcli` and for Windows it should be in `C:\Users\$USER\AppData\Roaming\andcli`.
+The configuration is persisted in the default user home config directory. For Linux, this is `$XDG_CONFIG_HOME/andcli`. For MacOS, it's `$HOME/Library/Application Support/andcli`. For Windows it's `C:\Users\$USER\AppData\Roaming\andcli`.
+If `$XDG_CONFIG_HOME` is set it will be used as the preferred config home dir on all OSes.
 
 ## Theming
 
