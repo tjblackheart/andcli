@@ -1,0 +1,2 @@
+otpauth://totp/otp.provider.dev:demo1?secret=ABCDEF
+otpauth://totp/otp.provider.dev:demo1?secret=CFEDAB

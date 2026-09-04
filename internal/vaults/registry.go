@@ -15,6 +15,7 @@ const (
 	KEEPASS     VaultType = "keepass"
 	PROTON      VaultType = "proton"
 	PROTON_AUTH VaultType = "protonauth"
+	ENTE        VaultType = "ente"
 )
 
 type (
