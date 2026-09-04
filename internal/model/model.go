@@ -170,6 +170,7 @@ func initList(items []list.Item, delegate *itemDelegate, title string) list.Mode
 		key.NewBinding(key.WithKeys("c", "y"), key.WithHelp("c/y", "yank to clipboard")),
 	}
 
+	lst.KeyMap.Quit = key.NewBinding(key.WithKeys("q", "esc"))
 	lst.FilterInput.Prompt = "Search for: "
 	lst.Styles.Filter.Focused.Prompt = style.filterPrompt
 	lst.Styles.Filter.Focused.Text = style.filterCursor
