@@ -18,6 +18,7 @@ import (
 	_ "github.com/tjblackheart/andcli/v2/internal/vaults/aegis"
 	_ "github.com/tjblackheart/andcli/v2/internal/vaults/andotp"
 	_ "github.com/tjblackheart/andcli/v2/internal/vaults/keepass"
+	_ "github.com/tjblackheart/andcli/v2/internal/vaults/protonauth"
 	_ "github.com/tjblackheart/andcli/v2/internal/vaults/protonpass"
 	_ "github.com/tjblackheart/andcli/v2/internal/vaults/stratum"
 	_ "github.com/tjblackheart/andcli/v2/internal/vaults/twofas"

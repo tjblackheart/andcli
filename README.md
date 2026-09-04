@@ -10,6 +10,7 @@ andcli can handle input from the following providers (if they provide more than 
 - [Stratum / Authenticator Pro](https://stratumauth.com)
 - [Keepass](https://www.keepassdx.com/) or anything else that exports \*.kdbx v2
 - [ProtonPass](https://proton.me/pass) in \*.pgp and \*.zip format
+- [Proton Authenticator](https://proton.me/authenticator)
 
 At the moment only TOTP entries are supported.
 
@@ -75,7 +76,7 @@ Options:
   -q, --query string           Query the vault directly and skip TUI functionality
       --session-timeout int    Auto-close after N seconds of inactivity (0=disabled) (default 300)
       --timeout int            Timeout for decrypting the vault file, in seconds (default 5)
-  -t, --type string            Vault type (andotp, aegis, twofas, stratum, keepass, proton)
+  -t, --type string            Vault type (aegis, andotp, keepass, proton, protonauth, stratum, twofas)
   -v, --version                Prints version info and exits
 ```
 

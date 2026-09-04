@@ -8,12 +8,13 @@ import (
 )
 
 const (
-	ANDOTP  VaultType = "andotp"
-	AEGIS   VaultType = "aegis"
-	TWOFAS  VaultType = "twofas"
-	STRATUM VaultType = "stratum"
-	KEEPASS VaultType = "keepass"
-	PROTON  VaultType = "proton"
+	ANDOTP      VaultType = "andotp"
+	AEGIS       VaultType = "aegis"
+	TWOFAS      VaultType = "twofas"
+	STRATUM     VaultType = "stratum"
+	KEEPASS     VaultType = "keepass"
+	PROTON      VaultType = "proton"
+	PROTON_AUTH VaultType = "protonauth"
 )
 
 type (
