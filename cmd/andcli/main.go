@@ -13,6 +13,7 @@ import (
 	"github.com/tjblackheart/andcli/v2/internal/config"
 	"github.com/tjblackheart/andcli/v2/internal/input"
 	"github.com/tjblackheart/andcli/v2/internal/model"
+	"github.com/tjblackheart/andcli/v2/internal/spinner"
 	"github.com/tjblackheart/andcli/v2/internal/vaults"
 
 	_ "github.com/tjblackheart/andcli/v2/internal/vaults/aegis"
@@ -76,6 +77,10 @@ func open(cfg *config.Config) (vaults.Vault, error) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), cfg.DecryptionTimeoutD())
 	defer cancel()
+
+	s := spinner.Brew.SetSuffix("Decrypting ...")
+	s.Start()
+	defer s.Stop()
 
 	return vaults.Open(ctx, cfg.File, pw, cfg.Type)
 }
