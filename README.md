@@ -11,6 +11,7 @@ andcli can handle input from the following providers (if they provide more than 
 - [Keepass](https://www.keepassdx.com/) or anything else that exports \*.kdbx v2
 - [ProtonPass](https://proton.me/pass) in \*.pgp and \*.zip format
 - [Proton Authenticator](https://proton.me/authenticator)
+- [Ente Authenticator](https://ente.com/auth)
 
 At the moment only TOTP entries are supported.
 
