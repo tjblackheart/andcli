@@ -14,7 +14,11 @@ import (
 	"golang.org/x/crypto/argon2"
 )
 
-const vaultType = vaults.ENTE
+const (
+	p_cost     = 1
+	kdfKeySize = 32
+	vaultType  = vaults.ENTE
+)
 
 var _ vaults.Vault = &ente{}
 
@@ -83,9 +87,8 @@ func (v *ente) Entries() []vaults.Entry {
 			continue
 		}
 
-		label := ""
-		parts := strings.SplitN(u.Path, ":", 2)
-		if len(parts) == 2 {
+		label := "-"
+		if parts := strings.SplitN(u.Path, ":", 2); len(parts) == 2 {
 			label = parts[1]
 		}
 
@@ -117,11 +120,11 @@ func (v *ente) decrypt(pass []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	time, mem := v.KdfParams.OpsLimit, v.KdfParams.MemLimit/1024
-	if mem < 1024 || time < 1 {
+	t_cost, m_cost := v.KdfParams.OpsLimit, v.KdfParams.MemLimit/1024
+	if m_cost < 1024 || t_cost < 1 {
 		return nil, fmt.Errorf("invalid kdf params")
 	}
-	key := argon2.IDKey(pass, salt, time, mem, 1, 32)
+	key := argon2.IDKey(pass, salt, t_cost, m_cost, p_cost, kdfKeySize)
 
 	data, err := base64.StdEncoding.DecodeString(v.EncryptedData)
 	if err != nil {
