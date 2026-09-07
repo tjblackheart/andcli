@@ -165,12 +165,12 @@ func initList(items []list.Item, delegate *itemDelegate, title string) list.Mode
 	style := delegate.style
 
 	keys := []key.Binding{
-		key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "toggle token")),
+		key.NewBinding(key.WithKeys("enter"), key.WithHelp("↵", "toggle token")),
 		key.NewBinding(key.WithKeys("u"), key.WithHelp("u", "toggle usernames")),
 		key.NewBinding(key.WithKeys("c", "y"), key.WithHelp("c/y", "yank to clipboard")),
 	}
 
-	lst.KeyMap.Quit = key.NewBinding(key.WithKeys("q", "esc"))
+	lst.KeyMap.Quit = key.NewBinding(key.WithKeys("q", "esc"), key.WithHelp("q", "Quit"))
 	lst.FilterInput.Prompt = "Search for: "
 	lst.Styles.Filter.Focused.Prompt = style.filterPrompt
 	lst.Styles.Filter.Focused.Text = style.filterCursor
