@@ -76,7 +76,7 @@ func (v *ente) IsPlain(b []byte) bool {
 func (v *ente) Entries() []vaults.Entry {
 	entries := make([]vaults.Entry, 0)
 
-	for _, line := range strings.Split(string(v.plain), "\n") {
+	for line := range strings.SplitSeq(string(v.plain), "\n") {
 		if line == "" {
 			continue
 		}
