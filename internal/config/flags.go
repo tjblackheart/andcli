@@ -13,7 +13,6 @@ import (
 
 var (
 	set               = flag.NewFlagSet("default", flag.ExitOnError)
-	vfile             = set.StringP("file", "f", "", "Path to the encrypted vault (deprecated: Pass the filename directly)")
 	vtype             = set.StringP("type", "t", "", "Vault types")
 	cmd               = set.StringP("clipboard-cmd", "c", "", "A custom clipboard command, including args (xclip, wl-copy, pbcopy etc.)")
 	pwstdin           = set.Bool("passwd-stdin", false, "Read the vault password from stdin. If set, skips the password input.")
@@ -43,15 +42,6 @@ func (cfg *Config) parseFlags() error {
 	if *help {
 		usage(true)
 		os.Exit(0)
-	}
-
-	if *vfile != "" {
-		abs, err := filepath.Abs(*vfile)
-		if err != nil {
-			return err
-		}
-		cfg.File = abs
-		cfg.dirty = true
 	}
 
 	if *vtype != "" {
