@@ -289,10 +289,12 @@ theme:
 }
 
 func Test_create(t *testing.T) {
+	path := filepath.Join("testdata", "empty.json")
+	os.Args = []string{"andcli", path}
+	abs, _ := filepath.Abs(path)
+
 	cfgDir := os.TempDir()
-	*vfile = filepath.Join("testdata", "empty.json")
 	*vtype = "aegis"
-	abs, _ := filepath.Abs(*vfile)
 
 	cfg, err := create(cfgDir)
 	if err != nil {
@@ -426,15 +428,6 @@ func TestConfig_Flags(t *testing.T) {
 			},
 		},
 		{
-			"sets file",
-			[]string{"andcli", "-f", tmpFile.Name(), "-t", "aegis"},
-			func(c *Config) {
-				if c.File != absPath {
-					t.Errorf("File = %q, want %q", c.File, absPath)
-				}
-			},
-		},
-		{
 			"sets type",
 			[]string{"andcli", "-t", "2fas", tmpFile.Name()},
 			func(c *Config) {
@@ -455,15 +448,6 @@ func TestConfig_Flags(t *testing.T) {
 		{
 			"sets file from arg[0]",
 			[]string{"andcli", "-t", "aegis", tmpFile.Name()},
-			func(c *Config) {
-				if c.File != absPath {
-					t.Errorf("File = %q, want %q", c.File, absPath)
-				}
-			},
-		},
-		{
-			"arg[0] overrides file flag",
-			[]string{"andcli", "-f", "other.vault", "-t", "aegis", tmpFile.Name()},
 			func(c *Config) {
 				if c.File != absPath {
 					t.Errorf("File = %q, want %q", c.File, absPath)
