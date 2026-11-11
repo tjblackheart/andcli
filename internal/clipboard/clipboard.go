@@ -1,6 +1,8 @@
 package clipboard
 
 import (
+	"bytes"
+	"os"
 	"os/exec"
 	"runtime"
 	"strings"
@@ -18,23 +20,6 @@ type (
 	}
 )
 
-var utils = map[string][]sysUtil{
-	"windows": {
-		{cmd: "clip.exe"},
-	},
-	"darwin": {
-		{cmd: "pbcopy"},
-	},
-	"linux": {
-		{cmd: "xclip", args: []string{"-selection", "clipboard"}},
-		{cmd: "xsel", args: []string{"-b"}},
-		{cmd: "wl-copy"},
-	},
-	"android": {
-		{cmd: "termux-clipboard-set"},
-	},
-}
-
 // New inits a new Clipboard instance with a given comand string.
 // If nothing is provided, it falls back to available system tools.
 func New(s string) *Clipboard {
@@ -48,25 +33,8 @@ func New(s string) *Clipboard {
 // Set writes b to the selected clipboard.
 func (cb Clipboard) Set(b []byte) error {
 	cmd := exec.Command(cb.cmd, cb.args...)
-
-	pipe, err := cmd.StdinPipe()
-	if err != nil {
-		return err
-	}
-
-	if err := cmd.Start(); err != nil {
-		return err
-	}
-
-	if _, err := pipe.Write(b); err != nil {
-		return err
-	}
-
-	if err := pipe.Close(); err != nil {
-		return err
-	}
-
-	return cmd.Wait()
+	cmd.Stdin = bytes.NewReader(b)
+	return cmd.Run()
 }
 
 // Checks if a command is povided and the clipboard is usable
@@ -77,33 +45,74 @@ func (cb Clipboard) IsInitialized() bool {
 // Inits the clipboard with the given user values.
 // path validation is done in config already.
 func (cb *Clipboard) initUser(s string) *Clipboard {
-	parts := strings.SplitN(s, " ", 2)
-	if parts[0] != "" {
-		cb.cmd = parts[0]
-		if len(parts) > 1 {
-			cb.args = strings.Fields(parts[1])
-		}
+	parts := strings.Fields(s)
+	if len(parts) == 0 {
+		return cb
 	}
+
+	cb.cmd = parts[0]
+	cb.args = parts[1:]
 
 	return cb
 }
 
-// Inits the clipboard with the first occurence found of the defined system tools.
+// Inits the clipboard with the first occurrence found of the defined system tools.
 func (cb *Clipboard) initSystem() *Clipboard {
-	list, ok := utils[runtime.GOOS]
-	if !ok {
-		return cb
+	lookPath := func(name string) (string, bool) {
+		path, err := exec.LookPath(name)
+		return path, err == nil
 	}
 
-	for _, item := range list {
-		if path, err := exec.LookPath(item.cmd); err == nil {
-			cb.cmd = path
-			cb.args = item.args
-			break
+	cb.cmd, cb.args = detect(runtime.GOOS, os.Getenv, lookPath)
+	return cb
+}
+
+// detect resolves the first available system clipboard command.
+func detect(goos string, getenv func(string) string, lookPath func(string) (string, bool)) (cmd string, args []string) {
+	cmds := make([]sysUtil, 0, 4)
+
+	switch goos {
+	case "linux":
+		if getenv("TERMUX_VERSION") != "" {
+			cmds = append(cmds, sysUtil{cmd: "termux-clipboard-set"})
+		}
+
+		isWayland := getenv("WAYLAND_DISPLAY") != ""
+		if isWayland {
+			cmds = append(cmds, sysUtil{cmd: "wl-copy"})
+		}
+
+		isX11 := getenv("DISPLAY") != ""
+		if isX11 {
+			cmds = append(cmds,
+				sysUtil{cmd: "xclip", args: []string{"-selection", "clipboard"}},
+				sysUtil{cmd: "xsel", args: []string{"-b"}},
+			)
+		}
+
+		if !isWayland && !isX11 {
+			cmds = append(cmds,
+				sysUtil{cmd: "wl-copy"},
+				sysUtil{cmd: "xclip", args: []string{"-selection", "clipboard"}},
+				sysUtil{cmd: "xsel", args: []string{"-b"}},
+			)
+		}
+
+	case "darwin":
+		cmds = append(cmds, sysUtil{cmd: "pbcopy"})
+	case "windows":
+		cmds = append(cmds, sysUtil{cmd: "clip.exe"})
+	case "android":
+		cmds = append(cmds, sysUtil{cmd: "termux-clipboard-set"})
+	}
+
+	for _, v := range cmds {
+		if path, ok := lookPath(v.cmd); ok {
+			return path, v.args
 		}
 	}
 
-	return cb
+	return "", []string{}
 }
 
 // Return a formatted string built from the current command, including args.

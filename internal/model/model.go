@@ -38,6 +38,11 @@ type (
 	}
 
 	tickMsg struct{}
+
+	cbMsg struct {
+		err     error
+		command string
+	}
 )
 
 var (
@@ -97,18 +102,24 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "u":
 			m.state.showUsernames = !m.state.showUsernames
 		case "c", "y":
+			t := m.state.currentOTP.token
 			if !m.cb.IsInitialized() {
-				msg := fmt.Sprintf("%s No clipboard command available", copyErr)
-				return m, m.list.NewStatusMessage(msg)
+				msg := fmt.Sprintf("%s Token copied to terminal clipboard", copyOK)
+				status := m.list.NewStatusMessage(msg)
+				return m, tea.Batch(status, tea.SetClipboard(t))
 			}
 
-			msg := fmt.Sprintf("%s Token copied to clipboard", copyOK)
-			if err := m.cb.Set([]byte(m.state.currentOTP.token)); err != nil {
-				msg = fmt.Sprintf("%s %s: %s", copyErr, m.cb.String(), err)
+			return m, func() tea.Msg {
+				return cbMsg{err: m.cb.Set([]byte(t)), command: m.cb.String()}
 			}
-
-			return m, m.list.NewStatusMessage(msg)
 		}
+
+	case cbMsg:
+		status := fmt.Sprintf("%s Token copied to system clipboard", copyOK)
+		if msg.err != nil {
+			status = fmt.Sprintf("%s %s: %s", copyErr, msg.command, msg.err)
+		}
+		return m, m.list.NewStatusMessage(status)
 
 	case tickMsg:
 		if m.sessionTimeout > 0 && time.Since(m.lastActivity) > m.sessionTimeout {
