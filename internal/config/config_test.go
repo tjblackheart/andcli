@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"os/exec"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -171,6 +172,36 @@ func TestConfig_validate(t *testing.T) {
 				t.Errorf("Config.validate() have = %q, want %q", err.Error(), tt.contains)
 			}
 		})
+	}
+}
+
+func TestConfigValidateClipboardCommandPreservesArgs(t *testing.T) {
+	vault := filepath.Join(t.TempDir(), "vault.json")
+	if err := os.WriteFile(vault, nil, 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	executable, err := os.Executable()
+	if err != nil {
+		t.Fatal(err)
+	}
+	resolved, err := exec.LookPath(executable)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	cfg := &Config{
+		File:         vault,
+		Type:         "test",
+		ClipboardCmd: executable + ` --name "` + executable + `"`,
+	}
+	if err := cfg.validate(); err != nil {
+		t.Fatalf("Config.validate() error = %v", err)
+	}
+
+	want := resolved + ` --name "` + executable + `"`
+	if cfg.ClipboardCmd != want {
+		t.Errorf("ClipboardCmd = %q, want %q", cfg.ClipboardCmd, want)
 	}
 }
 

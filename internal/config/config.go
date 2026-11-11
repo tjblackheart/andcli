@@ -210,7 +210,7 @@ func (cfg *Config) validate() error {
 		if err != nil {
 			return fmt.Errorf("%s: %s", parts[0], err)
 		}
-		cfg.ClipboardCmd = strings.ReplaceAll(cfg.ClipboardCmd, parts[0], path)
+		cfg.ClipboardCmd = strings.Replace(cfg.ClipboardCmd, parts[0], path, 1)
 	}
 
 	return nil

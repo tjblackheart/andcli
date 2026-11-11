@@ -45,7 +45,11 @@ q     quit
 
 ## Clipboard config
 
-By default andcli will choose the first system clipboard tool found. For Linux, this could be either `xclip`, `xsel` or `wl-copy`. For Mac, it will always be `pbcopy`, and for a Windows machine it defaults to `clip.exe`. If you need more control over this command, you can either edit the config file and set your preferred command including all flags in the `clipboard_cmd` entry, or you could pass the full command via the `-c` flag.
+By default andcli chooses the first available system clipboard tool. On Linux, it reads available environment variables and chooses in this order: `termux-clipboard-set` when running in Termux, `wl-copy` on Wayland, `xclip -selection clipboard` and `xsel -b` on X11. If no environment variables are found, it probes directly for `wl-copy`, `xclip`, and `xsel` binaries. macOS always uses `pbcopy`, Windows always uses `clip.exe`, and Android uses `termux-clipboard-set`.
+
+If no system clipboard tool is found, andcli falls back to the OSC52 protocol and tries to copy via terminal escape sequences. This is useful for remote and SSH sessions, but requires terminal support and the success message might not be accurate.
+
+If you need more control over this, you can either set your preferred command including all flags in the `clipboard_cmd` entry in the config file, or you could pass the full command via the `-c` flag, which then gets persisted. If you set your own command it will always be used instead.
 
 ## Config file
 
