@@ -1,11 +1,13 @@
 package keepass
 
 import (
+	"bytes"
 	"fmt"
 	"reflect"
 	"testing"
 
 	"github.com/tjblackheart/andcli/v2/internal/vaults"
+	"github.com/tjblackheart/andcli/v2/internal/vaults/vaulttest"
 	"github.com/tobischo/gokeepasslib/v3"
 )
 
@@ -140,4 +142,16 @@ func Test_parseGroups(t *testing.T) {
 			}
 		})
 	}
+}
+
+func FuzzOpen(f *testing.F) {
+	vaulttest.Seed(f, "testdata")
+
+	f.Fuzz(func(t *testing.T, data []byte) {
+		v, err := open(bytes.NewReader(data), []byte("andcli-test"))
+		if err != nil {
+			return
+		}
+		_ = v.Entries()
+	})
 }

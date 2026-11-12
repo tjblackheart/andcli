@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/tjblackheart/andcli/v2/internal/vaults"
+	"github.com/tjblackheart/andcli/v2/internal/vaults/vaulttest"
 )
 
 func TestMain(m *testing.M) {
@@ -108,4 +109,38 @@ func Test_entry_typeToString(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestRejectMalformed(t *testing.T) {
+	headerOnly := []byte(HEADER)
+	shortPayload := append([]byte(HEADER), make([]byte, minCryptLen-len(HEADER)-1)...)
+
+	tests := []struct {
+		name string
+		data []byte
+	}{
+		{"short header", []byte("AUTHENT")},
+		{"header only", headerOnly},
+		{"short payload", shortPayload},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if _, err := open(tt.data, []byte("x")); !errors.Is(err, vaults.ErrInvalidData) {
+				t.Fatalf("open() error = %v, want ErrInvalidData", err)
+			}
+		})
+	}
+}
+
+func FuzzOpen(f *testing.F) {
+	vaulttest.Seed(f, "testdata")
+
+	f.Fuzz(func(t *testing.T, data []byte) {
+		v, err := open(data, []byte("andcli-test"))
+		if err != nil {
+			return
+		}
+		_ = v.Entries()
+	})
 }

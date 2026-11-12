@@ -2,6 +2,7 @@ package keepass
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"net/url"
 	"os"
@@ -21,17 +22,21 @@ type keepass struct{ entries []gokeepasslib.Entry }
 func init() { vaults.Register(vaultType, Open) }
 
 func Open(filename string, pass []byte) (vaults.Vault, error) {
-	v := keepass{entries: make([]gokeepasslib.Entry, 0)}
-	db := gokeepasslib.NewDatabase()
-	db.Credentials = gokeepasslib.NewPasswordCredentials(string(pass))
-
 	f, err := os.Open(filename)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %s", vaultType, err)
 	}
 	defer f.Close()
 
-	if err := gokeepasslib.NewDecoder(f).Decode(db); err != nil {
+	return open(f, pass)
+}
+
+func open(r io.Reader, pass []byte) (vaults.Vault, error) {
+	v := keepass{entries: make([]gokeepasslib.Entry, 0)}
+	db := gokeepasslib.NewDatabase()
+	db.Credentials = gokeepasslib.NewPasswordCredentials(string(pass))
+
+	if err := gokeepasslib.NewDecoder(r).Decode(db); err != nil {
 		return nil, fmt.Errorf("%s: %s", vaultType, err)
 	}
 

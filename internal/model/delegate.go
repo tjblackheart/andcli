@@ -30,6 +30,7 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, idx int, li list.Item) {
 
 	otp := d.state.currentOTP
 	until := max(otp.exp-time.Now().Unix(), 0)
+	val := format(otp.token, d.state.showToken)
 
 	bgColor, fgColor := green, white
 	if until <= 10 && until > 5 {
@@ -38,11 +39,6 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, idx int, li list.Item) {
 
 	if until <= 5 {
 		bgColor = red
-	}
-
-	formatted := "*** ***"
-	if d.state.showToken {
-		formatted = fmt.Sprintf("%s %s", otp.token[:3], otp.token[3:])
 	}
 
 	item := d.style.activeItem.BorderForeground(bgColor).Render(entry.Title())
@@ -54,9 +50,22 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, idx int, li list.Item) {
 	text = fmt.Sprintf(
 		"%s%s %s",
 		item,
-		d.style.token.Background(bgColor).Foreground(fgColor).Render(formatted),
+		d.style.token.Background(bgColor).Foreground(fgColor).Render(val),
 		d.style.until.Foreground(bgColor).Render(fmt.Sprintf("%vs", until)),
 	)
 
 	fmt.Fprint(w, text)
+}
+
+func format(token string, show bool) string {
+	if !show || len(token) == 0 {
+		return "*** ***"
+	}
+
+	if len(token) < 4 {
+		return token
+	}
+
+	mid := len(token) / 2
+	return token[:mid] + " " + token[mid:]
 }

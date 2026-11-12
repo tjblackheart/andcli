@@ -50,7 +50,10 @@ func Open(filename string, pass []byte) (vaults.Vault, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %s", vaultType, err)
 	}
+	return open(b, pass)
+}
 
+func open(b, pass []byte) (vaults.Vault, error) {
 	var v envelope
 	if v.IsPlain(b) {
 		return nil, vaults.ErrIsPlain
@@ -113,7 +116,7 @@ func (e envelope) Entries() []vaults.Entry {
 }
 
 func (e envelope) IsPlain(b []byte) bool {
-	return b[0] == '{' || string(b[:4]) == "type"
+	return len(b) > 5 && (b[0] == '{' || string(b[:4]) == "type")
 }
 
 // opens, reads and returns file content, handles zip if necessary.

@@ -1,6 +1,7 @@
 package andotp
 
 import (
+	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -10,7 +11,15 @@ import (
 	"github.com/tjblackheart/andcli/v2/internal/vaults"
 )
 
-const vaultType = vaults.ANDOTP
+const (
+	vaultType     = vaults.ANDOTP
+	iterationLen  = 4
+	saltLen       = 12
+	ivLen         = 12
+	gcmTagLen     = 16
+	minVaultLen   = iterationLen + saltLen + ivLen + gcmTagLen
+	maxIterations = 1_000_000
+)
 
 var _ vaults.Vault = &andotp{}
 
@@ -39,19 +48,37 @@ func Open(filename string, pass []byte) (vaults.Vault, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", vaultType, err)
 	}
+	return open(b, pass)
+}
 
+func open(data, pass []byte) (vaults.Vault, error) {
 	v := andotp{entries: make([]entry, 0)}
 
-	if v.IsPlain(b) {
+	if v.IsPlain(data) {
 		return nil, vaults.ErrIsPlain
 	}
 
-	b, err = gao.Decrypt(b, string(pass))
+	if len(data) < minVaultLen {
+		return nil, fmt.Errorf(
+			"%s: %w: truncated vault",
+			vaultType, vaults.ErrInvalidData,
+		)
+	}
+
+	i := binary.BigEndian.Uint32(data[:iterationLen])
+	if i == 0 || i > maxIterations {
+		return nil, fmt.Errorf(
+			"%s: %w: invalid iteration count %d",
+			vaultType, vaults.ErrInvalidData, i,
+		)
+	}
+
+	plain, err := gao.Decrypt(data, string(pass))
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", vaultType, err)
 	}
 
-	if err := json.Unmarshal(b, &v.entries); err != nil {
+	if err := json.Unmarshal(plain, &v.entries); err != nil {
 		return nil, fmt.Errorf("%s: %w", vaultType, err)
 	}
 
@@ -82,5 +109,5 @@ func (v andotp) Entries() []vaults.Entry {
 }
 
 func (v andotp) IsPlain(b []byte) bool {
-	return b[0] == '['
+	return len(b) > 0 && b[0] == '['
 }

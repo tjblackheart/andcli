@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/tjblackheart/andcli/v2/internal/vaults"
+	"github.com/tjblackheart/andcli/v2/internal/vaults/vaulttest"
 )
 
 func TestMain(m *testing.M) {
@@ -54,4 +55,16 @@ func TestOpen(t *testing.T) {
 			}
 		})
 	}
+}
+
+func FuzzOpen(f *testing.F) {
+	vaulttest.Seed(f, "testdata")
+
+	f.Fuzz(func(t *testing.T, data []byte) {
+		v, err := open(data, []byte("andcli-test"))
+		if err != nil {
+			return
+		}
+		_ = v.Entries()
+	})
 }

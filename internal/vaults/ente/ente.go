@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	p_cost     = 1
+	pCost      = 1
 	kdfKeySize = 32
 	vaultType  = vaults.ENTE
 )
@@ -42,12 +42,15 @@ type (
 func init() { vaults.Register(vaultType, Open) }
 
 func Open(filename string, pass []byte) (vaults.Vault, error) {
-	var v ente
-
 	b, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", vaultType, err)
 	}
+	return open(b, pass)
+}
+
+func open(b, pass []byte) (vaults.Vault, error) {
+	var v ente
 
 	if v.IsPlain(b) {
 		return nil, vaults.ErrIsPlain
@@ -61,6 +64,7 @@ func Open(filename string, pass []byte) (vaults.Vault, error) {
 		return nil, fmt.Errorf("%s: unsupported version", vaultType)
 	}
 
+	var err error
 	v.plain, err = v.decrypt(pass)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", vaultType, err)
@@ -120,11 +124,11 @@ func (v *ente) decrypt(pass []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	t_cost, m_cost := v.KdfParams.OpsLimit, v.KdfParams.MemLimit/1024
-	if m_cost < 1024 || t_cost < 1 {
+	tCost, mCost := v.KdfParams.OpsLimit, v.KdfParams.MemLimit/1024
+	if mCost < 1024 || tCost < 1 {
 		return nil, fmt.Errorf("invalid kdf params")
 	}
-	key := argon2.IDKey(pass, salt, t_cost, m_cost, p_cost, kdfKeySize)
+	key := argon2.IDKey(pass, salt, tCost, mCost, pCost, kdfKeySize)
 
 	data, err := base64.StdEncoding.DecodeString(v.EncryptedData)
 	if err != nil {

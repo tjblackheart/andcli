@@ -77,6 +77,33 @@ func TestModel_Update(t *testing.T) {
 	})
 }
 
+func TestFormat(t *testing.T) {
+	tests := []struct {
+		name  string
+		token string
+		show  bool
+		want  string
+	}{
+		{"hidden empty", "", false, "*** ***"},
+		{"hidden token", "123456", false, "*** ***"},
+		{"visible empty", "", true, "*** ***"},
+		{"one digit", "1", true, "1"},
+		{"two digits", "12", true, "12"},
+		{"three digits", "123", true, "123"},
+		{"six digits", "123456", true, "123 456"},
+		{"seven digits", "1234567", true, "123 4567"},
+		{"eight digits", "12345678", true, "1234 5678"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := format(tt.token, tt.show); got != tt.want {
+				t.Errorf("format(%q, %v) = %q, want %q", tt.token, tt.show, got, tt.want)
+			}
+		})
+	}
+}
+
 func newTestModel(cb *clipboard.Clipboard) Model {
 	state := &appState{currentOTP: &otp{token: "123456"}}
 	style := newStyle()
