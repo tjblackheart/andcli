@@ -32,9 +32,12 @@ docs:
 	export ANDCLI_HIDE_ABSPATH=1; vhs < doc/demo.tape
 
 test:
-	go test -race -coverprofile .coverage ./...
+	go test -coverprofile .coverage ./...
 	go tool cover -func .coverage
 	rm -f .coverage
+
+test_race:
+	go test -race ./...
 
 fuzz all="":
   #!/usr/bin/env bash
