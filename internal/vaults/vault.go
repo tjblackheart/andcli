@@ -10,4 +10,7 @@ type Vault interface {
 	IsPlain([]byte) bool
 }
 
-var ErrIsPlain error = errors.New("plaintext vaults are unsupported")
+var (
+	ErrIsPlain     error = errors.New("plaintext vaults are unsupported")
+	ErrInvalidData error = errors.New("invalid vault data")
+)

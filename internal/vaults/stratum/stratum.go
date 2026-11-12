@@ -34,6 +34,8 @@ const (
 	LEGACY_ITERATIONS  = 64000
 	LEGACY_SALT_LENGTH = 20
 	LEGACY_IV_LENGTH   = 16
+
+	minCryptLen = len(HEADER) + SALT_LENGTH + IV_LENGTH
 )
 
 type (
@@ -65,10 +67,21 @@ func Open(filename string, pass []byte) (vaults.Vault, error) {
 	if err != nil {
 		return nil, err
 	}
+	return open(b, pass)
+}
 
+func open(b, pass []byte) (vaults.Vault, error) {
 	v := stratum{Authenticators: make([]entry, 0)}
+
 	if v.IsPlain(b) {
 		return nil, vaults.ErrIsPlain
+	}
+
+	if len(b) < len(HEADER) {
+		return nil, fmt.Errorf(
+			"%s: %w: malformed header",
+			vaultType, vaults.ErrInvalidData,
+		)
 	}
 
 	switch string(b[:len(HEADER)]) {
@@ -135,6 +148,10 @@ func (v stratum) IsPlain(b []byte) bool {
 }
 
 func (v stratum) decrypt(b, pass []byte) ([]byte, error) {
+	if len(b) < minCryptLen {
+		return nil, fmt.Errorf("%s: %w", vaultType, vaults.ErrInvalidData)
+	}
+
 	salt := b[len(HEADER) : len(HEADER)+SALT_LENGTH]
 	nonce := b[len(HEADER)+SALT_LENGTH : len(HEADER)+SALT_LENGTH+IV_LENGTH]
 	payload := b[len(HEADER)+SALT_LENGTH+IV_LENGTH:]

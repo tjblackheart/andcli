@@ -61,12 +61,16 @@ type (
 func init() { vaults.Register(vaultType, Open) }
 
 func Open(filename string, pass []byte) (vaults.Vault, error) {
-	var v protonAuthenticator
-
 	b, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", vaultType, err)
 	}
+
+	return open(b, pass)
+}
+
+func open(b, pass []byte) (vaults.Vault, error) {
+	var v protonAuthenticator
 
 	if v.IsPlain(b) {
 		return nil, vaults.ErrIsPlain

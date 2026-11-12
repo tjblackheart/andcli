@@ -67,12 +67,16 @@ type (
 func init() { vaults.Register(vaultType, Open) }
 
 func Open(filename string, pass []byte) (vaults.Vault, error) {
-	var v twofas
-
 	b, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", vaultType, err)
 	}
+
+	return open(b, pass)
+}
+
+func open(b, pass []byte) (vaults.Vault, error) {
+	var v twofas
 
 	if v.IsPlain(b) {
 		return nil, vaults.ErrIsPlain
@@ -175,6 +179,10 @@ func (v twofas) decryptDB(key []byte) ([]byte, error) {
 		return nil, err
 	}
 
+	if len(dbAndAuthTag) <= authTagLength {
+		return nil, fmt.Errorf("invalid vault file: cipher text too short")
+	}
+
 	b = dbAndAuthTag[:len(dbAndAuthTag)-authTagLength]
 	tag = dbAndAuthTag[len(dbAndAuthTag)-authTagLength:]
 
@@ -191,6 +199,10 @@ func (v twofas) decryptDB(key []byte) ([]byte, error) {
 	gcm, err := cipher.NewGCM(block)
 	if err != nil {
 		return nil, err
+	}
+
+	if len(nonce) != gcm.NonceSize() {
+		return nil, fmt.Errorf("invalid nonce length %d, want %d", len(nonce), gcm.NonceSize())
 	}
 
 	var c []byte

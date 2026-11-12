@@ -4,3 +4,4 @@ builds
 .DS_Store
 build.sh
 event.json
+**/testdata/fuzz/

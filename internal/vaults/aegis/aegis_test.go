@@ -1,11 +1,13 @@
 package aegis
 
 import (
+	"encoding/json"
 	"errors"
 	"reflect"
 	"testing"
 
 	"github.com/tjblackheart/andcli/v2/internal/vaults"
+	"github.com/tjblackheart/andcli/v2/internal/vaults/vaulttest"
 )
 
 func TestOpen(t *testing.T) {
@@ -77,5 +79,39 @@ func TestEntries(t *testing.T) {
 				t.Fatalf("Entries(): want %#v\nhave %#v", tt.want, entries)
 			}
 		})
+	}
+}
+
+func FuzzOpen(f *testing.F) {
+	vaulttest.Seed(f, "testdata")
+
+	f.Fuzz(func(t *testing.T, data []byte) {
+		v, err := open(data, []byte("andcli-test"))
+		if err != nil {
+			return
+		}
+		_ = v.Entries()
+	})
+}
+
+func TestDecryptDBRejectsInvalidNonce(t *testing.T) {
+	var v aegis
+	v.Header.Params.Nonce = "00"
+
+	if _, err := v.decryptDB(make([]byte, 32)); err == nil {
+		t.Fatal("decryptDB() error = nil, want an error")
+	}
+}
+
+func TestMasterKeyFromPassRejectsInvalidNonce(t *testing.T) {
+	const raw = `{"header":{"slots":[{"type":1,"n":2,"r":1,"p":1,"salt":"00","key":"00","key_params":{"nonce":"00","tag":"00"}}]}}`
+
+	var v aegis
+	if err := json.Unmarshal([]byte(raw), &v); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := v.masterKeyFromPass([]byte("x")); err == nil {
+		t.Fatal("masterKeyFromPass() error = nil, want an error")
 	}
 }

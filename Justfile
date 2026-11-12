@@ -35,3 +35,18 @@ test:
 	go test -coverprofile .coverage ./...
 	go tool cover -func .coverage
 	rm -f .coverage
+
+test_race:
+	go test -race ./...
+
+fuzz all="":
+  #!/usr/bin/env bash
+  vaults=(andotp stratum protonpass twofas protonauth keepass) # aegis/ente need a kdf cap first
+  all="{{all}}"
+  for v in "${vaults[@]}"; do
+    if [[ "$all" != "-a" ]]; then
+      read -r -p "Fuzz $v (30s)? [Y/n] " reply
+      [[ $reply == n ]] && continue
+    fi
+    go test -run='^$' -fuzz=FuzzOpen -fuzztime=30s "./internal/vaults/$v"
+  done

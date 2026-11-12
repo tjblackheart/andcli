@@ -1,11 +1,14 @@
 package andotp
 
 import (
+	"bytes"
+	"encoding/binary"
 	"errors"
 	"reflect"
 	"testing"
 
 	"github.com/tjblackheart/andcli/v2/internal/vaults"
+	"github.com/tjblackheart/andcli/v2/internal/vaults/vaulttest"
 )
 
 func TestOpen(t *testing.T) {
@@ -77,4 +80,32 @@ func TestEntries(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestErrTruncated(t *testing.T) {
+	for _, n := range []int{0, 1, 4, 27, 28, 43} {
+		if _, err := open(bytes.Repeat([]byte{'0'}, n), []byte("x")); !errors.Is(err, vaults.ErrInvalidData) {
+			t.Fatalf("len %d: err = %v, want ErrInvalidData", n, err)
+		}
+	}
+}
+
+func TestErrIterations(t *testing.T) {
+	data := make([]byte, minVaultLen)
+	binary.BigEndian.PutUint32(data, 4_000_000_000)
+	if _, err := open(data, []byte("x")); !errors.Is(err, vaults.ErrInvalidData) {
+		t.Fatalf("err = %v, want ErrInvalidData", err)
+	}
+}
+
+func FuzzOpen(f *testing.F) {
+	vaulttest.Seed(f, "testdata")
+
+	f.Fuzz(func(t *testing.T, data []byte) {
+		v, err := open(data, []byte("andcli-test"))
+		if err != nil {
+			return
+		}
+		_ = v.Entries()
+	})
 }

@@ -1,10 +1,10 @@
-package protonauth_test
+package protonauth
 
 import (
 	"fmt"
 	"testing"
 
-	"github.com/tjblackheart/andcli/v2/internal/vaults/protonauth"
+	"github.com/tjblackheart/andcli/v2/internal/vaults/vaulttest"
 )
 
 func TestOpen(t *testing.T) {
@@ -22,7 +22,7 @@ func TestOpen(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			v, err := protonauth.Open(tt.filename, []byte(tt.password))
+			v, err := Open(tt.filename, []byte(tt.password))
 			if tt.fails {
 				if err == nil {
 					t.Fatal("Open() expected error, got none")
@@ -43,4 +43,16 @@ func TestOpen(t *testing.T) {
 			}
 		})
 	}
+}
+
+func FuzzOpen(f *testing.F) {
+	vaulttest.Seed(f, "testdata")
+
+	f.Fuzz(func(t *testing.T, data []byte) {
+		v, err := open(data, []byte("andcli-test"))
+		if err != nil {
+			return
+		}
+		_ = v.Entries()
+	})
 }
