@@ -42,7 +42,7 @@ fuzz all="":
   all="{{all}}"
   for v in "${vaults[@]}"; do
     if [[ "$all" != "-a" ]]; then
-      read -r -p "Fuzz test $v (30s)? [Enter=continue, n=skip] " reply
+      read -r -p "Fuzz $v (30s)? [Y/n] " reply
       [[ $reply == n ]] && continue
     fi
     go test -run='^$' -fuzz=FuzzOpen -fuzztime=30s "./internal/vaults/$v"
