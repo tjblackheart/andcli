@@ -58,16 +58,16 @@ func TestEntries(t *testing.T) {
 		{
 			"mitigates missing fields",
 			[]entry{
-				{Issuer: "iss-1", Info: info{Digits: 6, Secret: "secret"}, Type: "TOTP"},
-				{Issuer: "iss-2", Info: info{Digits: 4, Secret: "secret"}, Type: "HOTP"},
-				{Issuer: "iss-3", Info: info{Digits: 0, Secret: "secret", Period: 20}, Type: "TOTP"},
-				{Issuer: "iss-4", Info: info{Digits: 4, Secret: "secret", Algo: "SHA256"}, Type: "TOTP"},
+				{Issuer: "iss-1", Info: info{Digits: 6, Secret: "jbswy3dp"}, Type: "TOTP"},
+				{Issuer: "iss-2", Info: info{Digits: 4, Secret: "jbswy3dp"}, Type: "HOTP"},
+				{Issuer: "iss-3", Info: info{Digits: 0, Secret: "jbswy3dp", Period: 20}, Type: "TOTP"},
+				{Issuer: "iss-4", Info: info{Digits: 4, Secret: "jbswy3dp", Algo: "SHA256"}, Type: "TOTP"},
 				{Issuer: "iss-5"},
 			},
 			[]vaults.Entry{
-				{Issuer: "iss-1", Digits: 6, Secret: "SECRET", Type: "TOTP", Algorithm: "SHA1", Period: 30},
-				{Issuer: "iss-3", Digits: 6, Secret: "SECRET", Type: "TOTP", Algorithm: "SHA1", Period: 20},
-				{Issuer: "iss-4", Digits: 4, Secret: "SECRET", Type: "TOTP", Algorithm: "SHA256", Period: 30},
+				{Issuer: "iss-1", Digits: 6, Secret: "JBSWY3DP", Type: "TOTP", Algorithm: "SHA1", Period: 30},
+				{Issuer: "iss-3", Digits: 6, Secret: "JBSWY3DP", Type: "TOTP", Algorithm: "SHA1", Period: 20},
+				{Issuer: "iss-4", Digits: 4, Secret: "JBSWY3DP", Type: "TOTP", Algorithm: "SHA256", Period: 30},
 			},
 		},
 	}

@@ -1,73 +1,10 @@
 package vaults
 
 import (
-	"crypto/sha1"
-	"crypto/sha256"
-	"crypto/sha512"
+	"errors"
 	"reflect"
 	"testing"
-
-	"github.com/xlzd/gotp"
 )
-
-func TestEntryGenerateHasher(t *testing.T) {
-	tests := []struct {
-		name  string
-		entry *Entry
-		want  *gotp.Hasher
-	}{
-		{
-			"default",
-			&Entry{},
-			&gotp.Hasher{HashName: "sha1", Digest: sha1.New},
-		},
-		{
-			"sha256",
-			&Entry{Algorithm: "SHA256"},
-			&gotp.Hasher{HashName: "sha256", Digest: sha256.New},
-		},
-		{
-			"sha512",
-			&Entry{Algorithm: "SHA512"},
-			&gotp.Hasher{HashName: "sha512", Digest: sha512.New},
-		},
-		{
-			"sha224",
-			&Entry{Algorithm: "SHA-224"},
-			&gotp.Hasher{HashName: "sha224", Digest: sha256.New224},
-		},
-		{
-			"sha384",
-			&Entry{Algorithm: "SHA-384"},
-			&gotp.Hasher{HashName: "sha384", Digest: sha512.New384},
-		},
-		{
-			"ignores cases",
-			&Entry{Algorithm: "sha1"},
-			&gotp.Hasher{HashName: "sha1", Digest: sha1.New},
-		},
-		{
-			"handles dashes",
-			&Entry{Algorithm: "SHA-1"},
-			&gotp.Hasher{HashName: "sha1", Digest: sha1.New},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			h := tt.entry.hasher()
-			if !reflect.DeepEqual(tt.want.HashName, h.HashName) {
-				t.Errorf("entry.hasher() = %v, want %v", h, tt.want)
-			}
-
-			fn1 := reflect.Indirect(reflect.ValueOf(tt.want.Digest))
-			fn2 := reflect.Indirect(reflect.ValueOf(h.Digest))
-			if !reflect.DeepEqual(fn1, fn2) {
-				t.Errorf("entry.hasher() = %v, want %v", h, tt.want)
-			}
-		})
-	}
-}
 
 func TestEntry_Title(t *testing.T) {
 	tests := []struct {
@@ -149,13 +86,16 @@ func TestEntry_GenerateTOTP(t *testing.T) {
 				Secret:    "4S62BZNFXXSZLCRO",
 				Digits:    10,
 				Period:    40,
-				Algorithm: "sha1",
+				Algorithm: "sha-1",
 			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			if err := tt.e.normalizeAlgo(); err != nil {
+				t.Fatal(err)
+			}
 			s, i := tt.e.GenerateTOTP()
 			if s == "" {
 				t.Fatal("Entry.GenerateTOTP(): got empty string")
@@ -172,6 +112,27 @@ func TestEntry_GenerateTOTP(t *testing.T) {
 	}
 }
 
+func TestEntry_GenerateTOTPInvalid(t *testing.T) {
+	tests := []struct {
+		name string
+		e    Entry
+	}{
+		{"unknown algorithm", Entry{Secret: "JBSWY3DP", Digits: 6, Period: 30, Algorithm: "MD5"}},
+		{"invalid secret", Entry{Secret: "123", Digits: 6, Period: 30, Algorithm: "SHA1"}},
+		{"invalid digits", Entry{Secret: "JBSWY3DP", Digits: 11, Period: 30, Algorithm: "SHA1"}},
+		{"invalid period", Entry{Secret: "JBSWY3DP", Digits: 6, Period: 0, Algorithm: "SHA1"}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			token, exp := tt.e.GenerateTOTP()
+			if token != "" || exp != 0 {
+				t.Errorf("GenerateTOTP() = (%q, %d), want empty", token, exp)
+			}
+		})
+	}
+}
+
 func TestEntry_SanitizeAndValidate(t *testing.T) {
 	tests := []struct {
 		name       string // description of this test case
@@ -179,18 +140,19 @@ func TestEntry_SanitizeAndValidate(t *testing.T) {
 		fails      bool
 	}{
 		{"fails: missing secret", &Entry{Secret: ""}, nil, true},
-		{"fails: wrong type", &Entry{Secret: "123", Type: "HOTP"}, nil, true},
+		{"fails: invalid secret", &Entry{Secret: "123"}, nil, true},
+		{"fails: wrong type", &Entry{Secret: "jbswy3dp", Type: "HOTP"}, nil, true},
 		{
 			"defaults: period",
 			&Entry{
-				Secret:    "123",
+				Secret:    "jbswy3dp",
 				Type:      "TOTP",
 				Period:    0,
 				Algorithm: "SHA1",
 				Digits:    6,
 			},
 			&Entry{
-				Secret:    "123",
+				Secret:    "JBSWY3DP",
 				Type:      "TOTP",
 				Period:    30,
 				Algorithm: "SHA1",
@@ -201,14 +163,14 @@ func TestEntry_SanitizeAndValidate(t *testing.T) {
 		{
 			"defaults: algorithm",
 			&Entry{
-				Secret:    "123",
+				Secret:    "jbswy3dp",
 				Type:      "TOTP",
 				Period:    30,
 				Algorithm: "",
 				Digits:    6,
 			},
 			&Entry{
-				Secret:    "123",
+				Secret:    "JBSWY3DP",
 				Type:      "TOTP",
 				Period:    30,
 				Algorithm: "SHA1",
@@ -219,14 +181,14 @@ func TestEntry_SanitizeAndValidate(t *testing.T) {
 		{
 			"defaults: digits",
 			&Entry{
-				Secret:    "123",
+				Secret:    "jbswy3dp",
 				Type:      "TOTP",
 				Period:    30,
 				Algorithm: "SHA1",
 				Digits:    0,
 			},
 			&Entry{
-				Secret:    "123",
+				Secret:    "JBSWY3DP",
 				Type:      "TOTP",
 				Period:    30,
 				Algorithm: "SHA1",
@@ -237,14 +199,86 @@ func TestEntry_SanitizeAndValidate(t *testing.T) {
 		{
 			"normalizes: secret to uppercase",
 			&Entry{
-				Secret:    "abc123",
+				Secret:    "jbswy3dp",
 				Type:      "TOTP",
 				Period:    30,
 				Algorithm: "SHA1",
 				Digits:    6,
 			},
 			&Entry{
-				Secret:    "ABC123",
+				Secret:    "JBSWY3DP",
+				Type:      "TOTP",
+				Period:    30,
+				Algorithm: "SHA1",
+				Digits:    6,
+			},
+			false,
+		},
+		{
+			"accepts: one digit",
+			&Entry{
+				Secret:    "jbswy3dp",
+				Type:      "TOTP",
+				Period:    30,
+				Algorithm: "SHA1",
+				Digits:    1,
+			},
+			&Entry{
+				Secret:    "JBSWY3DP",
+				Type:      "TOTP",
+				Period:    30,
+				Algorithm: "SHA1",
+				Digits:    1,
+			},
+			false,
+		},
+		{
+			"accepts: two digits",
+			&Entry{
+				Secret:    "jbswy3dp",
+				Type:      "TOTP",
+				Period:    30,
+				Algorithm: "SHA1",
+				Digits:    2,
+			},
+			&Entry{
+				Secret:    "JBSWY3DP",
+				Type:      "TOTP",
+				Period:    30,
+				Algorithm: "SHA1",
+				Digits:    2,
+			},
+			false,
+		},
+		{
+			"normalizes: algorithm",
+			&Entry{
+				Secret:    "jbswy3dp",
+				Type:      "TOTP",
+				Period:    30,
+				Algorithm: "sha-256",
+				Digits:    6,
+			},
+			&Entry{
+				Secret:    "JBSWY3DP",
+				Type:      "TOTP",
+				Period:    30,
+				Algorithm: "SHA256",
+				Digits:    6,
+			},
+			false,
+		},
+		{
+			"normalizes: secret spaces",
+			&Entry{
+				Secret:    "jbsw y3dp",
+				Type:      "TOTP",
+				Period:    30,
+				Algorithm: "SHA1",
+				Digits:    6,
+			},
+			&Entry{
+				Secret:    "JBSWY3DP",
 				Type:      "TOTP",
 				Period:    30,
 				Algorithm: "SHA1",
@@ -265,6 +299,38 @@ func TestEntry_SanitizeAndValidate(t *testing.T) {
 
 			if !reflect.DeepEqual(tt.have, tt.want) {
 				t.Fatalf("SanitizeAndValidate(): %s: want %#v, got %#v", tt.name, tt.want, tt.have)
+			}
+		})
+	}
+}
+
+func TestEntry_SanitizeAndValidateErrors(t *testing.T) {
+	tests := []struct {
+		name    string
+		e       Entry
+		wantErr error
+	}{
+		{
+			"invalid digits",
+			Entry{Secret: "JBSWY3DP", Type: "TOTP", Period: 30, Algorithm: "SHA1", Digits: 11},
+			ErrInvalidDigits,
+		},
+		{
+			"invalid period",
+			Entry{Secret: "JBSWY3DP", Type: "TOTP", Period: -1, Algorithm: "SHA1", Digits: 6},
+			ErrInvalidPeriod,
+		},
+		{
+			"unsupported algorithm",
+			Entry{Secret: "JBSWY3DP", Type: "TOTP", Period: 30, Algorithm: "MD5", Digits: 6},
+			ErrUnsupportedAlgorithm,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := tt.e.SanitizeAndValidate(); !errors.Is(err, tt.wantErr) {
+				t.Errorf("SanitizeAndValidate() error = %v, want %v", err, tt.wantErr)
 			}
 		})
 	}
@@ -304,6 +370,38 @@ func TestFind(t *testing.T) {
 			}
 			if !tt.wantErr && !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Find() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestEntry_normalizeAlgo(t *testing.T) {
+	tests := []struct {
+		name    string
+		in      string
+		want    string
+		wantErr error
+	}{
+		{"empty", "", "SHA1", nil},
+		{"sha1", "SHA1", "SHA1", nil},
+		{"dash", "SHA-1", "SHA1", nil},
+		{"lower", "sha1", "SHA1", nil},
+		{"sha224", "SHA224", "SHA224", nil},
+		{"sha256", "sha256", "SHA256", nil},
+		{"sha384", "SHA384", "SHA384", nil},
+		{"sha512", "SHA512", "SHA512", nil},
+		{"unsupported", "MD5", "MD5", ErrUnsupportedAlgorithm},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			e := Entry{Algorithm: tt.in}
+			err := e.normalizeAlgo()
+			if !errors.Is(err, tt.wantErr) {
+				t.Fatalf("normalizeAlgo() error = %v, want %v", err, tt.wantErr)
+			}
+			if e.Algorithm != tt.want {
+				t.Errorf("Algorithm = %q, want %q", e.Algorithm, tt.want)
 			}
 		})
 	}

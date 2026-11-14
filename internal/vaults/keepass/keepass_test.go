@@ -63,31 +63,31 @@ func TestEntries(t *testing.T) {
 				{Values: []gokeepasslib.ValueData{
 					{Key: "Title", Value: gokeepasslib.V{Content: "iss-1"}},
 					{Key: "UserName", Value: gokeepasslib.V{Content: "demo1"}},
-					{Key: "otp", Value: gokeepasslib.V{Content: "otpauth://totp/otp.provider.dev%3Ademo1?secret=secret&period=30&digits=6&issuer=otp.provider.dev&algorithm=SHA1"}},
+					{Key: "otp", Value: gokeepasslib.V{Content: "otpauth://totp/otp.provider.dev%3Ademo1?secret=jbswy3dp&period=30&digits=6&issuer=otp.provider.dev&algorithm=SHA1"}},
 				}},
 				{Values: []gokeepasslib.ValueData{
 					{Key: "Title", Value: gokeepasslib.V{Content: "iss-2"}},
 					{Key: "UserName", Value: gokeepasslib.V{Content: "demo2"}},
-					{Key: "otp", Value: gokeepasslib.V{Content: "otpauth://hotp/otp.provider.dev%3Ademo2?secret=secret&digits=6&issuer=otp.provider.dev&algorithm=SHA1"}},
+					{Key: "otp", Value: gokeepasslib.V{Content: "otpauth://hotp/otp.provider.dev%3Ademo2?secret=jbswy3dp&digits=6&issuer=otp.provider.dev&algorithm=SHA1"}},
 				}},
 				{Values: []gokeepasslib.ValueData{
 					{Key: "Title", Value: gokeepasslib.V{Content: "iss-3"}},
 					{Key: "UserName", Value: gokeepasslib.V{Content: "demo3"}},
-					{Key: "otp", Value: gokeepasslib.V{Content: "otpauth://totp/otp.provider.dev%3Ademo3?secret=secret&period=20&issuer=otp.provider.dev&algorithm=SHA1"}},
+					{Key: "otp", Value: gokeepasslib.V{Content: "otpauth://totp/otp.provider.dev%3Ademo3?secret=jbswy3dp&period=20&issuer=otp.provider.dev&algorithm=SHA1"}},
 				}},
 				{Values: []gokeepasslib.ValueData{
 					{Key: "Title", Value: gokeepasslib.V{Content: "iss-4"}},
 					{Key: "UserName", Value: gokeepasslib.V{Content: "demo4"}},
-					{Key: "otp", Value: gokeepasslib.V{Content: "otpauth://totp/otp.provider.dev%3Ademo1?secret=secret&digits=4&issuer=otp.provider.dev&algorithm=SHA256"}},
+					{Key: "otp", Value: gokeepasslib.V{Content: "otpauth://totp/otp.provider.dev%3Ademo1?secret=jbswy3dp&digits=4&issuer=otp.provider.dev&algorithm=SHA256"}},
 				}},
 				{Values: []gokeepasslib.ValueData{
 					{Key: "Title", Value: gokeepasslib.V{Content: "iss-5"}},
 				}},
 			},
 			[]vaults.Entry{
-				{Issuer: "iss-1", Label: "demo1", Digits: 6, Secret: "SECRET", Type: "TOTP", Algorithm: "SHA1", Period: 30},
-				{Issuer: "iss-3", Label: "demo3", Digits: 6, Secret: "SECRET", Type: "TOTP", Algorithm: "SHA1", Period: 20},
-				{Issuer: "iss-4", Label: "demo4", Digits: 4, Secret: "SECRET", Type: "TOTP", Algorithm: "SHA256", Period: 30},
+				{Issuer: "iss-1", Label: "demo1", Digits: 6, Secret: "JBSWY3DP", Type: "TOTP", Algorithm: "SHA1", Period: 30},
+				{Issuer: "iss-3", Label: "demo3", Digits: 6, Secret: "JBSWY3DP", Type: "TOTP", Algorithm: "SHA1", Period: 20},
+				{Issuer: "iss-4", Label: "demo4", Digits: 4, Secret: "JBSWY3DP", Type: "TOTP", Algorithm: "SHA256", Period: 30},
 			},
 		},
 	}
