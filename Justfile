@@ -32,6 +32,11 @@ docs:
 	export ANDCLI_HIDE_ABSPATH=1; vhs < doc/demo.tape
 
 test:
+	go test -short -coverprofile .coverage ./...
+	go tool cover -func .coverage
+	rm -f .coverage
+
+test_full:
 	go test -coverprofile .coverage ./...
 	go tool cover -func .coverage
 	rm -f .coverage

@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"strings"
 	"testing"
-
-	"github.com/tjblackheart/andcli/v2/internal/vaults/vaulttest"
 )
 
 // This test will take quite some time because of the ente crypto.
@@ -15,15 +13,20 @@ func TestOpen(t *testing.T) {
 		filename string
 		password string
 		fails    bool
+		slow     bool
 	}{
-		{"decrypts", "testdata/ente-auth-codes.json", "andcli-test", false},
-		{"rejects wrong password", "testdata/ente-auth-codes.json", "invalid", true},
-		{"rejects plain data", "testdata/ente-auth-codes-plain.txt", "", true},
-		{"rejects invalid version", "testdata/ente-noversion.json", "", true},
+		{"decrypts", "testdata/ente-auth-codes.json", "andcli-test", false, true},
+		{"rejects wrong password", "testdata/ente-auth-codes.json", "invalid", true, true},
+		{"rejects plain data", "testdata/ente-auth-codes-plain.txt", "", true, false},
+		{"rejects invalid version", "testdata/ente-noversion.json", "", true, false},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			if testing.Short() && tt.slow {
+				t.Skip("ente KDF fixture is 1 GiB, skipping. run this test without -short")
+			}
+
 			v, err := Open(tt.filename, []byte(tt.password))
 			if tt.fails {
 				if err == nil {
@@ -45,18 +48,6 @@ func TestOpen(t *testing.T) {
 			}
 		})
 	}
-}
-
-func FuzzOpen(f *testing.F) {
-	vaulttest.Seed(f, "testdata")
-
-	f.Fuzz(func(t *testing.T, data []byte) {
-		v, err := open(data, []byte("andcli-test"))
-		if err != nil {
-			return
-		}
-		_ = v.Entries()
-	})
 }
 
 func TestValidateKDFParams(t *testing.T) {
@@ -102,4 +93,18 @@ func TestValidateKDFParamsMessages(t *testing.T) {
 	if err == nil || !strings.Contains(err.Error(), "opsLimit 11") {
 		t.Errorf("error = %v, want opsLimit message", err)
 	}
+}
+
+func FuzzOpen(f *testing.F) {
+	f.Add([]byte(`{}`))
+	f.Add([]byte(`{"version":1}`))
+	f.Add([]byte("not a vault"))
+
+	f.Fuzz(func(t *testing.T, data []byte) {
+		v, err := open(data, []byte("andcli-test"))
+		if err != nil {
+			return
+		}
+		_ = v.Entries()
+	})
 }
