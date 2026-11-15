@@ -74,15 +74,14 @@ andcli will auto-quit after an adjustable time to not leave juicy info exposed i
 Usage: andcli [options] <path/to/file>
 
 Options:
-  -c, --clipboard-cmd string   A custom clipboard command, including args (xclip, wl-copy, pbcopy etc.)
-  -f, --file string            Path to the encrypted vault (deprecated: Pass the filename directly)
-  -h, --help                   Show this help
-      --passwd-stdin           Read the vault password from stdin. If set, skips the password input.
-  -q, --query string           Query the vault directly and skip TUI functionality
-      --session-timeout int    Auto-close after N seconds of inactivity (0=disabled) (default 300)
-      --timeout int            Timeout for decrypting the vault file, in seconds (default 5)
-  -t, --type string            Vault type (aegis, andotp, ente, keepass, proton, protonauth, stratum, twofas)
-  -v, --version                Prints version info and exits
+  -c, --clipboard-cmd string        A custom clipboard command, including args (xclip, wl-copy, pbcopy etc.)
+  -h, --help                        Show this help
+      --passwd-stdin                Read the vault password from stdin. If set, skips the password input.
+  -q, --query string                Query the vault directly and skip TUI functionality
+      --session-timeout int         Auto-close after N seconds of inactivity (0=disabled) (default 300)
+      --timeout int                 Timeout for decrypting the vault file, in seconds (default 5)
+  -t, --type string                 Vault type (aegis, andotp, ente, keepass, proton, protonauth, stratum, twofas)
+  -v, --version                     Prints version info and exits
 ```
 
 ## Implementing new vaults

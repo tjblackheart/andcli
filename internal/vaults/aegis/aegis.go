@@ -15,7 +15,14 @@ import (
 	"golang.org/x/crypto/scrypt"
 )
 
-const vaultType = vaults.AEGIS
+const (
+	vaultType = vaults.AEGIS
+
+	maxScryptN   = 1 << 20
+	maxScryptR   = 32
+	maxScryptP   = 16
+	maxScryptMem = 256 << 20
+)
 
 var _ vaults.Vault = &aegis{}
 
@@ -155,6 +162,10 @@ func (v aegis) masterKeyFromPass(password []byte) ([]byte, error) {
 			return nil, err
 		}
 
+		if err := validateScryptParams(s.N, s.R, s.P); err != nil {
+			return nil, fmt.Errorf("%s: %w", vaultType, err)
+		}
+
 		derivedKey, err = scrypt.Key(password, salt, s.N, s.R, s.P, 32)
 		if err != nil {
 			return nil, err
@@ -231,4 +242,23 @@ func (v aegis) decryptDB(key []byte) ([]byte, error) {
 	}
 
 	return plain, nil
+}
+
+func validateScryptParams(n, r, p int) error {
+	if n < 2 || n&(n-1) != 0 {
+		return fmt.Errorf("invalid scrypt N %d: must be a power of two >= 2", n)
+	}
+	if n > maxScryptN {
+		return fmt.Errorf("scrypt N too large: %d, max %d", n, maxScryptN)
+	}
+	if r < 1 || r > maxScryptR {
+		return fmt.Errorf("invalid scrypt R %d: must be 1..%d", r, maxScryptR)
+	}
+	if p < 1 || p > maxScryptP {
+		return fmt.Errorf("invalid scrypt P %d: must be 1..%d", p, maxScryptP)
+	}
+	if mem := int64(128) * int64(n) * int64(r); mem > maxScryptMem {
+		return fmt.Errorf("scrypt parameters too large: N=%d R=%d need %d bytes, max %d", n, r, mem, maxScryptMem)
+	}
+	return nil
 }

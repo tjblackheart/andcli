@@ -42,6 +42,8 @@ func Open(ctx context.Context, path string, pass []byte, vt VaultType) (Vault, e
 		err error
 	}
 
+	// KDFs cannot be cancelled, so the goroutine may run until the vault is
+	// opened. The channel is buffered so it can exit without a receiver.
 	done := make(chan data, 1)
 	go func() {
 		defer func() {
@@ -57,7 +59,7 @@ func Open(ctx context.Context, path string, pass []byte, vt VaultType) (Vault, e
 	case r := <-done:
 		return r.v, r.err
 	case <-ctx.Done():
-		return nil, fmt.Errorf("open: operation timed out. wrong type?")
+		return nil, fmt.Errorf("open: %q: %w", vt, ctx.Err())
 	}
 }
 

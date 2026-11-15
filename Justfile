@@ -32,6 +32,11 @@ docs:
 	export ANDCLI_HIDE_ABSPATH=1; vhs < doc/demo.tape
 
 test:
+	go test -short -coverprofile .coverage ./...
+	go tool cover -func .coverage
+	rm -f .coverage
+
+test_full:
 	go test -coverprofile .coverage ./...
 	go tool cover -func .coverage
 	rm -f .coverage
@@ -41,11 +46,11 @@ test_race:
 
 fuzz all="":
   #!/usr/bin/env bash
-  vaults=(andotp stratum protonpass twofas protonauth keepass) # aegis/ente need a kdf cap first
+  vaults=(andotp stratum protonpass twofas protonauth keepass aegis) # ente's fixture is too big to fuzz
   all="{{all}}"
   for v in "${vaults[@]}"; do
     if [[ "$all" != "-a" ]]; then
-      read -r -p "Fuzz $v (30s)? [Y/n] " reply
+      read -r -p "Fuzz test $v for 30s? [Y/n] " reply
       [[ $reply == n ]] && continue
     fi
     go test -run='^$' -fuzz=FuzzOpen -fuzztime=30s "./internal/vaults/$v"
