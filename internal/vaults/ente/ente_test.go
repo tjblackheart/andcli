@@ -2,6 +2,7 @@ package ente
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/tjblackheart/andcli/v2/internal/vaults/vaulttest"
@@ -56,4 +57,49 @@ func FuzzOpen(f *testing.F) {
 		}
 		_ = v.Entries()
 	})
+}
+
+func TestValidateKDFParams(t *testing.T) {
+	tests := []struct {
+		name     string
+		memLimit uint32
+		opsLimit uint32
+		wantErr  bool
+	}{
+		{"valid", 1 << 30, 4, false},
+		{"minimum", 1 << 20, 1, false},
+		{"mem too small", (1 << 20) - 1, 4, true},
+		{"mem too large", (1 << 30) + 1, 4, true},
+		{"ops zero", 1 << 30, 0, true},
+		{"ops too large", 1 << 30, 11, true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := validateKDFParams(tt.memLimit, tt.opsLimit)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("validateKDFParams(%d, %d) error = %v, wantErr %v", tt.memLimit, tt.opsLimit, err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestOpenRejectsHugeKDF(t *testing.T) {
+	const raw = `{"version":1,"kdfParams":{"memLimit":1073741825,"opsLimit":4,"salt":""},"encryptedData":"","encryptionNonce":""}`
+
+	if _, err := open([]byte(raw), []byte("x")); err == nil {
+		t.Fatal("open() error = nil, want an error")
+	}
+}
+
+func TestValidateKDFParamsMessages(t *testing.T) {
+	err := validateKDFParams((1<<30)+1, 4)
+	if err == nil || !strings.Contains(err.Error(), "memLimit too large") {
+		t.Errorf("error = %v, want memLimit message", err)
+	}
+
+	err = validateKDFParams(1<<20, 11)
+	if err == nil || !strings.Contains(err.Error(), "opsLimit 11") {
+		t.Errorf("error = %v, want opsLimit message", err)
+	}
 }

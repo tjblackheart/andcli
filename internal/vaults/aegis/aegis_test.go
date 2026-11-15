@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/tjblackheart/andcli/v2/internal/vaults"
@@ -113,5 +114,62 @@ func TestMasterKeyFromPassRejectsInvalidNonce(t *testing.T) {
 
 	if _, err := v.masterKeyFromPass([]byte("x")); err == nil {
 		t.Fatal("masterKeyFromPass() error = nil, want an error")
+	}
+}
+
+func TestValidateScryptParams(t *testing.T) {
+	tests := []struct {
+		name    string
+		n, r, p int
+		wantErr bool
+	}{
+		{"valid", 32768, 8, 1, false},
+		{"minimum valid", 2, 1, 1, false},
+		{"max n", 1 << 20, 1, 1, false},      // 128 MiB
+		{"max memory", 1 << 18, 8, 1, false}, // 256 MiB
+		{"n too small", 1, 8, 1, true},
+		{"n not power of two", 3, 8, 1, true},
+		{"n too large", 1 << 21, 1, 1, true},
+		{"n negative", -1, 8, 1, true},
+		{"r zero", 32768, 0, 1, true},
+		{"r too large", 32768, 33, 1, true},
+		{"p zero", 32768, 8, 0, true},
+		{"p too large", 32768, 8, 17, true},
+		{"memory too large", 1 << 19, 8, 1, true}, // 512 MiB
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := validateScryptParams(tt.n, tt.r, tt.p)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("validateScryptParams(%d, %d, %d) error = %v, wantErr %v", tt.n, tt.r, tt.p, err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestMasterKeyFromPassRejectsHugeKDF(t *testing.T) {
+	const raw = `{"header":{"slots":[{"type":1,"n":1048576,"r":32,"p":1,"salt":"00","key":"00","key_params":{"nonce":"00","tag":"00"}}]}}`
+
+	var v aegis
+	if err := json.Unmarshal([]byte(raw), &v); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := v.masterKeyFromPass([]byte("x")); err == nil {
+		t.Fatal("masterKeyFromPass() error = nil, want an error")
+	}
+}
+
+func TestValidateScryptParamsMessage(t *testing.T) {
+	err := validateScryptParams(1<<19, 8, 1)
+	if err == nil {
+		t.Fatal("validateScryptParams() error = nil, want an error")
+	}
+
+	for _, want := range []string{"N=524288", "R=8", "max 268435456"} {
+		if !strings.Contains(err.Error(), want) {
+			t.Errorf("error = %q, want it to contain %q", err, want)
+		}
 	}
 }

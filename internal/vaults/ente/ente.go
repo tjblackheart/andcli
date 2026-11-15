@@ -15,9 +15,12 @@ import (
 )
 
 const (
-	pCost      = 1
-	kdfKeySize = 32
-	vaultType  = vaults.ENTE
+	vaultType = vaults.ENTE
+
+	pCost       = 1
+	kdfKeySize  = 32
+	maxMemLimit = 1 << 30
+	maxOpsLimit = 10
 )
 
 var _ vaults.Vault = &ente{}
@@ -124,10 +127,11 @@ func (v *ente) decrypt(pass []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	tCost, mCost := v.KdfParams.OpsLimit, v.KdfParams.MemLimit/1024
-	if mCost < 1024 || tCost < 1 {
-		return nil, fmt.Errorf("invalid kdf params")
+	if err := validateKDFParams(v.KdfParams.MemLimit, v.KdfParams.OpsLimit); err != nil {
+		return nil, fmt.Errorf("%s: %w", vaultType, err)
 	}
+
+	tCost, mCost := v.KdfParams.OpsLimit, v.KdfParams.MemLimit/1024
 	key := argon2.IDKey(pass, salt, tCost, mCost, pCost, kdfKeySize)
 
 	data, err := base64.StdEncoding.DecodeString(v.EncryptedData)
@@ -146,4 +150,17 @@ func (v *ente) decrypt(pass []byte) ([]byte, error) {
 	}
 
 	return dec.pull(data)
+}
+
+func validateKDFParams(memLimit, opsLimit uint32) error {
+	if memLimit < 1<<20 {
+		return fmt.Errorf("memLimit too small: %d, min %d", memLimit, 1<<20)
+	}
+	if memLimit > maxMemLimit {
+		return fmt.Errorf("memLimit too large: %d, max %d", memLimit, maxMemLimit)
+	}
+	if opsLimit < 1 || opsLimit > maxOpsLimit {
+		return fmt.Errorf("opsLimit %d: must be 1..%d", opsLimit, maxOpsLimit)
+	}
+	return nil
 }
