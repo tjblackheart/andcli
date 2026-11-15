@@ -8,6 +8,7 @@ on:
 
 jobs:
   test:
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -22,3 +23,37 @@ jobs:
         cache: true
     - run: go mod download
     - run: just test
+
+  test_full:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        fetch-tags: true
+    - uses: extractions/setup-just@v3
+    - uses: actions/setup-go@v5
+      with:
+        go-version-file: go.mod
+        check-latest: true
+        cache: true
+    - run: go mod download
+    - run: just test_full
+
+  test_race:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        fetch-tags: true
+    - uses: extractions/setup-just@v3
+    - uses: actions/setup-go@v5
+      with:
+        go-version-file: go.mod
+        check-latest: true
+        cache: true
+    - run: go mod download
+    - run: just test_race

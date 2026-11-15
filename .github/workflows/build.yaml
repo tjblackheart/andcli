@@ -22,7 +22,7 @@ jobs:
     - uses: dawidd6/action-get-tag@v1
       id: tag
 
-    - run: just test
+    - run: just test_full
 
     - name: linux_amd64
       env:
